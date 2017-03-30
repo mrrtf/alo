@@ -33,16 +33,11 @@
 // HLT MUON
 #include "AliHLTMUONDigitReaderComponent.h"
 #include "AliHLTMUONConstants.h"
-#include "AliHLTMUONDigitBlock.h"
 
 // MUON
 #include "AliMUONVDigit.h"
 #include "AliMUONVDigitStore.h"
 
-    int CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
-            AliHLTMUONDigitsBlockWriter *&digitblock);
-  
-int AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock);
 
 ClassImp(AliHLTMUONDigitReaderComponent)
 
@@ -222,16 +217,10 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
 
       // create a digits data block for the new DE
       if (!digitblock)
-        if ((status = CreateDigitBlock(outputPtr+totalBytesUsed, size-totalBytesUsed, digitblock)) < 0) {
-            HLTError("The buffer is too small to store a new digit.");
-            break;
-        }
+        if ((status = CreateDigitBlock(outputPtr+totalBytesUsed, size-totalBytesUsed, digitblock)) < 0) break;
 
       // add the digit to the current block
-      if ((status = AddDigit(*digit, *digitblock)) < 0) {
-          HLTError("The buffer is too small to store a new digit.");
-          break;
-      }
+      if ((status = AddDigit(*digit, *digitblock)) < 0) break;
 
       // get the next digit and register the current block if we are done with this DE
       while ((digit = static_cast<AliMUONVDigit*>(digits->Next())) && digit->Charge() <= 0) continue;
@@ -279,13 +268,14 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
 }
 
 //_________________________________________________________________________________________________
-int CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
+int AliHLTMUONDigitReaderComponent::CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
                                                      AliHLTMUONDigitsBlockWriter *&digitblock)
 {
   /// Create a digits data block.
 
   digitblock = new AliHLTMUONDigitsBlockWriter(outputPtr, size);
   if (!digitblock->InitCommonHeader()) {
+    HLTError("The buffer is too small to store a new digit block.");
     return -ENOBUFS;
   }
 
@@ -293,12 +283,13 @@ int CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
 }
 
 //_________________________________________________________________________________________________
-int AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock)
+int AliHLTMUONDigitReaderComponent::AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock)
 {
   /// Add a digit to the block.
 
   AliHLTMUONDigitStruct *digit2 = digitblock.AddEntry();
   if (!digit2) {
+    HLTError("The buffer is too small to store a new digit.");
     return -ENOBUFS;
   }
   digit2->fId = digit.GetUniqueID();

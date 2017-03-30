@@ -10,5 +10,6 @@
 #pragma link C++ nestedfunction;
 
 #pragma link C++ class AliHLTMUONDigitReaderComponent+;
+#pragma link C++ class Agent+;
 
 #endif // __CINT__

@@ -15,6 +15,7 @@
 ///
 
 #include "AliHLTDataSource.h"
+#include "AliHLTMUONDigitBlock.h"
 
 class TFile;
 class TTree;
@@ -72,6 +73,11 @@ private:
   
   void CleanMemory();
   
+  int CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
+                       AliHLTMUONDigitsBlockWriter *&digitblock);
+  
+  int AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock);
+  
   TFile* fFile; ///< input file
   TTree* fTree; ///< input tree
   AliMUONVDigitStore *fDigitStore; ///< list of digits in an AliMUONVDigit format
@@ -79,7 +85,6 @@ private:
   
   ClassDef(AliHLTMUONDigitReaderComponent, 0)
 };
-
 
 #endif // ALIHLTMUONDIGITREADERCOMPONENT_H
 
