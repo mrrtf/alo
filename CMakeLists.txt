@@ -29,5 +29,7 @@ else(ALIROOT)
     message(FATAL_ERROR "aliroot required")
 endif(ALIROOT)
 
+include(CMakeALICE)
+
 add_subdirectory(dhlt)
 add_subdirectory(binmap)
