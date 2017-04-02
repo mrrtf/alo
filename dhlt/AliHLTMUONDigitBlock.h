@@ -4,6 +4,7 @@
 #include "TObject.h"
 #include "AliHLTComponent.h"
 #include "AliHLTMUONDataBlockWriter.h"
+#include "AliHLTMUONDataBlockReader.h"
 #include "AliHLTMUONUtils.h"
 #include "AliHLTMUONDataTypes.h"
 #include <ostream>
@@ -151,7 +152,7 @@ namespace AliHLTMUONDigitBlock {
             AliHLTMUONUtils::WhyNotValid* reason = NULL, AliHLTUInt32_t* recordNum = NULL
             );
 
-    const AliHLTComponentDataType& DigitBlockDataType();
+    const AliHLTComponentDataType& DataType();
 }
 
 typedef AliHLTMUONDataBlockWriter<
@@ -159,5 +160,10 @@ AliHLTMUONDigitsBlockStruct,
     AliHLTMUONDigitStruct,
     AliHLTMUONDataBlockType(AliHLTMUONDigitBlock::kDataBlockType)
     > AliHLTMUONDigitsBlockWriter;
+
+typedef AliHLTMUONDataBlockReader<
+		AliHLTMUONDigitsBlockStruct,
+		AliHLTMUONDigitStruct
+	> AliHLTMUONDigitsBlockReader;
 
 #endif

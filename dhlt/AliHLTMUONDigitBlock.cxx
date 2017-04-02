@@ -84,7 +84,7 @@ bool operator == (
 
 namespace AliHLTMUONDigitBlock {
 
-    const AliHLTComponentDataType& DigitBlockDataType()
+    const AliHLTComponentDataType& DataType()
     {
         // Returns a information block type for digits.
         // Returns a information block type for digits.

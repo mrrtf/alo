@@ -11,6 +11,7 @@ AliHLTMUONMapping::mpDE* AliHLTMUONMapping::ReadMapping(const char* mapfile)
   ifstream in(mapfile,ios::binary);
 
   if (!in.is_open()) {
+      std::cerr << "ERROR: AliHLTMUONMapping : can not open " << mapfile << std::endl;
     return 0x0;
   }
 
@@ -62,6 +63,7 @@ AliHLTMUONMapping::mpDE* AliHLTMUONMapping::ReadMapping(const char* mapfile)
   }
 
   if ( totalNumberOfPads != 1064008+20992 ) {
+      std::cerr << "totalNumberOfPads = " << totalNumberOfPads << "!= from the expected " << 1064008+20992 << std::endl;
     delete[] detectionElements;
     return 0x0;
   }

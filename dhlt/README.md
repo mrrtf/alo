@@ -1,10 +1,11 @@
-/** 
+# Dev notes
 
-@defgroup detectors_muon_base MUON base
-
-MUON base code
-
-@ingroup detectors_muon
+Compared to what used to be in the `feature-muonhlt` AliRoot branch (or in HLT
+in general), I've tried to minimize the number of source files. So there's only
+one file per data structure, instead of 3 originally (Struct itself, Block of
+struct, Block writer). Some reorganisation was anyway needed as some constants
+had to be "extracted" from some common classes (`AliHLTMUONConstants` and
+`AliHLTMUONDataTypes`)
 
 # Testing the (HLT) preclustering device
 

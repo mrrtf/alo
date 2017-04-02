@@ -8,10 +8,12 @@ include_directories(${ROOT_INCLUDE_DIR}
                     )
 
 set(SRCS
-    AliHLTMUONMapping.cxx
-    AliHLTMUONDigitReaderComponent.cxx
-    AliHLTMUONDigitBlock.cxx
     Agent.cxx
+    AliHLTMUONDigitBlock.cxx
+    AliHLTMUONDigitReaderComponent.cxx
+    AliHLTMUONMapping.cxx
+    AliHLTMUONPreclusterBlock.cxx
+    AliHLTMUONPreclusterFinderComponent.cxx
     )
 
 string(REPLACE ".cxx" ".h" HDRS "${SRCS}")# only for those classes that do need a dictionary

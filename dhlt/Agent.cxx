@@ -1,5 +1,6 @@
 #include "Agent.h"
 #include "AliHLTMUONDigitReaderComponent.h"
+#include "AliHLTMUONPreclusterFinderComponent.h"
 
 ClassImp(Agent);
 
@@ -24,6 +25,7 @@ int Agent::RegisterComponents(AliHLTComponentHandler* pHandler) const
   }
 
   pHandler->AddComponent(new AliHLTMUONDigitReaderComponent);
+  pHandler->AddComponent(new AliHLTMUONPreclusterFinderComponent);
 
   return 0;
 }

@@ -81,7 +81,7 @@ const char* AliHLTMUONDigitReaderComponent::GetComponentID()
 AliHLTComponentDataType AliHLTMUONDigitReaderComponent::GetOutputDataType()
 {
   /// Inherited from AliHLTComponent. Returns the output data type.
-  return AliHLTMUONDigitBlock::DigitBlockDataType();
+  return AliHLTMUONDigitBlock::DataType();
 }
 
 //_________________________________________________________________________________________________
@@ -226,7 +226,7 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
       while ((digit = static_cast<AliMUONVDigit*>(digits->Next())) && digit->Charge() <= 0) continue;
       if (!digit || digit->DetElemId() != currentDE) {
         AliHLTUInt32_t bytesUsed(digitblock->BytesUsed());
-        if ((status = PushBack(outputPtr+totalBytesUsed, bytesUsed, AliHLTMUONDigitBlock::DigitBlockDataType(), currentDE)) < 0) break;
+        if ((status = PushBack(outputPtr+totalBytesUsed, bytesUsed, AliHLTMUONDigitBlock::DataType(), currentDE)) < 0) break;
         totalBytesUsed += bytesUsed;
         currentDE = digit ? digit->DetElemId() : -1;
         delete digitblock;
@@ -255,7 +255,7 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
       // register the block if not empty
       if (status >= 0 && digitblock->Nentries() > 0) {
         AliHLTUInt32_t bytesUsed(digitblock->BytesUsed());
-        status = PushBack(outputPtr, bytesUsed, AliHLTMUONDigitBlock::DigitBlockDataType(), 0);
+        status = PushBack(outputPtr, bytesUsed, AliHLTMUONDigitBlock::DataType(), 0);
       }
 
     }
