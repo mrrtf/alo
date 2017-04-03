@@ -14,6 +14,7 @@ set(SRCS
     AliHLTMUONDigitLoaderComponent.cxx
     AliHLTMUONDigitReaderComponent.cxx
     AliHLTMUONMapping.cxx
+    AliHLTMUONNewClusterFinderComponent.cxx
     AliHLTMUONPreclusterBlock.cxx
     AliHLTMUONPreclusterFinderComponent.cxx
     )
