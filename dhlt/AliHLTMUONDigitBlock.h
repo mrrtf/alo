@@ -25,7 +25,7 @@ extern "C"
     /**
      * AliHLTMUONDigitBlockStruct defines the format of the internal digit data block.
      */
-    struct AliHLTMUONDigitsBlockStruct
+    struct AliHLTMUONDigitBlockStruct
     {
         AliHLTMUONDataBlockHeader fHeader; // Common data block header
 
@@ -47,11 +47,11 @@ std::ostream& operator << (
 
 /**
  * Stream operator for usage with std::ostream classes which prints the
- * AliHLTMUONDigitsBlockStruct in the following format:
+ * AliHLTMUONDigitBlockStruct in the following format:
  *   {fHeader = xx, fDigit[] = [{..}, {..}, ...]}
  */
 std::ostream& operator << (
-        std::ostream& stream, const AliHLTMUONDigitsBlockStruct& block
+        std::ostream& stream, const AliHLTMUONDigitBlockStruct& block
         );
 
 
@@ -73,13 +73,13 @@ inline bool operator != (
 
 
 bool operator == (
-        const AliHLTMUONDigitsBlockStruct& a,
-        const AliHLTMUONDigitsBlockStruct& b
+        const AliHLTMUONDigitBlockStruct& a,
+        const AliHLTMUONDigitBlockStruct& b
         );
 
 inline bool operator != (
-        const AliHLTMUONDigitsBlockStruct& a,
-        const AliHLTMUONDigitsBlockStruct& b
+        const AliHLTMUONDigitBlockStruct& a,
+        const AliHLTMUONDigitBlockStruct& b
         )
 {
     return not operator == (a, b);
@@ -90,7 +90,7 @@ namespace AliHLTMUONDigitBlock {
     const int kDataBlockType = 2003;
 
     bool HeaderOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason, AliHLTUInt32_t& reasonCount
             );
 
@@ -106,7 +106,7 @@ namespace AliHLTMUONDigitBlock {
      *      the data.
      * \returns  true if there is no problem with the header and false otherwise.
      */
-    bool HeaderOk(const AliHLTMUONDigitsBlockStruct& block, AliHLTMUONUtils::WhyNotValid* reason = NULL);
+    bool HeaderOk(const AliHLTMUONDigitBlockStruct& block, AliHLTMUONUtils::WhyNotValid* reason = NULL);
 
     bool IntegrityOk(
             const AliHLTMUONDigitStruct& digit,
@@ -114,7 +114,7 @@ namespace AliHLTMUONDigitBlock {
             AliHLTUInt32_t& reasonCount
             );
     bool IntegrityOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason,
             AliHLTUInt32_t* recordNum,
             AliHLTUInt32_t& reasonCount
@@ -148,7 +148,7 @@ namespace AliHLTMUONDigitBlock {
      * \returns  true if there is no problem with the data and false otherwise.
      */
     bool IntegrityOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason = NULL, AliHLTUInt32_t* recordNum = NULL
             );
 
@@ -156,14 +156,14 @@ namespace AliHLTMUONDigitBlock {
 }
 
 typedef AliHLTMUONDataBlockWriter<
-AliHLTMUONDigitsBlockStruct,
+AliHLTMUONDigitBlockStruct,
     AliHLTMUONDigitStruct,
     AliHLTMUONDataBlockType(AliHLTMUONDigitBlock::kDataBlockType)
-    > AliHLTMUONDigitsBlockWriter;
+    > AliHLTMUONDigitBlockWriter;
 
 typedef AliHLTMUONDataBlockReader<
-		AliHLTMUONDigitsBlockStruct,
+		AliHLTMUONDigitBlockStruct,
 		AliHLTMUONDigitStruct
-	> AliHLTMUONDigitsBlockReader;
+	> AliHLTMUONDigitBlockReader;
 
 #endif

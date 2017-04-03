@@ -184,7 +184,7 @@ int AliHLTMUONPreclusterFinderComponent::DoEvent(const AliHLTComponentEventData&
   const AliHLTComponentBlockData* pBlock = GetFirstInputBlock(AliHLTMUONDigitBlock::DataType());
   while (pBlock) {
 
-    AliHLTMUONDigitsBlockReader dblock(pBlock->fPtr, pBlock->fSize);
+    AliHLTMUONDigitBlockReader dblock(pBlock->fPtr, pBlock->fSize);
 
     // make sure the block indeed contains a valid digits block
     if (!dblock.BufferSizeOk()) {
@@ -228,7 +228,7 @@ int AliHLTMUONPreclusterFinderComponent::DoEvent(const AliHLTComponentEventData&
 
 
 //_________________________________________________________________________________________________
-void AliHLTMUONPreclusterFinderComponent::LoadDigits(const AliHLTMUONDigitsBlockReader &dblock)
+void AliHLTMUONPreclusterFinderComponent::LoadDigits(const AliHLTMUONDigitBlockReader &dblock)
 {
   /// fill the AliMUONHLTMapping::mpDE structure with fired pads
 

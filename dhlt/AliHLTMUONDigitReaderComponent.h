@@ -74,9 +74,9 @@ private:
   void CleanMemory();
   
   int CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
-                       AliHLTMUONDigitsBlockWriter *&digitblock);
+                       AliHLTMUONDigitBlockWriter *&digitblock);
   
-  int AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock);
+  int AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitBlockWriter &digitblock);
   
   TFile* fFile; ///< input file
   TTree* fTree; ///< input tree

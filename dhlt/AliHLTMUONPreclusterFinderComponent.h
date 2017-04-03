@@ -94,7 +94,7 @@ private:
 
   Bool_t ReadMapping(const char* binmapfile);
 
-  void LoadDigits(const AliHLTMUONDigitsBlockReader &dblock);
+  void LoadDigits(const AliHLTMUONDigitBlockReader &dblock);
   void ResetPadsAndPreclusters();
 
   void PreclusterizeRecursive();

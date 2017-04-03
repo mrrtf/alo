@@ -1,4 +1,6 @@
 #include "Agent.h"
+#include "AliHLTMUONClusterWriterComponent.h"
+#include "AliHLTMUONDigitLoaderComponent.h"
 #include "AliHLTMUONDigitReaderComponent.h"
 #include "AliHLTMUONPreclusterFinderComponent.h"
 
@@ -24,6 +26,8 @@ int Agent::RegisterComponents(AliHLTComponentHandler* pHandler) const
       return -EINVAL;
   }
 
+  pHandler->AddComponent(new AliHLTMUONClusterWriterComponent);
+  pHandler->AddComponent(new AliHLTMUONDigitLoaderComponent);
   pHandler->AddComponent(new AliHLTMUONDigitReaderComponent);
   pHandler->AddComponent(new AliHLTMUONPreclusterFinderComponent);
 

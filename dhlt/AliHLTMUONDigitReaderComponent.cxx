@@ -88,8 +88,8 @@ AliHLTComponentDataType AliHLTMUONDigitReaderComponent::GetOutputDataType()
 void AliHLTMUONDigitReaderComponent::GetOutputDataSize(unsigned long& constBase, double& inputMultiplier)
 {
   /// Inherited from AliHLTComponent. Returns an estimate of the expected output data size.
-  if (fPerDE) constBase = 156*sizeof(AliHLTMUONDigitsBlockStruct) + 1064008*sizeof(AliHLTMUONDigitStruct);
-  else constBase = sizeof(AliHLTMUONDigitsBlockStruct) + 1064008*sizeof(AliHLTMUONDigitStruct);
+  if (fPerDE) constBase = 156*sizeof(AliHLTMUONDigitBlockStruct) + 1064008*sizeof(AliHLTMUONDigitStruct);
+  else constBase = sizeof(AliHLTMUONDigitBlockStruct) + 1064008*sizeof(AliHLTMUONDigitStruct);
   inputMultiplier = 0;
 }
 
@@ -206,7 +206,7 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
   int status(0);
   TIterator *digits(0x0);
   AliMUONVDigit *digit(0x0);
-  AliHLTMUONDigitsBlockWriter *digitblock(0x0);
+  AliHLTMUONDigitBlockWriter *digitblock(0x0);
   if (fPerDE) { // one block per dE
 
     digits = fDigitStore->CreateTrackerIterator();
@@ -269,11 +269,11 @@ int AliHLTMUONDigitReaderComponent::GetEvent(const AliHLTComponentEventData& evt
 
 //_________________________________________________________________________________________________
 int AliHLTMUONDigitReaderComponent::CreateDigitBlock(AliHLTUInt8_t *outputPtr, AliHLTUInt32_t size,
-                                                     AliHLTMUONDigitsBlockWriter *&digitblock)
+                                                     AliHLTMUONDigitBlockWriter *&digitblock)
 {
   /// Create a digits data block.
 
-  digitblock = new AliHLTMUONDigitsBlockWriter(outputPtr, size);
+  digitblock = new AliHLTMUONDigitBlockWriter(outputPtr, size);
   if (!digitblock->InitCommonHeader()) {
     HLTError("The buffer is too small to store a new digit block.");
     return -ENOBUFS;
@@ -283,7 +283,7 @@ int AliHLTMUONDigitReaderComponent::CreateDigitBlock(AliHLTUInt8_t *outputPtr, A
 }
 
 //_________________________________________________________________________________________________
-int AliHLTMUONDigitReaderComponent::AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitsBlockWriter &digitblock)
+int AliHLTMUONDigitReaderComponent::AddDigit(AliMUONVDigit &digit, AliHLTMUONDigitBlockWriter &digitblock)
 {
   /// Add a digit to the block.
 

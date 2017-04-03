@@ -9,7 +9,9 @@ include_directories(${ROOT_INCLUDE_DIR}
 
 set(SRCS
     Agent.cxx
+    AliHLTMUONClusterWriterComponent.cxx
     AliHLTMUONDigitBlock.cxx
+    AliHLTMUONDigitLoaderComponent.cxx
     AliHLTMUONDigitReaderComponent.cxx
     AliHLTMUONMapping.cxx
     AliHLTMUONPreclusterBlock.cxx

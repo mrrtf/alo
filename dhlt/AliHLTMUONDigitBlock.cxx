@@ -43,7 +43,7 @@ std::ostream& operator << (
 }
 
 std::ostream& operator << (
-        std::ostream& stream, const AliHLTMUONDigitsBlockStruct& block
+        std::ostream& stream, const AliHLTMUONDigitBlockStruct& block
         )
 {
     assert( AliHLTMUONDigitBlock::IntegrityOk(block) );
@@ -60,8 +60,8 @@ std::ostream& operator << (
 
 
 bool operator == (
-        const AliHLTMUONDigitsBlockStruct& a,
-        const AliHLTMUONDigitsBlockStruct& b
+        const AliHLTMUONDigitBlockStruct& a,
+        const AliHLTMUONDigitBlockStruct& b
         )
 {
     assert( AliHLTMUONDigitBlock::IntegrityOk(a) );
@@ -142,7 +142,7 @@ namespace AliHLTMUONDigitBlock {
 
 
     bool IntegrityOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason,
             AliHLTUInt32_t* recordNum,
             AliHLTUInt32_t& reasonCount
@@ -199,7 +199,7 @@ namespace AliHLTMUONDigitBlock {
 
 
     bool HeaderOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason, AliHLTUInt32_t& reasonCount
             )
     {
@@ -246,7 +246,7 @@ namespace AliHLTMUONDigitBlock {
     }
 
 
-    bool HeaderOk(const AliHLTMUONDigitsBlockStruct& block, AliHLTMUONUtils::WhyNotValid* reason)
+    bool HeaderOk(const AliHLTMUONDigitBlockStruct& block, AliHLTMUONUtils::WhyNotValid* reason)
     {
         AliHLTUInt32_t count = 1;
         return HeaderOk(block, reason, count);
@@ -261,7 +261,7 @@ namespace AliHLTMUONDigitBlock {
     }
 
     bool IntegrityOk(
-            const AliHLTMUONDigitsBlockStruct& block,
+            const AliHLTMUONDigitBlockStruct& block,
             AliHLTMUONUtils::WhyNotValid* reason, AliHLTUInt32_t* recordNum)
     {
         AliHLTUInt32_t count = 1;
