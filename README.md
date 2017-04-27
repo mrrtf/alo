@@ -8,3 +8,5 @@ the same kind of operation itself)
 
 This is really a work-in-progress and will never be finalized, by
 construction, as it is meant to disappear (the sooner the better)
+
+More documentation is to be found under the [dhlt](dhlt/README.md) directory.
