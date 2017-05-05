@@ -1,3 +1,6 @@
+
+[![GitPitch](https://gitpitch.com/assets/badge.svg)](https://gitpitch.com/mrrtf/alo/dev-doc?grs=github&t=white)
+
 A small package for Alice Muon Reconstruction development.
 
 It (might) depends both on AliceO2 and on AliRoot and is meant to hold
