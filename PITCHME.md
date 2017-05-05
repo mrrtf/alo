@@ -1,26 +1,32 @@
-alo package
+# alo 
 
 ---
 
-what is it ? (see below)
+## what is it ? 
+
+<i style="font-size: 2em" class="fa fa-long-arrow-down" aria-hidden="true"></i>
 
 +++
 
-- a glue between AliRoot and O2
+a **small** package
+
++++
+
+fated to **disappear**
+
++++
+
+replacing content of `feature-muon-hlt` branch
 
 +++
 
 - avoids including AliRoot parts into O2
-
-+++
-
-- meant to disappear
+- keeps dependencies clean
 
 ---
 
-Usage
+## Usage
 
 ```bash
 aliBuild build --defaults alo build alo
 ```
-
