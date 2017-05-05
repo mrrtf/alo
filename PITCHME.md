@@ -30,3 +30,7 @@ replacing content of `feature-muon-hlt` branch
 ```bash
 aliBuild build --defaults alo build alo
 ```
+
+---
+
+![x](http://res.cloudinary.com/apeinesec/image/upload/v1493978043/digit-inspector_j1edwy.svg)
