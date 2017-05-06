@@ -16,11 +16,12 @@ fated to **disappear**
 
 +++
 
-replacing content of `feature-muon-hlt` branch
+replacing `feature-muon-hlt`
+![](http://res.cloudinary.com/apeinesec/image/upload/v1494091795/1494109701_git-branch_k9p3ui.svg)
 
 +++
 
-- avoids including AliRoot parts into O2
+- avoids including AliRoot parts into O2 |
 - keeps dependencies clean
 
 ---
