@@ -16,7 +16,7 @@ fated to **disappear**
 
 +++
 
-replacing `feature-muon-hlt` <i class="fa fa-leaft" aria-hidden="true"></i>
+replacing `feature-muon-hlt` <i class="fa fa-leaf" aria-hidden="true"></i>
 
 <!-- ![](http://res.cloudinary.com/apeinesec/image/upload/v1494091795/1494109701_git-branch_k9p3ui.svg) -->
 
