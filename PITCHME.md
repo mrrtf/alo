@@ -23,7 +23,7 @@ replacing `feature-muon-hlt` <i class="fa fa-leaf" aria-hidden="true"></i>
 +++
 
 - avoids including AliRoot parts into O2 |
-- keeps dependencies clean
+- keeps dependencies clean |
 
 ---
 
