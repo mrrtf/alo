@@ -22,12 +22,12 @@ replacing `feature-muon-hlt` <i class="fa fa-leaf" aria-hidden="true"></i>
 
 +++
 
-- avoids including AliRoot parts into O2 |
-- keeps dependencies clean |
+- avoids including AliRoot parts into O2
+- keeps dependencies clean
 
 ---
 
-## Contents
+## Contains
 
 In principle all the past works from Philippe, Diego and Hugo wrt dHLT components.
 
@@ -41,5 +41,7 @@ Please check.
 aliBuild build --defaults alo build alo
 ```
 
-Will install both AliRoot and O2
+
+Will install `alo` but also `AliRoot` and `O2` as dependencies.
+
 
