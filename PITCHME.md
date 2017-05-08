@@ -27,12 +27,19 @@ replacing `feature-muon-hlt` <i class="fa fa-leaf" aria-hidden="true"></i>
 
 ---
 
+## Contents
+
+In principle all the past works from Philippe, Diego and Hugo wrt dHLT components.
+
+Please check.
+
+---
+
 ## Usage
 
 ```bash
 aliBuild build --defaults alo build alo
 ```
 
----
+Will install both AliRoot and O2
 
-![x](http://res.cloudinary.com/apeinesec/image/upload/v1493978043/digit-inspector_j1edwy.svg)
