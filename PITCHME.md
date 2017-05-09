@@ -38,7 +38,7 @@ Please check.
 ## Usage
 
 ```bash
-aliBuild -w ../sw -z build --defaults alo build alo
+aliBuild -w ../sw -z --defaults alo build alo
 ```
 
 
