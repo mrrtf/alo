@@ -63,6 +63,7 @@ export ALIHLT_HCDBDIR=local://$ALIROOT_OCDB_ROOT/OCDB
 Launch, on one terminal, the Digit Reader
 
 ```bash
+AliceHLTWrapperDevice 'DigitReader' --id 1 --channel-config 'name=data-out,type=push,size=10,method=bind,address=tcp://*:45001' --library libdhlt --component MUONDigitReader --parameter '-datafile merged.digits.MB.196099.root' --run 169099
 ```
 
 Hit 'r' to run it. Assuming this is the first device you launch, nothing should happen as no other device is asking for the data this one is producing.
