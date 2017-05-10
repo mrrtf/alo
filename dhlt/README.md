@@ -26,7 +26,7 @@ $ALIROOT_OCDB_ROOT/OCDB
 as long as you've done : 
 
 ```
-alienv enter AliRoot/latest,AliRoot-OCDB/latest,O2/latest
+alienv enter AliRoot/latest,AliRoot-OCDB/latest,O2/latest,alo/latest
 ```
 
 Without `alibuild` it's a matter of cloning the right repo and define yourself the environment variable:
@@ -63,7 +63,7 @@ export ALIHLT_HCDBDIR=local://$ALIROOT_OCDB_ROOT/OCDB
 Launch, on one terminal, the Digit Reader
 
 ```bash
-aliceHLTWrapperApp 'DigitReader' 1 -x --output 'type=push,size=10,method=bind,address=tcp://*:45000' --library libdhlt --component MUONDigitReader --parameter '-datafile merged.digits.MB.196099.root'
+AliceHLTWrapperDevice 'DigitReader' --id 1 --output 'type=push,size=10,method=bind,address=tcp://*:45001' --library libdhlt --component MUONDigitReader --parameter '-datafile merged.digits.MB.196099.root' --run 169099
 ```
 
 Hit 'r' to run it. Assuming this is the first device you launch, nothing should happen as no other device is asking for the data this one is producing.
@@ -73,7 +73,7 @@ Hit 'r' to run it. Assuming this is the first device you launch, nothing should 
 Get one (or several) cluster finder(s) running :
 
 ```bash
-aliceHLTWrapperApp 'Cluster Finder' 1 -x --input 'type=pull,method=connect,size=10,address=tcp://localhost:45000' --library libdhlt --component MUONPreclusterFinder --parameter '-binmapfile binmapfile.dat'
+AliceHLTWrapperDevice 'Cluster Finder' --id 1 --input 'type=pull,method=connect,size=10,address=tcp://localhost:45000' --library libdhlt --component MUONPreclusterFinder --parameter '-binmapfile binmapfile.dat' --run 16099
 ```
 
 Hit 'r' to run it. That should trigger the start of the Digit Reader in the other terminal.
