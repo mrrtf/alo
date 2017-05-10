@@ -63,7 +63,6 @@ export ALIHLT_HCDBDIR=local://$ALIROOT_OCDB_ROOT/OCDB
 Launch, on one terminal, the Digit Reader
 
 ```bash
-AliceHLTWrapperDevice 'DigitReader' --id 1 --output 'type=push,size=10,method=bind,address=tcp://*:45001' --library libdhlt --component MUONDigitReader --parameter '-datafile merged.digits.MB.196099.root' --run 169099
 ```
 
 Hit 'r' to run it. Assuming this is the first device you launch, nothing should happen as no other device is asking for the data this one is producing.
@@ -73,7 +72,7 @@ Hit 'r' to run it. Assuming this is the first device you launch, nothing should 
 Get one (or several) cluster finder(s) running :
 
 ```bash
-AliceHLTWrapperDevice 'Cluster Finder' --id 1 --input 'type=pull,method=connect,size=10,address=tcp://localhost:45000' --library libdhlt --component MUONPreclusterFinder --parameter '-binmapfile binmapfile.dat' --run 16099
+AliceHLTWrapperDevice 'Cluster Finder' --id 1 --channel-config 'name=data-in,type=pull,method=connect,size=10,address=tcp://localhost:45000' --library libdhlt --component MUONPreclusterFinder --parameter '-binmapfile binmapfile.dat' --run 16099
 ```
 
 Hit 'r' to run it. That should trigger the start of the Digit Reader in the other terminal.
