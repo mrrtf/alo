@@ -225,6 +225,8 @@ int AliHLTMUONClusterWriterComponent::DumpEvent(
   }
 
   fTree->Fill();
+  fFile->cd();
+  fTree->Write(0,TObject::kOverwrite);
 
   return iResult;
 }
