@@ -46,9 +46,15 @@ dhlt-generate-binmapfile -cdbpath local://$ALIROOT_OCDB_ROOT/OCDB -run 0 -binmap
 
 Finally, you'll need to get a digit file, e.g. :
 
-```
-curl -o merged.digits.MB.196099.root https://cernbox.cern.ch/index.php/s/mgdDBOmu03XzBGk/download
-```
+* to get a Muon Tracker digits file:
+    ```
+    curl -o merged.digits.MB.196099.root https://cernbox.cern.ch/index.php/s/mgdDBOmu03XzBGk/download
+    ```
+
+* to get a Muon Trigger digits file:
+    ```
+    curl -o digits.root https://cernbox.cern.ch/index.php/s/og0Yeo1bA47KZLA/download
+    ```
 
 You also _must_ set the `ALIHLT_HCDBDIR` to point to a valid OCDB, e.g. :
 
