@@ -31,7 +31,6 @@
 
 // HLT MUON
 #include "AliHLTMUONClusterWriterComponent.h"
-#include "AliHLTMUONConstants.h"
 
 // MUON
 #include "AliMUONVCluster.h"
@@ -79,7 +78,7 @@ void AliHLTMUONClusterWriterComponent::GetInputDataTypes(AliHLTComponentDataType
 {
   /// Inherited from AliHLTComponent. Returns the list of expected input data types.
   list.clear();
-  list.push_back(AliHLTMUONConstants::ClusterStoreDataType());
+  list.push_back(AliHLTComponentDataTypeInitializer("CLUSTORE", kAliHLTDataOriginMUON));
   list.push_back(AliHLTMUONPreclusterBlock::DataType());
 }
 
@@ -186,7 +185,7 @@ int AliHLTMUONClusterWriterComponent::DumpEvent(
   fClusterStore->Clear();
 
   // loop over objects in blocks of data type "ClusterStore"
-  const TObject *pObj = GetFirstInputObject(AliHLTMUONConstants::ClusterStoreDataType());
+  const TObject *pObj = GetFirstInputObject(AliHLTComponentDataTypeInitializer("CLUSTORE", kAliHLTDataOriginMUON));
   while (pObj) {
 
     const AliMUONVClusterStore *pClStore = dynamic_cast<const AliMUONVClusterStore*>(pObj);
