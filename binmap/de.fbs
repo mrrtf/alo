@@ -1,0 +1,19 @@
+table mch {
+/*  deids:[int]; */
+ ch:[ch];
+ de:[de];
+}
+
+table ch {
+    id:int;
+    de:[int];
+}
+
+table de {
+  id:int;
+  name:string;
+  type:string;
+  cath0_is_bending_plane:bool = true;
+}
+
+root_type mch;
