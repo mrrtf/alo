@@ -1,5 +1,5 @@
 
-[![GitPitch](https://gitpitch.com/assets/badge.svg)](https://gitpitch.com/mrrtf/alo/dev-doc?grs=github&t=white)
+[![GitPitch](https://gitpitch.com/assets/badge.svg)](https://gitpitch.com/mrrtf/alo/master?grs=github&t=white)
 
 A small package for Alice Muon Reconstruction development.
 
