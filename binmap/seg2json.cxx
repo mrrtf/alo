@@ -19,6 +19,11 @@
 #include <set>
 #include <vector>
 
+AliMpSlatMotifMap* slatmap() {
+    static AliMpSlatMotifMap* m = new AliMpSlatMotifMap;
+    return m;
+}
+
 bool is_slat(std::string segtype) {
     return (segtype.find("st") == std::string::npos);
 }
@@ -41,8 +46,7 @@ AliMpVSegmentation* get_segmentation(std::string segtype, AliMp::PlaneType plane
     AliMpVSegmentation* seg = nullptr;
 
     if (is_slat(segtype)) {
-        AliMpSlatMotifMap slatmap;
-        AliMpSt345Reader reader(&slatmap);
+        AliMpSt345Reader reader(slatmap());
         AliMpSlat* slat = reader.ReadSlat(dataStreams, segtype.c_str(), planeType);
         seg = new AliMpSlatSegmentation(slat,true);
     }
