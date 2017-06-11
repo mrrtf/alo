@@ -13,23 +13,26 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <map>
 #include <string>
 #include <vector>
 
-void getPCBs(const AliMpSlat& slat, std::map<std::string,AliMpPCB*>& pcbs)
+void getPCBs(const AliMpSlat& slat, std::vector<AliMpPCB*>& pcbs)
 {
     for ( int i = 0; i < slat.GetSize(); ++i ) {
         AliMpPCB* pcb = slat.GetPCB(i);
-        if ( !pcbs.count(pcb->GetID())) {
-            pcbs[std::string(pcb->GetID())]=pcb;
+        if ( std::find_if(pcbs.begin(),pcbs.end(),
+                    [&pcb](AliMpPCB* p) {
+                        return strcmp(pcb->GetID(),p->GetID())==0; 
+                        }
+                    ) == pcbs.end() ) {
+            pcbs.push_back(pcb);
         }
     }
 }
 
-std::map<std::string, AliMpPCB*> get_allpcbs(AliMpDataStreams& dataStreams) {
+std::vector<AliMpPCB*> get_allpcbs(AliMpDataStreams& dataStreams) {
 
-    std::map<std::string,AliMpPCB*> pcbs;
+    std::vector<AliMpPCB*> pcbs;
 
     std::vector<std::string> segtypes = get_segtypes();
 
@@ -90,12 +93,12 @@ void all_pcb2json(std::ostream& out) {
     AliMpDataMap* dataMap = mp.CreateDataMap("data");
     AliMpDataStreams dataStreams(dataMap);
 
-    std::map<std::string,AliMpPCB*> pcbs = get_allpcbs(dataStreams);
+    std::vector<AliMpPCB*> pcbs = get_allpcbs(dataStreams);
 
     out << quote("pcbs") << ":[";
-    std::map<std::string,AliMpPCB*>::size_type i = 0;
+    std::vector<AliMpPCB*>::size_type i = 0;
     for ( auto& s: pcbs ) {
-        pcb2json(*(s.second),out);
+        pcb2json(*s,out);
         if (i<pcbs.size()-1) out << ",";
         i++;
         
