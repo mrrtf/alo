@@ -5,7 +5,8 @@ target_link_libraries(dhlt-generate-binmapfile dhlt AliHLTMUON HLTbase MUONmappi
 
 install(TARGETS dhlt-generate-binmapfile RUNTIME DESTINATION bin)
 
-add_executable(mch-mapping-convert-to-json json.cxx bp2json.cxx ch2json.cxx ddl2json.cxx de2json.cxx mch-mapping-convert-to-json.cxx seg2json.cxx slat2json.cxx pcb2json.cxx motif2json.cxx)
+add_executable(mch-mapping-convert-to-json json.cxx bp2json.cxx ch2json.cxx ddl2json.cxx de2json.cxx
+    mch-mapping-convert-to-json.cxx seg2json.cxx slat2json.cxx pcb2json.cxx motif2json.cxx berg2json.cxx)
 
 target_link_libraries(mch-mapping-convert-to-json MUONmapping STEERBase Core)
 

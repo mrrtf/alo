@@ -33,6 +33,8 @@ std::vector<AliMpMotifType*> get_allmotiftypes(const std::vector<AliMpPCB*>& pcb
 
 void connection2json(const AliMpConnection& c, std::ostream& out) {
     out << "{";
+    out << quote("manuchannel") << ":" << c.GetManuChannel(); // TODO: to be removed
+    out << ",";
     out << quote("berg") << ":" << c.GetBergNum();
     out << ",";
     out << quote("ix") << ":" << c.GetLocalIx();

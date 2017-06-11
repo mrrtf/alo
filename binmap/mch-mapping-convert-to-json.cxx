@@ -11,6 +11,7 @@
 #include "pcb2json.h"
 #include "motif2json.h"
 #include "seg2json.h"
+#include "berg2json.h"
 #include <iostream>
 
 int main() {
@@ -42,6 +43,9 @@ int main() {
 
     std::ofstream motifout("motif.json");
     curlybrace(motifout,all_motif2json);
+
+    std::ofstream bergout("berg.json");
+    curlybrace(bergout,all_berg2json);
 
     return 0;
 }
