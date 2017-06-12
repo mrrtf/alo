@@ -35,4 +35,6 @@ include(CMakeALICE)
 
 add_subdirectory(dhlt)
 add_subdirectory(binmap)
-add_subdirectory(jsonmap)
+if(RAPIDJSON_FOUND)
+  add_subdirectory(jsonmap)
+endif()
