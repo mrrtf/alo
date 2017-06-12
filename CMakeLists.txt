@@ -17,6 +17,8 @@ project(alo)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
+find_package(RapidJSON)
+
 if(ROOTSYS)
 find_package(ROOT 6.08 REQUIRED)
 else(ROOTSYS)
@@ -33,3 +35,4 @@ include(CMakeALICE)
 
 add_subdirectory(dhlt)
 add_subdirectory(binmap)
+add_subdirectory(jsonmap)
