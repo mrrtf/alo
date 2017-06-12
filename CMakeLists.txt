@@ -14,7 +14,6 @@ endforeach ()
 
 project(alo)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
 find_package(RapidJSON)
@@ -33,8 +32,8 @@ endif(ALIROOT)
 
 include(CMakeALICE)
 
-add_subdirectory(dhlt)
-add_subdirectory(binmap)
 if(RAPIDJSON_FOUND)
   add_subdirectory(jsonmap)
 endif()
+add_subdirectory(dhlt)
+add_subdirectory(binmap)
