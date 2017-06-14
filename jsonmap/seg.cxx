@@ -70,9 +70,9 @@ std::string get_segtype(const AliMpVSegmentation& seg)
     return "ARGH";
 }
 
-void get_segs(AliMpSegmentation* mseg, std::vector<int>& deids,
-        std::vector<AliMpVSegmentation*>& b,
-        std::vector<AliMpVSegmentation*>& nb)
+std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg,
+        std::vector<int>& deids,
+        AliMp::PlaneType planeType)
 {
     std::vector<AliMpVSegmentation*> segs;
 
@@ -81,24 +81,52 @@ void get_segs(AliMpSegmentation* mseg, std::vector<int>& deids,
         const AliMpVSegmentation* s = mseg->GetMpSegmentation(d,AliMp::kCath0);
         std::string segtype = get_segtype(*s);
 
-        if ( std::find_if(b.begin(),b.end(),
+        if ( std::find_if(segs.begin(),segs.end(),
                     [&segtype](AliMpVSegmentation* o) {
                     return (get_segtype(*o) == segtype);
-                    } ) != b.end() ) 
+                    } ) != segs.end() ) 
         {
             continue;
         }
 
-        if ( s->PlaneType() == AliMp::kBendingPlane )
+        if ( s->PlaneType() == planeType ) 
         {
-            b.push_back(const_cast<AliMpVSegmentation*>(s));
-            nb.push_back(const_cast<AliMpVSegmentation*>(mseg->GetMpSegmentation(d,AliMp::kCath1)));
-        }
-        else
-        {
-            nb.push_back(const_cast<AliMpVSegmentation*>(s));
-            b.push_back(const_cast<AliMpVSegmentation*>(mseg->GetMpSegmentation(d,AliMp::kCath1)));
+            segs.push_back(const_cast<AliMpVSegmentation*>(s));
         }
     }
+
+    return segs;
 }
 
+// void get_segs(AliMpSegmentation* mseg, std::vector<int>& deids,
+//         std::vector<AliMpVSegmentation*>& b,
+//         std::vector<AliMpVSegmentation*>& nb)
+// {
+//     std::vector<AliMpVSegmentation*> segs;
+//
+//     for ( auto& d:deids) 
+//     {
+//         const AliMpVSegmentation* s = mseg->GetMpSegmentation(d,AliMp::kCath0);
+//         std::string segtype = get_segtype(*s);
+//
+//         if ( std::find_if(b.begin(),b.end(),
+//                     [&segtype](AliMpVSegmentation* o) {
+//                     return (get_segtype(*o) == segtype);
+//                     } ) != b.end() ) 
+//         {
+//             continue;
+//         }
+//
+//         if ( s->PlaneType() == AliMp::kBendingPlane )
+//         {
+//             b.push_back(const_cast<AliMpVSegmentation*>(s));
+//             nb.push_back(const_cast<AliMpVSegmentation*>(mseg->GetMpSegmentation(d,AliMp::kCath1)));
+//         }
+//         else
+//         {
+//             nb.push_back(const_cast<AliMpVSegmentation*>(s));
+//             b.push_back(const_cast<AliMpVSegmentation*>(mseg->GetMpSegmentation(d,AliMp::kCath1)));
+//         }
+//     }
+// }
+//

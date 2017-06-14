@@ -15,6 +15,7 @@
 #include "de2json.h"
 #include "json.h"
 #include "motif2json.h"
+#include "pcb.h"
 #include "pcb2json.h"
 #include "seg.h"
 #include "seg2json.h"
@@ -69,12 +70,17 @@ void convert_de(AliMpDDLStore* ddlStore)
 //
 // }
 
+void convert_pcb(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
+{
+    std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore,mseg);
+    all_pcb2json(pcbs,OF("pcb.json").Writer());
+}
+
 void convert_seg(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
    std::vector<int> deids = get_deids(ddlStore);
-   std::vector<AliMpVSegmentation*> b;
-   std::vector<AliMpVSegmentation*> nb;
-   get_segs(mseg,deids,b,nb);
+   std::vector<AliMpVSegmentation*> b = get_segs(mseg,deids,AliMp::kBendingPlane);
+   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
    all_seg2json(b,nb,OF("seg.json").Writer());
 }
 
@@ -95,7 +101,7 @@ int main(int argc, char* argv[])
     // convert_de(ddlStore);
     
     // convert_motif(ddlStore);
-    // convert_pcb(ddlStore);
+    convert_pcb(ddlStore,mseg);
     convert_seg(ddlStore,mseg);
 
     return 0;

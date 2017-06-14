@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include "AliMpPlaneType.h"
 
 class AliMpVSegmentation;
 class AliMpSegmentation;
@@ -16,9 +17,8 @@ bool is_slat(std::string segtype);
 
 std::string get_segtype(const AliMpVSegmentation& seg);
 
-void get_segs(AliMpSegmentation* mseg, std::vector<int>& deids,
-        std::vector<AliMpVSegmentation*>& bending,
-        std::vector<AliMpVSegmentation*>& non_bending);
+std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg, std::vector<int>& deids, AliMp::PlaneType planeType);
+
 
 #endif
 
