@@ -14,6 +14,7 @@
 #include "de.h"
 #include "de2json.h"
 #include "json.h"
+#include "motif.h"
 #include "motif2json.h"
 #include "pcb.h"
 #include "pcb2json.h"
@@ -65,10 +66,19 @@ void convert_de(AliMpDDLStore* ddlStore)
     all_de2json(des,bpids,OF("de.json").Writer());
 }
 
-// void convert_motif(AliMpDDLStore* ddlStore) 
-// {
-//
-// }
+void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
+{
+    std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore,mseg);
+
+    std::vector<AliMpMotifType*> motifTypes = get_allmotiftypes(pcbs);
+
+    std::sort(motifTypes.begin(),motifTypes.end(),
+            [](AliMpMotifType* a, AliMpMotifType* b) {
+            return strcmp(a->GetID().Data(),b->GetID().Data())<0; }
+            );
+
+    all_motif2json(motifTypes,OF("motif.json").Writer());
+}
 
 void convert_pcb(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
@@ -100,7 +110,7 @@ int main(int argc, char* argv[])
     // convert_ddl(ddlStore);;
     // convert_de(ddlStore);
     
-    // convert_motif(ddlStore);
+    convert_motif(ddlStore,mseg);
     convert_pcb(ddlStore,mseg);
     convert_seg(ddlStore,mseg);
 
