@@ -1,45 +1,16 @@
 #ifndef SEG2JSON_H
 #define SEG2JSON_H
 
-#include "AliMpVSegmentation.h"
-#include "seg.h"
-#include "json.h"
-#include <string>
+#include "AliMpDirection.h"
+#include "AliMpSector.h"
 #include "AliMpSlat.h"
-#include "AliMpSlatSegmentation.h"
-#include "AliMpPCB.h"
-#include "AliMpMotifPosition.h"
+#include "AliMpVSegmentation.h"
+#include "json.h"
+#include "sector2json.h"
+#include "seg.h"
+#include "slat2json.h"
 #include <algorithm>
-
-template<typename WRITER>
-void pcb2json(const AliMpPCB& pcb, WRITER& w)
-{
-    w.StartObject();
-    w.Key("id");
-    w.String(pcb.GetID());
-    std::vector<int> manus;
-    for ( int i = 0 ; i < pcb.GetSize(); ++i ) {
-        AliMpMotifPosition* mp = pcb.GetMotifPosition(i);
-        manus.push_back(mp->GetID());
-        // break;
-    }
-    WriteArray(w,"manus",manus);
-    w.EndObject();
-}
-
-template<typename WRITER>
-void slat2json(const AliMpSlat& slat, WRITER& w) 
-{
-    w.StartObject();
-    w.Key("pcbs");
-    w.StartArray();
-    for ( int i = 0; i < slat.GetSize(); ++i ) {
-        AliMpPCB* pcb = slat.GetPCB(i);
-        pcb2json(*pcb,w);
-    }
-    w.EndArray();
-    w.EndObject();
-}
+#include <string>
 
 template<typename WRITER>
 void segplane2json(const AliMpVSegmentation& seg, WRITER& w)
@@ -51,17 +22,20 @@ void segplane2json(const AliMpVSegmentation& seg, WRITER& w)
         slat2json(*slat,w);
     }
     else {
-        w.StartObject();
-        w.Key("class");
-        w.String(seg.ClassName());
-        w.EndObject();
+        const AliMpSector* sector = sector_from_seg(seg);
+        sector2json(*sector,w);
     }
 }
 
 template<typename WRITER>
 void seg2json(const AliMpVSegmentation& b, const AliMpVSegmentation& nb, WRITER& w)
 {
+    static int n = 1;
+
     w.StartObject();
+    w.Key("gid");
+    w.String(Form("gid-%d",n++));
+
     w.Key("id");
     std::string segtype = get_segtype(b);
     w.String(segtype.c_str());

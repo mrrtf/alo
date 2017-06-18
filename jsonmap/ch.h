@@ -4,6 +4,6 @@
 #include <vector>
 class AliMpDDLStore;
 
-std::vector<std::vector<int>> ch_read_mapping(AliMpDDLStore* ddlStore);
+std::vector<std::vector<int>> get_desperch(AliMpDDLStore* ddlStore);
 
 #endif

@@ -33,6 +33,12 @@ In principle all the past works from Philippe, Diego and Hugo wrt dHLT component
 
 Please check.
 
++++
+
+## Mapping conversion tool 
+
+### From custom TXT format to JSON
+
 ---
 
 ## Usage

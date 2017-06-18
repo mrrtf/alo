@@ -33,8 +33,8 @@ class OutputFile {
 using OF = OutputFile<rapidjson::FileWriteStream,rapidjson::PrettyWriter<rapidjson::FileWriteStream>>;
 
 template<typename T>
-void WriteArray(T& w, const char* key, std::vector<int> v) {
-    std::sort(v.begin(),v.end());
+void WriteArray(T& w, const char* key, std::vector<int> v)
+{
     w.Key(key);
     w.StartArray();
     for ( std::vector<int>::size_type i = 0; i < v.size(); ++i) {

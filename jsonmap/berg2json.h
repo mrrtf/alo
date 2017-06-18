@@ -7,12 +7,12 @@
 template<typename WRITER>
 void berg2json(int npins, const char* filename, WRITER& w) {
 
+    w.StartObject();
     w.Key("id");
     w.Int(npins);
     w.Key("pins");
     w.StartArray();
     std::ifstream in(filename);
-
     int n;
     std::string s;
     int i = 0;
@@ -26,6 +26,7 @@ void berg2json(int npins, const char* filename, WRITER& w) {
         ++i;
     }
     w.EndArray();
+    w.EndObject();
 } 
 
 #endif

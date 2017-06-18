@@ -17,7 +17,7 @@ template<typename WRITER>
 void connection2json(const AliMpConnection& c, WRITER& w) 
 {
     w.StartObject();
-    w.Key("manuchannel");
+    w.Key("manuchannel(TBR)");
     w.Int(c.GetManuChannel()); // TODO: to be removed
     w.Key("berg");
     w.Int(c.GetBergNum());

@@ -1,7 +1,7 @@
 #include "ch.h"
 #include "de.h"
 
-std::vector<std::vector<int>> ch_read_mapping(AliMpDDLStore* ddlStore)
+std::vector<std::vector<int>> get_desperch(AliMpDDLStore* ddlStore)
 {
     std::vector<std::vector<int>> desperch;
 

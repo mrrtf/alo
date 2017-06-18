@@ -29,8 +29,11 @@ void convert_berg() {
     decltype(os.Writer()) w(os.Writer());
 
     w.StartObject();
+    w.Key("bergs");
+    w.StartArray();
     berg2json(80,AliMpFiles::BergToGCFilePath(AliMp::kStation12,AliMq::kStation1),w);
     berg2json(100,AliMpFiles::BergToGCFilePath(AliMp::kStation345,AliMq::kStation1),w);
+    w.EndArray();
     w.EndObject();
 }
 
@@ -54,7 +57,7 @@ void convert_ddl(AliMpDDLStore* ddlStore)
 
 void convert_ch(AliMpDDLStore* ddlStore)
 {
-    std::vector<std::vector<int>> desperch = ch_read_mapping(ddlStore);
+    std::vector<std::vector<int>> desperch = get_desperch(ddlStore);
     all_ch2json(desperch,OF("ch.json").Writer());
 }
 
@@ -104,12 +107,11 @@ int main(int argc, char* argv[])
     AliMpSegmentation* mseg = AliMpSegmentation::Instance();
     assert(mseg!=nullptr);
     
-    // convert_berg();
-    // convert_bp(ddlStore);
-    // convert_ch(ddlStore);
-    // convert_ddl(ddlStore);;
-    // convert_de(ddlStore);
-    
+    convert_berg();
+    convert_bp(ddlStore);
+    convert_ch(ddlStore);
+    convert_ddl(ddlStore);
+    convert_de(ddlStore);
     convert_motif(ddlStore,mseg);
     convert_pcb(ddlStore,mseg);
     convert_seg(ddlStore,mseg);
