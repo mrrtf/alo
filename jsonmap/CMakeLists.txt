@@ -10,7 +10,6 @@ set(SOURCE_FILES
         ddl2json.h
         de.cxx
         de2json.h
-        json.cxx
         mch-mapping-convert-to-json.cxx
         motif.cxx
         motif2json.h
