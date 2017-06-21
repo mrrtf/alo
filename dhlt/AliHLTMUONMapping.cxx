@@ -50,7 +50,7 @@ AliHLTMUONMapping::mpDE* AliHLTMUONMapping::ReadMapping(const char* mapfile)
     in.read((char*)&themap[0],sizeof(Long64_t)*mapsize);
 
     for ( int cathode = 0; cathode < 2; ++cathode) {
-      for ( int i = 0; i < de.nPads[cathode]; ++i ) {
+      for ( int ipad = 0; ipad < de.nPads[cathode]; ++ipad ) {
         de.padIndices[cathode].Add(themap[ix],themap[ix+1]);
         ix += 2;
       }

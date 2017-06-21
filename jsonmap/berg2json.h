@@ -1,9 +1,33 @@
 #ifndef BERG2JSON_H
 #define BERG2JSON_H
 
-#include <iostream>
+#include <fstream>
+#include <string>
 
-void all_berg2json(std::ostream& out);
+template<typename WRITER>
+void berg2json(int npins, const char* filename, WRITER& w) {
+
+    w.StartObject();
+    w.Key("id");
+    w.Int(npins);
+    w.Key("pins");
+    w.StartArray();
+    std::ifstream in(filename);
+    int n;
+    std::string s;
+    int i = 0;
+    while (in>>n>>s) {
+        w.StartObject();
+        w.Key("id");
+        w.Int(n);
+        w.Key("manu");
+        w.String(s.c_str());
+        w.EndObject();
+        ++i;
+    }
+    w.EndArray();
+    w.EndObject();
+} 
 
 #endif
 

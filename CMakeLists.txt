@@ -32,6 +32,8 @@ endif(ALIROOT)
 
 include(CMakeALICE)
 
+set(CMAKE_CXX_STANDARD 14)
+
 if(RAPIDJSON_FOUND)
   add_subdirectory(jsonmap)
 endif()

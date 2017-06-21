@@ -4,12 +4,44 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/filewritestream.h"
 
-std::ostream& curlybrace(std::ostream& out, void (*f)(std::ostream& out));
+template<class StreamType, class WriterType>
+class OutputFile {
+    public:
+    OutputFile(const char* filename) : mFile(fopen(filename, "wb")),
+    mWriteBuffer(new char[65536]),
+    mStream(mFile,mWriteBuffer,sizeof(mWriteBuffer)),
+    mWriter(mStream) {}
 
-std::string quote(const char* s);
+    ~OutputFile() {
+        delete[] mWriteBuffer;
+        fclose(mFile);
+    }
+    
+    WriterType& Writer() { return mWriter;}
 
-void outputArray(std::ostream& out, const char* key, std::vector<int> v);
+    private:
+    FILE* mFile;
+    char* mWriteBuffer;
+    StreamType mStream;
+    WriterType mWriter;
+};
+
+using OF = OutputFile<rapidjson::FileWriteStream,rapidjson::PrettyWriter<rapidjson::FileWriteStream>>;
+
+template<typename T>
+void WriteArray(T& w, const char* key, std::vector<int> v)
+{
+    w.Key(key);
+    w.StartArray();
+    for ( std::vector<int>::size_type i = 0; i < v.size(); ++i) {
+        w.Int(v[i]);
+    }
+    w.EndArray();
+}
 
 #endif
 
