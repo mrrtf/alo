@@ -16,19 +16,12 @@ project(alo)
 
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
+find_package(Boost)
 find_package(RapidJSON)
-
 if(ROOTSYS)
-find_package(ROOT 6.08 REQUIRED)
-else(ROOTSYS)
-    message(FATAL_ERROR "root required")
-endif(ROOTSYS)
-
-if(ALIROOT)
+find_package(ROOT 6.08)
+  endif()
 find_package(ALIROOT)
-else(ALIROOT)
-    message(FATAL_ERROR "aliroot required")
-endif(ALIROOT)
 
 include(CMakeALICE)
 
@@ -37,6 +30,10 @@ set(CMAKE_CXX_STANDARD 14)
 if(RAPIDJSON_FOUND)
   add_subdirectory(jsonmap)
 endif()
+
+if(ROOT_FOUND AND AliRoot_FOUND)
 add_subdirectory(dhlt)
-add_subdirectory(binmap)
 add_subdirectory(r23)
+add_subdirectory(binmap)
+endif()
+

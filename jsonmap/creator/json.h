@@ -16,7 +16,7 @@ class OutputFile {
     mStream(mFile,mWriteBuffer,sizeof(mWriteBuffer)),
     mWriter(mStream) {}
 
-    ~OutputFile() {
+    virtual ~OutputFile() {
         delete[] mWriteBuffer;
         fclose(mFile);
     }
