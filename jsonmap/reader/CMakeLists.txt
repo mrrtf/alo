@@ -11,3 +11,5 @@ target_sources(mchMappingReader PUBLIC chamber.h chamber.cxx)
 target_link_libraries(mchMappingReader Boost::program_options)
 
 target_include_directories(mchMappingReader PUBLIC ${CMAKE_SOURCE_DIR} ${Boost_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
+
+install(TARGETS mchMappingReader RUNTIME DESTINATION bin)
