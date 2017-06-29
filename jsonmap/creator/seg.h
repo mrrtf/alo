@@ -17,8 +17,11 @@ bool is_slat(std::string segtype);
 
 std::string get_segtype(const AliMpVSegmentation& seg);
 
-std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg, std::vector<int>& deids, AliMp::PlaneType planeType);
+std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg, const std::vector<int>& deids, AliMp::PlaneType planeType);
 
+std::vector<const AliMpSector*> get_allsectors(AliMpSegmentation* mseg);
+
+bool is_station2(const AliMpSector& sector);
 
 #endif
 

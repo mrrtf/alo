@@ -7,6 +7,7 @@
 #include "AliMpSlatSegmentation.h"
 #include "seg.h"
 #include <iostream>
+#include <cassert>
 
 bool is_slat(std::string segtype) {
     return (segtype.find("st") == std::string::npos);
@@ -46,6 +47,10 @@ const AliMpSector* sector_from_seg(const AliMpVSegmentation& seg)
     return nullptr;
 }
 
+bool is_station2(const AliMpSector &sector) {
+  return (sector.GetDimensionX()>50.0);
+
+}
 std::string get_segtype(const AliMpVSegmentation& seg) 
 {
     // this method is certainly fragile...
@@ -59,13 +64,13 @@ std::string get_segtype(const AliMpVSegmentation& seg)
     const AliMpSector* sector = sector_from_seg(seg);
     if (sector)
     {
-        return (sector->GetDimensionX()>50.0) ? "st2" : "st1";  
+        return (is_station2(*sector)) ? "st2" : "st1";
     }
     return "ARGH";
 }
 
 std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg,
-        std::vector<int>& deids,
+        const std::vector<int>& deids,
         AliMp::PlaneType planeType)
 {
     std::vector<AliMpVSegmentation*> segs;
@@ -73,6 +78,10 @@ std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg,
     for ( auto& d:deids) 
     {
         const AliMpVSegmentation* s = mseg->GetMpSegmentation(d,AliMp::kCath0);
+        if (s->PlaneType() != planeType) {
+          s = mseg->GetMpSegmentation(d,AliMp::kCath1);
+          assert(s->PlaneType()==planeType);
+        }
         std::string segtype = get_segtype(*s);
 
         if ( std::find_if(segs.begin(),segs.end(),
@@ -91,4 +100,18 @@ std::vector<AliMpVSegmentation*> get_segs(AliMpSegmentation* mseg,
 
     return segs;
 }
+std::vector<const AliMpSector *> get_allsectors(AliMpSegmentation* mseg) {
+  std::vector<const AliMpSector*> sectors;
+
+  std::vector<int> deids { 100,300 };
+
+  std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,AliMp::kBendingPlane);
+  std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
+  segs.insert(segs.end(),nb.begin(),nb.end());
+  for ( auto& s: segs) {
+    sectors.push_back(sector_from_seg(*s));
+  }
+  return sectors;
+}
+
 
