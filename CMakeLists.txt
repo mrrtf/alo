@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 FOREACH (p
     CMP0025 # CMake 3.0
     CMP0042 # CMake 3.0
+    CMP0028 # CMake 3.0
     )
   IF (POLICY ${p})
     cmake_policy(SET ${p} NEW)
@@ -16,7 +17,6 @@ project(alo)
 
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
-find_package(Boost)
 find_package(RapidJSON)
 if(ROOTSYS)
 find_package(ROOT 6.08)
