@@ -44,26 +44,18 @@ std::vector<AliMpMotifType *> get_allsectormotiftypes(const std::vector<const Al
     prefix += (s->GetPlaneType() == AliMp::kBendingPlane) ? "B-" : "N-";
 
     AliMpMotifMap *motifMap = s->GetMotifMap();
-//    motifMap->Print("ALL");
 
     for (int i = 0; i < motifMap->GetNofMotifPositions(); ++i) {
       AliMpMotifType* mt = motifMap->GetMotifPosition(i)->GetMotif()->GetMotifType();
-      std::cout << mt->GetID() << "->";
       std::string newname = prefix + mt->GetID().Data();
-      std::cout << mt->GetID() << "=" << newname;
       if (std::find_if(motifTypes.begin(), motifTypes.end(),
                        [&](AliMpMotifType *a) {
                          return newname == a->GetID();
                        }
       ) == motifTypes.end()) {
         motifTypes.push_back(static_cast<AliMpMotifType*>(mt->Clone(newname.c_str())));
-        std::cout << ",";
-      }
-      else {
-        std::cout << "(already there)";
       }
     }
-    std::cout << std::endl;
   }
   return motifTypes;
 }

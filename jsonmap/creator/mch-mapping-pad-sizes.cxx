@@ -16,9 +16,6 @@
 
 #include "seg.h"
 #include <vector>
-#include <AliMpDataProcessor.h>
-#include <AliMpDataStreams.h>
-#include <AliMpSegmentation.h>
 #include "AliMpPlaneType.h"
 #include "AliMpVSegmentation.h"
 #include "AliMpVPadIterator.h"
@@ -26,15 +23,14 @@
 #include "de.h"
 #include <iostream>
 #include <set>
+#include "readmapping.h"
 
 int main()
 {
-  AliMpDataProcessor mp;
-  AliMpDataMap* dataMap = mp.CreateDataMap("data");
-  AliMpDataStreams dataStreams(dataMap);
+  AliMpDDLStore *ddlStore;
+  AliMpSegmentation *mseg;
+  readMapping(ddlStore,mseg);
 
-  AliMpDDLStore* ddlStore = AliMpDDLStore::ReadData(dataStreams);
-  AliMpSegmentation* mseg = AliMpSegmentation::Instance();
   std::vector<int> deids = get_deids(ddlStore);
   std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,AliMp::kBendingPlane);
   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);

@@ -1,5 +1,6 @@
 include_directories(${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
+
 set(SOURCE_FILES
         bp.cxx
         bp2json.h
@@ -14,6 +15,8 @@ set(SOURCE_FILES
         motif2json.h
         pcb.cxx
         pcb2json.h
+        readmapping.cxx
+        readmapping.h
         sector2json.h
         seg.cxx
         slat2json.h)

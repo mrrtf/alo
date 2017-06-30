@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+
+<h1>Motifs</h1>
+
+<div id="plot"></div>
+
+<script src="viewMotif.js"></script>
+<link rel="stylesheet" href="viewMotif.css">
+
+<script>
+
+
+    fetch("http://localhost:8080/motif.json",
+        { method: 'get',
+            headers: {
+                'Accept': 'application/json'
+            }}
+    ).then(response => response.json())
+    .then(json => decodeJSON(json));
+
+</script>
+
+</body>
+</html>

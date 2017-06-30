@@ -1,7 +1,4 @@
 #include "AliMpBusPatch.h"
-#include "AliMpDataMap.h"
-#include "AliMpDataProcessor.h"
-#include "AliMpDataStreams.h"
 #include "AliMpFiles.h"
 #include "AliMpMotifType.h"
 #include "AliMpSegmentation.h"
@@ -21,8 +18,8 @@
 #include "pcb2json.h"
 #include "seg.h"
 #include "seg2json.h"
+#include "readmapping.h"
 #include <cstdlib>
-#include <fstream>
 
 void convert_berg() {
 
@@ -90,11 +87,6 @@ void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 
   std::cout << mt.size() << " motifs in sectors" << std::endl;
 
-  for ( auto& x : mt ) {
-    std::cout << x->GetID() << ",";
-  }
-  std::cout << std::endl;
-
   motifTypes.insert(motifTypes.end(),mt.begin(),mt.end());
 
   std::cout << motifTypes.size() << " motifs in total" << std::endl;
@@ -123,12 +115,10 @@ void convert_seg(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 
 int main(int argc, char* argv[])
 {
-  AliMpDataProcessor mp;
-  AliMpDataMap* dataMap = mp.CreateDataMap("data");
-  AliMpDataStreams dataStreams(dataMap);
+  AliMpDDLStore *ddlStore;
+  AliMpSegmentation *mseg;
+  readMapping(ddlStore, mseg);
 
-  AliMpDDLStore* ddlStore = AliMpDDLStore::ReadData(dataStreams);
-  AliMpSegmentation* mseg = AliMpSegmentation::Instance();
   assert(mseg!=nullptr);
 
   convert_berg();

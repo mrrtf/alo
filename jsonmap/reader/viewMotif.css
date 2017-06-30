@@ -1,0 +1,16 @@
+div.motif {
+    border-bottom: 1px solid lightgray;
+}
+
+svg {
+    border: 0;
+}
+
+text.pad {
+    fill: black;
+    stroke-width: 0;
+}
+
+rect.pad {
+   stroke: blue;
+}

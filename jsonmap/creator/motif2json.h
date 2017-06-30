@@ -29,24 +29,26 @@ void connection2json(const AliMpConnection& c, WRITER& w)
 }
 
 template<typename WRITER>
-void motif2json(const AliMpMotifType& mt, WRITER& w) 
+void motif2json(const AliMpMotifType& mt, WRITER& w)
 {
-    w.StartObject();
-    w.Key("id");
-    w.String(mt.GetID());
-    w.Key("is_full");
-    w.Bool(mt.IsFull());
-    w.Key("nof_pads");
-    w.Int(mt.GetNofPads());
-    w.Key("pads");
-    w.StartArray();
-    for ( int i = 0; i < 64; ++i ) {
-        AliMpConnection* c = mt.FindConnectionByPadNum(i);
-        if (!c) continue;
-        connection2json(*c,w);
-    }
-    w.EndArray();
-    w.EndObject();
+  w.StartObject();
+  w.Key("id");
+  w.String(mt.GetID());
+  w.Key("is_full");
+  w.Bool(mt.IsFull());
+  w.Key("pads");
+  w.StartArray();
+  int n = 0;
+  for ( int i = 1; i <= 64; ++i ) {
+    AliMpConnection* c = mt.FindConnectionByPadNum(i);
+    if (!c) continue;
+    connection2json(*c,w);
+    ++n;
+  }
+  w.EndArray();
+  w.Key("nof_pads");
+  w.Int(n);
+  w.EndObject();
 }
 
 template<typename WRITER>
