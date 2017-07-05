@@ -1,3 +1,4 @@
+find_package(Boost COMPONENTS program_options)
 if(AliRoot_FOUND)
     add_subdirectory(creator)
 endif()

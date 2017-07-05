@@ -1,0 +1,27 @@
+div.motif {
+    border: 1px dashed lightgray;
+}
+
+
+div#svgsymbols {
+  display: none;
+}
+
+text.pad {
+    stroke-width: 0;
+}
+
+rect.pad {
+    fill: ivory;
+   stroke: #333333;
+}
+
+svg.motif {
+    min-height: 1000px;
+}
+
+div#motiflist li {
+    display: inline-block;
+    margin: 5px;
+    border: 1px solid lightgray;
+}
