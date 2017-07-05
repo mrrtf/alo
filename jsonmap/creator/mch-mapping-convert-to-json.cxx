@@ -96,6 +96,18 @@ void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
               return strcmp(a->GetID().Data(),b->GetID().Data())<0; }
   );
 
+  std::ofstream out("motiftypes.aliroot.txt");
+
+  for ( const auto& mt : motifTypes ) {
+    int n = 0;
+    for ( int i = 1; i <= 100; ++i ) {
+      if ( mt->FindConnectionByPadNum(i)) ++n;
+    }
+    out << mt->GetID().Data() << " " << n << " " << mt->GetNofPadsX() << " " << mt->GetNofPadsY() << std::endl;
+  }
+
+  out.close();
+
   all_motif2json(motifTypes,OF("motif.json").Writer());
 }
 
