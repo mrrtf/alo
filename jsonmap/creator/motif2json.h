@@ -17,8 +17,6 @@ template<typename WRITER>
 void connection2json(const AliMpConnection& c, WRITER& w) 
 {
     w.StartObject();
-    w.Key("manuchannel(TBR)");
-    w.Int(c.GetManuChannel()); // TODO: to be removed
     w.Key("berg");
     w.Int(c.GetBergNum());
     w.Key("ix");
@@ -39,7 +37,7 @@ void motif2json(const AliMpMotifType& mt, WRITER& w)
   w.Key("pads");
   w.StartArray();
   int n = 0;
-  for ( int i = 1; i <= 64; ++i ) {
+  for ( int i = 1; i <= 100; ++i ) {
     AliMpConnection* c = mt.FindConnectionByPadNum(i);
     if (!c) continue;
     connection2json(*c,w);
