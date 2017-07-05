@@ -41,7 +41,7 @@ std::vector<AliMpMotifType *> get_allsectormotiftypes(const std::vector<const Al
       prefix = "1";
     }
 
-    prefix += (s->GetPlaneType() == AliMp::kBendingPlane) ? "B-" : "N-";
+    prefix += (s->GetPlaneType() == AliMp::kBendingPlane) ? "B" : "N";
 
     AliMpMotifMap *motifMap = s->GetMotifMap();
 
