@@ -13,11 +13,13 @@
 #include "chamber.h"
 #include "codeWriter.h"
 #include "detectionElement.h"
+#include "motifType.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 using namespace rapidjson;
 namespace po = boost::program_options;
@@ -30,7 +32,8 @@ int main(int argc, char* argv[]) {
     generic.add_options()
         ("help", "produce help message")
         ("de", "read detection element information")
-        ("ch", "read chamber information");
+        ("ch", "read chamber information")
+    ("motif","read motif type information");
 
     po::options_description hidden("hidden options");
     hidden.add_options()
@@ -71,6 +74,14 @@ int main(int argc, char* argv[]) {
     if (vm.count("de")) {
       std::pair<std::string,std::string> code = readDetectionElements(file);
       outputCode(code.first,code.second,"de");
+    }
+
+    if (vm.count("motif")) {
+      std::pair<std::string,std::string> code = readMotifTypes(file);
+      outputCode(code.first,code.second,"motif");
+      std::ofstream out("testMotifType.cxx");
+      out << "#include \"motif.h\"\n";
+      out << "int main() { testMotifTypes(); return 0; }\n";
     }
   }
   return 0;
