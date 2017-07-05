@@ -2,26 +2,24 @@
 <html>
 <body>
 
-
-<h1>Motifs</h1>
-
-<div id="plot"></div>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="viewMotif.js"></script>
 <link rel="stylesheet" href="viewMotif.css">
 
-<script>
+<h1>Motifs</h1>
 
+<div id="motiflist">
+</div>
+<div id="ui">
+<fieldset>
+    <label for="name" id="motifname_label">Motif name</label>
+    <input type="text" name="motifname" id="motifname" size="30" value="" class="text-input" />
+    <input type="submit" name="submit" class="button" id="submit_btn" value="Send" />
+</fieldset>
+</div>
+<div id="svgsymbols"></div>
+<div id="plot"></div>
 
-    fetch("http://localhost:8080/motif.json",
-        { method: 'get',
-            headers: {
-                'Accept': 'application/json'
-            }}
-    ).then(response => response.json())
-    .then(json => decodeJSON(json));
-
-</script>
 
 </body>
 </html>
