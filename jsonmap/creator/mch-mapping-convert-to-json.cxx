@@ -13,7 +13,10 @@
 #include "de2json.h"
 #include "json.h"
 #include "motif.h"
-#include "motif2json.h"
+#include "motifType.h"
+#include "motiftype2json.h"
+#include "padsize.h"
+#include "padsize2json.h"
 #include "pcb.h"
 #include "pcb2json.h"
 #include "seg.h"
@@ -67,13 +70,13 @@ void convert_de(AliMpDDLStore* ddlStore)
   all_de2json(des,bpids,OF("de.json").Writer());
 }
 
-void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
+void convert_motiftype(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
   std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore,mseg);
 
   std::vector<AliMpMotifType*> motifTypes = get_allslatmotiftypes(pcbs);
 
-  std::cout << motifTypes.size() << " motifs in slats" << std::endl;
+  std::cout << motifTypes.size() << " motif types in slats" << std::endl;
   for ( auto& x : motifTypes ) {
     std::cout << x->GetID() << ",";
   }
@@ -85,11 +88,11 @@ void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 
   std::vector<AliMpMotifType*> mt = get_allsectormotiftypes(sectors);
 
-  std::cout << mt.size() << " motifs in sectors" << std::endl;
+  std::cout << mt.size() << " motif types in sectors" << std::endl;
 
   motifTypes.insert(motifTypes.end(),mt.begin(),mt.end());
 
-  std::cout << motifTypes.size() << " motifs in total" << std::endl;
+  std::cout << motifTypes.size() << " motif types in total" << std::endl;
 
   std::sort(motifTypes.begin(),motifTypes.end(),
             [](AliMpMotifType* a, AliMpMotifType* b) {
@@ -109,12 +112,26 @@ void convert_motif(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
   out.close();
 
   all_motif2json(motifTypes,OF("motif.json").Writer());
+
+  std::vector<AliMpVMotif*> motifs = get_allslatmotifs(pcbs);
+  std::vector<AliMpVMotif*> sectorMotifs = get_allsectormotifs(sectors);
+  std::cout << motifs.size() << " different motifs in slats" << std::endl;
+  std::cout << sectorMotifs.size() << " different motifs in sectors" << std::endl;
+
+  motifs.insert(motifs.end(),sectorMotifs.begin(),sectorMotifs.end());
+
+  out.open("motifs.list.txt");
+  for ( const auto& m: motifs ) {
+    out << m->GetID() << std::endl;
+  }
+  std::cout << motifs.size() << " different motifs in total" << std::endl;
 }
 
 void convert_pcb(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
   std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore,mseg);
-  all_pcb2json(pcbs,OF("pcb.json").Writer());
+  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
+  all_pcb2json(pcbs,padsizes, OF("pcb.json").Writer());
 }
 
 void convert_seg(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
@@ -123,6 +140,12 @@ void convert_seg(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
   std::vector<AliMpVSegmentation*> b = get_segs(mseg,deids,AliMp::kBendingPlane);
   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
   all_seg2json(b,nb,OF("seg.json").Writer());
+}
+
+void convert_padsize(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
+{
+  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
+  all_padsizes(padsizes, OF("padsize.json").Writer());
 }
 
 int main(int argc, char* argv[])
@@ -138,9 +161,10 @@ int main(int argc, char* argv[])
   convert_ch(ddlStore);
   convert_ddl(ddlStore);
   convert_de(ddlStore);
-  convert_motif(ddlStore,mseg);
+  convert_motiftype(ddlStore, mseg);
   convert_pcb(ddlStore,mseg);
   convert_seg(ddlStore,mseg);
+  convert_padsize(ddlStore,mseg);
 
   return 0;
 }

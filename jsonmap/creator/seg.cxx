@@ -115,3 +115,20 @@ std::vector<const AliMpSector *> get_allsectors(AliMpSegmentation* mseg) {
 }
 
 
+std::string get_sector_plane_prefix(const AliMpSector& sector)
+{
+  std::string prefix;
+
+  if (is_station2(sector)) {
+    prefix = "2";
+  } else {
+    prefix = "1";
+  }
+
+  prefix += (sector.GetPlaneType() == AliMp::kBendingPlane) ? "B" : "N";
+
+  return prefix;
+}
+
+
+

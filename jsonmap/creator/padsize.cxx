@@ -12,43 +12,38 @@
 ///
 /// @author  Laurent Aphecetche
 
-/// get the list of pad sizes
 
-#include "seg.h"
+#include "padsize.h"
 #include <vector>
-#include "AliMpPlaneType.h"
-#include "AliMpVSegmentation.h"
-#include "AliMpVPadIterator.h"
-#include "AliMpDDLStore.h"
-#include "de.h"
-#include <iostream>
+#include <utility>
+#include "seg.h"
 #include <set>
-#include "readmapping.h"
+#include "de.h"
+#include "AliMpVPadIterator.h"
+#include "AliMpVSegmentation.h"
+#include <iostream>
 
-int main()
-{
-  AliMpDDLStore *ddlStore;
-  AliMpSegmentation *mseg;
-  readMapping(ddlStore,mseg);
+std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 
   std::vector<int> deids = get_deids(ddlStore);
   std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,AliMp::kBendingPlane);
   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
   segs.insert(segs.end(),nb.begin(),nb.end());
 
+  //FIXME: should not really use set with floats, or should define what comparison
+  //means for those really...
   int n = 0;
-  using SIZEUNIT=float;
-  std::set<SIZEUNIT> padSizeX, padSizeY;
-  std::set<std::pair<SIZEUNIT,SIZEUNIT>> padSize;
-  SIZEUNIT scale = 2;
+  std::set<float> padSizeX, padSizeY;
+  std::set<std::pair<float,float>> padSize;
+  float scale = 2;
 
   for ( const auto& s : segs ){
     std::unique_ptr<AliMpVPadIterator> padIterator(s->CreateIterator());
     padIterator->First();
     do {
       AliMpPad pad = padIterator->CurrentItem();
-      auto x = static_cast<SIZEUNIT>(scale*pad.GetDimensionX());
-      auto y = static_cast<SIZEUNIT>(scale*pad.GetDimensionY());
+      auto x = static_cast<float>(scale*pad.GetDimensionX());
+      auto y = static_cast<float>(scale*pad.GetDimensionY());
       padSizeX.insert(x);
       padSizeY.insert(y);
       if (x < 0) {
@@ -61,6 +56,10 @@ int main()
     }
     while (!padIterator->IsDone());
   }
+
+  std::vector<std::pair<float,float>> padsizes;
+
+  padsizes.insert(padsizes.end(),padSize.begin(),padSize.end());
 
   std::cout << "n=" << n << std::endl;
   std::cout << "number of x sizes = " << padSizeX.size() << " : " << std::endl;
@@ -75,10 +74,6 @@ int main()
   for (const auto& v: padSize) {
     std::cout << "(" << v.first << "," << v.second << ") " << std::endl;
   }
-  std::cout << std::endl;
-  std::cout << sizeof(double) << std::endl;
-  std::cout << sizeof(float) << std::endl;
-  std::cout << sizeof(int) << std::endl;
-  std::cout << sizeof(int16_t) << std::endl;
-  return 0;
+
+  return padsizes;
 }

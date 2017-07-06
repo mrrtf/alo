@@ -23,5 +23,7 @@ std::vector<const AliMpSector*> get_allsectors(AliMpSegmentation* mseg);
 
 bool is_station2(const AliMpSector& sector);
 
+std::string get_sector_plane_prefix(const AliMpSector& sector);
+
 #endif
 
