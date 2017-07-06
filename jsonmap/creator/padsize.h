@@ -13,16 +13,15 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_CREATOR_MOTIF_H
-#define ALO_JSONMAP_CREATOR_MOTIF_H
+#ifndef ALO_JSONMAP_CREATOR_PADSIZE_H
+#define ALO_JSONMAP_CREATOR_PADSIZE_H
 
 #include <vector>
+#include <utility>
 
-class AliMpPCB;
-class AliMpSector;
-class AliMpVMotif;
+class AliMpDDLStore;
+class AliMpSegmentation;
 
-std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs);
-std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors);
+std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg);
 
-#endif //ALO_MOTIF_H
+#endif

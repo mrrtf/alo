@@ -1,62 +1,71 @@
+//
+// Copyright CERN and copyright holders of ALICE O2. This software is
+// distributed under the terms of the GNU General Public License v3 (GPL
+// Version 3), copied verbatim in the file "COPYING".
+//
+// See https://alice-o2.web.cern.ch/ for full licensing information.
+//
+// In applying this license CERN does not waive the privileges and immunities
+// granted to it by virtue of its status as an Intergovernmental Organization
+// or submit itself to any jurisdiction.
+
+///
+/// @author  Laurent Aphecetche
+
 #include "motif.h"
+#include "seg.h"
+#include "AliMpSector.h"
+#include <string>
+#include "AliMpMotifMap.h"
+#include "AliMpMotifPosition.h"
+#include "AliMpVMotif.h"
 #include "AliMpMotifType.h"
 #include "AliMpPCB.h"
-#include "AliMpMotifPosition.h"
-#include <algorithm>
-#include <iostream>
-#include "seg.h"
-#include "AliMpPlaneType.h"
-#include "AliMpSector.h"
-#include "AliMpMotifMap.h"
 
-std::vector<AliMpMotifType*> get_allslatmotiftypes(const std::vector<AliMpPCB *> &pcbs) {
+std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors)
+{
+  std::vector<AliMpVMotif*> motifs;
 
-    std::vector<AliMpMotifType*> motifTypes;
+  for (auto& s: sectors) {
+    std::string prefix = get_sector_plane_prefix(*s);
 
-  for (auto& pcb: pcbs) {
-    for ( int i = 0; i < pcb->GetSize(); ++i ) {
-      AliMpMotifType* mt = pcb->GetMotifPosition(i)->GetMotif()->GetMotifType();
-      if ( std::find_if(motifTypes.begin(),motifTypes.end(),
-                        [&mt](AliMpMotifType* a) {
-                          return strcmp(a->GetID(),mt->GetID())==0; }
-      ) == motifTypes.end()) {
-        motifTypes.push_back(mt);
-      }
-    }
-  }
-
-    return motifTypes;
-}
-
-std::vector<AliMpMotifType *> get_allsectormotiftypes(const std::vector<const AliMpSector *>& sectors) {
-
-  std::vector<AliMpMotifType *> motifTypes;
-
-  for (auto &s: sectors) {
-    std::string prefix;
-
-    if (is_station2(*s)) {
-      prefix = "2";
-    } else {
-      prefix = "1";
-    }
-
-    prefix += (s->GetPlaneType() == AliMp::kBendingPlane) ? "B" : "N";
-
-    AliMpMotifMap *motifMap = s->GetMotifMap();
+    AliMpMotifMap* motifMap = s->GetMotifMap();
 
     for (int i = 0; i < motifMap->GetNofMotifPositions(); ++i) {
-      AliMpMotifType* mt = motifMap->GetMotifPosition(i)->GetMotif()->GetMotifType();
-      std::string newname = prefix + mt->GetID().Data();
-      if (std::find_if(motifTypes.begin(), motifTypes.end(),
-                       [&](AliMpMotifType *a) {
+      AliMpVMotif* motif = motifMap->GetMotifPosition(i)->GetMotif();
+      AliMpMotifType* mt = motif->GetMotifType();
+      TString id(Form("%s-%s-%e-%e",mt->GetID().Data(),motif->GetID().Data(),motif->GetPadDimensionX(0)*2.0,motif->GetPadDimensionY(0)*2.0));
+      std::string newname = prefix + id.Data();
+      if ( motif->GetNofPadDimensions() > 1 ) {
+        newname += "(S)";
+      }
+      if (std::find_if(motifs.begin(), motifs.end(),
+                       [&](AliMpVMotif* a) {
                          return newname == a->GetID();
                        }
-      ) == motifTypes.end()) {
-        motifTypes.push_back(static_cast<AliMpMotifType*>(mt->Clone(newname.c_str())));
+      ) == motifs.end()) {
+        motifs.push_back(static_cast<AliMpVMotif*>(motif->Clone(newname.c_str())));
       }
     }
   }
-  return motifTypes;
+  return motifs;
 }
 
+std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs)
+{
+  std::vector<AliMpVMotif*> motifs;
+
+  for (auto& pcb: pcbs) {
+    for (int i = 0; i < pcb->GetSize(); ++i) {
+      AliMpVMotif* motif = pcb->GetMotifPosition(i)->GetMotif();
+      if (std::find_if(motifs.begin(), motifs.end(),
+                       [&motif](AliMpVMotif* a) {
+                         return strcmp(a->GetID(), motif->GetID()) == 0;
+                       }
+      ) == motifs.end()) {
+        motifs.push_back(motif);
+      }
+    }
+  }
+  return motifs;
+}

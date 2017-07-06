@@ -1,5 +1,5 @@
-#ifndef MOTIF2JSON_H
-#define MOTIF2JSON_H
+#ifndef ALO_JSONMAP_CREATOR_MOTIFTYPE2JSON_H
+#define ALO_JSONMAP_CREATOR_MOTIFTYPE2JSON_H
 
 #include "AliMpConnection.h"
 #include "AliMpMotifPosition.h"
@@ -7,7 +7,6 @@
 #include "AliMpPCB.h"
 #include "AliMpVMotif.h"
 #include "json.h"
-#include "motif2json.h"
 #include "pcb2json.h"
 #include <cassert>
 #include <string>
