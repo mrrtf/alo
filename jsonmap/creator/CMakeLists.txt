@@ -33,3 +33,10 @@ target_link_libraries(mch-mapping-convert-to-json mchjsoncreator)
 
 install(TARGETS mch-mapping-convert-to-json RUNTIME DESTINATION bin)
 
+
+add_executable(testMapping testMapping.cxx)
+
+target_include_directories(testMapping PRIVATE ${BOOST_INCLUDE_DIRS})
+target_link_libraries(testMapping PRIVATE mchjsoncreator)
+
+add_test(NAME testMapping COMMAND testMapping)
