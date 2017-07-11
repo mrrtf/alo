@@ -17,6 +17,8 @@ set(SOURCE_FILES
         motiftype2json.h
         padsize.cxx
         padsize.h
+        padsize2json.h
+        pcb.h
         pcb2json.h
         pcbnumbers.cxx
         readmapping.cxx

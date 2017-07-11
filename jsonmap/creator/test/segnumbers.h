@@ -13,34 +13,14 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_CREATOR_TEST_MAPPING_H
-#define ALO_JSONMAP_CREATOR_TEST_MAPPING_H
+#ifndef ALO_JSONMAP_CREATOR_TEST_SEGNUMBERS_H
+#define ALO_JSONMAP_CREATOR_TEST_SEGNUMBERS_H
 
-class AliMpDDLStore;
-class AliMpSegmentation;
-class AliMpVSegmentation;
-
-#include <vector>
+#include <array>
 #include <string>
-#include "AliMpPlaneType.h"
 
-class Mapping
-{
-  public:
+extern std::array<std::string,21> segnames;
+extern std::array<int, 21> bpads;
+extern std::array<int, 21> nbpads;
 
-    Mapping();
-
-    AliMpDDLStore* ddlStore();
-
-    AliMpSegmentation* mseg();
-
-    std::vector<int> deids();
-
-    std::vector<AliMpVSegmentation*> b_segs();
-
-    std::vector<AliMpVSegmentation*> nb_segs();
-};
-
-AliMpVSegmentation* getSegmentation(std::string segname, AliMp::PlaneType plane);
-
-#endif
+#endif //ALO_SEGNUMBERS_H

@@ -55,3 +55,17 @@ std::vector<AliMpVSegmentation*> Mapping::nb_segs()
   return v;
 };
 
+AliMpVSegmentation* getSegmentation(std::string segname, AliMp::PlaneType plane)
+{
+  Mapping m;
+
+  const std::vector<AliMpVSegmentation*>& segs = (plane == AliMp::kBendingPlane ? m.b_segs() : m.nb_segs());
+
+  auto ix = std::find_if(segs.begin(), segs.end(),
+                         [&](AliMpVSegmentation* seg) { return get_segtype(*seg) == segname; });
+
+  if (ix != segs.end()) {
+    return *ix;
+  }
+  return nullptr;
+}

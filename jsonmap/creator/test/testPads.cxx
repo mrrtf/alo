@@ -27,6 +27,7 @@
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
 #include "mapping.h"
+#include "segnumbers.h"
 
 namespace bdata = boost::unit_test::data;
 
@@ -35,55 +36,6 @@ BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping)
 BOOST_AUTO_TEST_SUITE(pads)
 
 namespace {
-
-std::vector<std::string> segnames{
-  "st1",
-  "st2",
-  "122000SR1",
-  "112200SR2",
-  "122200S",
-  "222000N",
-  "220000N",
-  "122000NR1",
-  "112200NR2",
-  "122200N",
-  "122330N",
-  "112233NR3",
-  "112230N",
-  "222330N",
-  "223300N",
-  "333000N",
-  "330000N",
-  "112233N",
-  "222333N",
-  "223330N",
-  "333300N"
-};
-
-std::array<int, 21> bpads = {
-  14392, 13947, 2928, 3568, 3120, 1920, 1280, 3008, 3648, 3200, 3200, 4096, 4160, 2560, 1920, 960, 640, 4480, 2880,
-  2240, 1280
-};
-
-std::array<int, 21> nbpads = {
-  14280, 13986, 2048, 2496, 2176, 1344, 896, 2112, 2560, 2240, 2240, 2880, 2912, 1792, 1344, 672, 448, 3136, 2016,
-  1568, 896
-};
-
-AliMpVSegmentation* getSegmentation(std::string segname, AliMp::PlaneType plane)
-{
-  Mapping m;
-
-  const std::vector<AliMpVSegmentation*>& segs = (plane == AliMp::kBendingPlane ? m.b_segs() : m.nb_segs());
-
-  auto ix = std::find_if(segs.begin(), segs.end(),
-                         [&](AliMpVSegmentation* seg) { return get_segtype(*seg) == segname; });
-
-  if (ix != segs.end()) {
-    return *ix;
-  }
-  return nullptr;
-}
 
 int countPadsInSegmentation(const AliMpVSegmentation& seg)
 {
@@ -102,15 +54,6 @@ int countPadsInSegmentation(const AliMpVSegmentation& seg)
 }
 } // anonymous namespace
 
-BOOST_AUTO_TEST_CASE(segmentationOrder)
-{
-  for (auto i = 0; i < b_segs().size(); ++i) {
-    BOOST_TEST_CHECK((get_segtype(*(b_segs()[i])) == segnames[i]));
-  }
-  for (auto i = 0; i < nb_segs().size(); ++i) {
-    BOOST_TEST_CHECK((get_segtype(*(nb_segs()[i])) == segnames[i]));
-  }
-}
 
 BOOST_DATA_TEST_CASE(countBendingPads, (bdata::make(segnames) ^ bdata::make(bpads)), segname, npads)
 {
@@ -148,6 +91,7 @@ BOOST_AUTO_TEST_CASE(countAllPads)
   BOOST_TEST_CHECK((nb == 64042), "nb=" << nb << " expected 64042");
 }
 
+BOOST_TEST_DECORATOR(* boost::unit_test::disabled())
 BOOST_AUTO_TEST_CASE(testSt2Manu1098) {
 
   AliMpVSegmentation* seg = getSegmentation("st2",AliMp::kNonBendingPlane);
@@ -162,7 +106,8 @@ BOOST_AUTO_TEST_CASE(testSt2Manu1098) {
   BOOST_TEST_CHECK(pad.GetManuId()==1098);
 }
 
-BOOST_DATA_TEST_CASE(testPadUniqueness, (bdata::make({"st2"}) * bdata::make({AliMp::kNonBendingPlane})), segname, plane)
+BOOST_TEST_DECORATOR(* boost::unit_test::disabled())
+BOOST_DATA_TEST_CASE(testPadUniqueness , (bdata::make({"st2"}) * bdata::make({AliMp::kNonBendingPlane})), segname, plane)
 {
   AliMpVSegmentation* seg = getSegmentation(segname, plane);
   AliMpArea area(16 + 1, 19.5 + 0.75, 12,12);

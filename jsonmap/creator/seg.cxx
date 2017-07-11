@@ -6,8 +6,10 @@
 #include "AliMpSlatMotifMap.h"
 #include "AliMpSlatSegmentation.h"
 #include "seg.h"
+#include "de.h"
 #include <iostream>
 #include <cassert>
+#include <set>
 
 bool is_slat(std::string segtype) {
     return (segtype.find("st") == std::string::npos);
@@ -128,6 +130,32 @@ std::string get_sector_plane_prefix(const AliMpSector& sector)
   prefix += (sector.GetPlaneType() == AliMp::kBendingPlane) ? "B" : "N";
 
   return prefix;
+}
+
+std::vector<std::string> get_all_segmentation_names(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
+{
+  std::vector<std::string> segnames;
+
+  std::vector<int> deids = get_deids(ddlStore);
+
+  std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,AliMp::kNonBendingPlane);
+
+  for ( auto s: segs ) {
+    std::string name = get_segtype(*s);
+    if ( std::find(segnames.begin(),segnames.end(),name)==segnames.end() ) {
+      segnames.push_back(name);
+    }
+  }
+  return segnames;
+}
+
+AliMpVSegmentation* get_seg(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg, std::string segname, AliMp::PlaneType planeType)
+{
+  std::vector<int> deids = get_deids_per_segname(ddlStore,mseg,segname);
+
+  std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,planeType);
+
+  return segs[0];
 }
 
 
