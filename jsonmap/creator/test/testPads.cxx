@@ -1,4 +1,3 @@
-//
 // Copyright CERN and copyright holders of ALICE O2. This software is
 // distributed under the terms of the GNU General Public License v3 (GPL
 // Version 3), copied verbatim in the file "COPYING".
@@ -12,8 +11,8 @@
 ///
 /// @author  Laurent Aphecetche
 
-#define BOOST_TEST_MODULE mch mapping test
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
 
 #include "AliMpArea.h"
 #include "AliMpDDLStore.h"
@@ -27,57 +26,13 @@
 #include <array>
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
+#include "mapping.h"
 
 namespace bdata = boost::unit_test::data;
 
-struct Mapping
-{
-    Mapping()
-    {
-      ddlStore();
-    }
-
-    AliMpDDLStore* ddlStore()
-    {
-      static AliMpDDLStore* ddlStore = nullptr;
-      static AliMpSegmentation* mseg = nullptr;
-      if (!ddlStore) { readMapping(ddlStore, mseg); }
-      return ddlStore;
-    }
-
-    AliMpSegmentation* mseg()
-    {
-      static AliMpSegmentation* mseg = AliMpSegmentation::Instance();
-      return mseg;
-    }
-
-    std::vector<int> deids()
-    {
-      static std::vector<int> v = get_deids(ddlStore());
-      return v;
-    }
-
-    std::vector<AliMpVSegmentation*> b_segs()
-    {
-      static std::vector<AliMpVSegmentation*> v = get_segs(mseg(), deids(), AliMp::kBendingPlane);
-      return v;
-    };
-
-    std::vector<AliMpVSegmentation*> nb_segs()
-    {
-      static std::vector<AliMpVSegmentation*> v = get_segs(mseg(), deids(), AliMp::kNonBendingPlane);
-      return v;
-    };
-};
-
 BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping)
 
-BOOST_AUTO_TEST_CASE(loadMapping)
-{
-  BOOST_TEST_REQUIRE(ddlStore());
-  BOOST_TEST_REQUIRE(mseg());
-  BOOST_TEST_REQUIRE(deids().size() == 156);
-}
+BOOST_AUTO_TEST_SUITE(pads)
 
 namespace {
 
@@ -247,4 +202,5 @@ BOOST_DATA_TEST_CASE(testPadUniqueness, (bdata::make({"st2"}) * bdata::make({Ali
   }
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

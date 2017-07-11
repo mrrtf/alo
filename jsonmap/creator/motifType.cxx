@@ -58,3 +58,33 @@ std::vector<AliMpMotifType*> get_allsectormotiftypes(const std::vector<const Ali
   return motifTypes;
 }
 
+
+std::vector<AliMpMotifType*>
+get_allmotiftypes(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors)
+{
+  /// get all the motif types, ordered alphabetically by (string) ID
+
+  auto slatmt = get_allslatmotiftypes(pcbs);
+  auto sectormt = get_allsectormotiftypes(sectors);
+  auto mt = slatmt;
+  mt.insert(mt.end(), sectormt.begin(), sectormt.end());
+  std::sort(mt.begin(), mt.end(), [](AliMpMotifType* a, AliMpMotifType* b) { return a->GetID() < b->GetID(); });
+
+  return mt;
+}
+
+
+int get_motiftype_index(std::string motifID, const std::vector<AliMpMotifType*>& motifTypes)
+{
+  auto i = motifID.find_first_of('-');
+
+  std::string motifTypeId = motifID.substr(0, i);
+
+  auto index = std::find_if(motifTypes.begin(), motifTypes.end(), [&](AliMpMotifType* mt) {
+    return motifTypeId == mt->GetID();
+  });
+
+  return std::distance(motifTypes.begin(), index);
+}
+
+

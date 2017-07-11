@@ -16,13 +16,43 @@
 #include "seg.h"
 #include "AliMpSector.h"
 #include <string>
+#include <iostream>
 #include "AliMpMotifMap.h"
 #include "AliMpMotifPosition.h"
 #include "AliMpVMotif.h"
 #include "AliMpMotifType.h"
 #include "AliMpPCB.h"
+#include "padsize.h"
+#include <sstream>
+#include <cassert>
 
-std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors)
+int get_padsize_index(float px, float py, const std::vector<std::pair<float, float>>& padsizes)
+{
+  auto pix = std::find_if(padsizes.begin(), padsizes.end(), [&](std::pair<float, float> p) {
+    return std::abs(p.first - px) < 1E-4 && std::abs(p.second - py) < 1E-4;
+  });
+  return pix - padsizes.begin();
+}
+
+std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<float, float>> & padsizes)
+{
+  int index = get_padsize_index(motif.GetPadDimensionX(0) * 2.0, motif.GetPadDimensionY(0) * 2.0, padsizes);
+
+  std::ostringstream s;
+
+  s << motif.GetMotifType()->GetID().Data();
+
+  if (motif.GetNofPadDimensions()>1) {
+    s << "*";
+  }
+
+  s << "-" << index;
+
+  return s.str();
+}
+
+std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors,
+                                              const std::vector<std::pair<float, float>>& padsizes)
 {
   std::vector<AliMpVMotif*> motifs;
 
@@ -33,15 +63,12 @@ std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSecto
 
     for (int i = 0; i < motifMap->GetNofMotifPositions(); ++i) {
       AliMpVMotif* motif = motifMap->GetMotifPosition(i)->GetMotif();
-      AliMpMotifType* mt = motif->GetMotifType();
-      TString id(Form("%s-%s-%e-%e",mt->GetID().Data(),motif->GetID().Data(),motif->GetPadDimensionX(0)*2.0,motif->GetPadDimensionY(0)*2.0));
-      std::string newname = prefix + id.Data();
-      if ( motif->GetNofPadDimensions() > 1 ) {
-        newname += "(S)";
-      }
+
+      std::string newname = prefix + get_motif_id(*motif,padsizes);
+
       if (std::find_if(motifs.begin(), motifs.end(),
                        [&](AliMpVMotif* a) {
-                         return newname == a->GetID();
+                         return newname == a->GetID().Data();
                        }
       ) == motifs.end()) {
         motifs.push_back(static_cast<AliMpVMotif*>(motif->Clone(newname.c_str())));
@@ -51,21 +78,38 @@ std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSecto
   return motifs;
 }
 
-std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs)
+std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs,
+                                            const std::vector<std::pair<float, float>>& padsizes)
 {
   std::vector<AliMpVMotif*> motifs;
+  std::vector<std::string> names;
 
   for (auto& pcb: pcbs) {
     for (int i = 0; i < pcb->GetSize(); ++i) {
       AliMpVMotif* motif = pcb->GetMotifPosition(i)->GetMotif();
+      std::string newname = get_motif_id(*motif,padsizes);
+      names.push_back(newname);
       if (std::find_if(motifs.begin(), motifs.end(),
-                       [&motif](AliMpVMotif* a) {
-                         return strcmp(a->GetID(), motif->GetID()) == 0;
+                       [&](AliMpVMotif* a) {
+                         return newname == a->GetID().Data();
                        }
       ) == motifs.end()) {
-        motifs.push_back(motif);
+        motifs.push_back(static_cast<AliMpVMotif*>(motif->Clone(newname.c_str())));
       }
     }
   }
   return motifs;
 }
+
+std::vector<AliMpVMotif*> get_allmotifs(const std::vector<AliMpPCB*>& pcbs,
+                                        const std::vector<const AliMpSector*>& sectors,
+                                        const std::vector<std::pair<float, float>>& padsizes)
+{
+  std::vector<AliMpVMotif*> motifs = get_allslatmotifs(pcbs, padsizes);
+  std::vector<AliMpVMotif*> sectorMotifs = get_allsectormotifs(sectors, padsizes);
+
+  motifs.insert(motifs.end(), sectorMotifs.begin(), sectorMotifs.end());
+
+  return motifs;
+}
+

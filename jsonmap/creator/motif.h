@@ -19,10 +19,22 @@
 #include <vector>
 
 class AliMpPCB;
+
 class AliMpSector;
+
 class AliMpVMotif;
 
-std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs);
-std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors);
+std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs,
+                                            const std::vector<std::pair<float, float>>& padsizes);
+
+std::vector<AliMpVMotif*>
+get_allsectormotifs(const std::vector<const AliMpSector*>& sectors, const std::vector<std::pair<float, float>>& padsizes);
+
+std::vector<AliMpVMotif*>
+get_allmotifs(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors,
+              const std::vector<std::pair<float, float>>& padsizes);
+
+int get_padsize_index(float px, float py, const std::vector<std::pair<float, float>>& padsizes);
+
 
 #endif //ALO_MOTIF_H

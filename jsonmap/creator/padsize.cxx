@@ -61,19 +61,5 @@ std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpS
 
   padsizes.insert(padsizes.end(),padSize.begin(),padSize.end());
 
-  std::cout << "n=" << n << std::endl;
-  std::cout << "number of x sizes = " << padSizeX.size() << " : " << std::endl;
-  for (const auto& x: padSizeX) {
-    std::cout << x << " ";
-  }
-  std::cout << std::endl << "number of y sizes = " << padSizeY.size() << " : " << std::endl;
-  for (const auto& y: padSizeY) {
-    std::cout << y << " ";
-  }
-  std::cout << std::endl << "number of x,y sizes = " << padSize.size() << " : " << std::endl;
-  for (const auto& v: padSize) {
-    std::cout << "(" << v.first << "," << v.second << ") " << std::endl;
-  }
-
   return padsizes;
 }

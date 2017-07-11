@@ -9,6 +9,9 @@ class AliMpVMotif;
 
 std::vector<AliMpMotifType*> get_allslatmotiftypes(const std::vector<AliMpPCB *>& pcbs);
 std::vector<AliMpMotifType*> get_allsectormotiftypes(const std::vector<const AliMpSector*>& sectors);
+std::vector<AliMpMotifType*> get_allmotiftypes(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors);
+
+int get_motiftype_index(std::string motifID, const std::vector<AliMpMotifType*>& motifTypes);
 
 #endif
 
