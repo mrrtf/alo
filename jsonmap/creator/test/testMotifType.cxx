@@ -60,7 +60,7 @@ struct MOTIFTYPES
 
 BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, MOTIFTYPES)
 
-BOOST_AUTO_TEST_SUITE(motif_types)
+BOOST_AUTO_TEST_SUITE(types_of_motif)
 
 BOOST_AUTO_TEST_CASE(NumberOfMotifTypeForSlats)
 {
@@ -82,6 +82,14 @@ BOOST_AUTO_TEST_CASE(MotifTypeNames)
   for ( auto i = 0; i < mt.size(); ++i ) {
     BOOST_TEST_CHECK((mt[i]->GetID()==motifTypeNames[i].c_str()));
   }
+}
+
+BOOST_AUTO_TEST_CASE(MotifTypeClone) {
+  std::string newname = "toto";
+  AliMpMotifType* m = mt[0];
+  AliMpMotifType* c = static_cast<AliMpMotifType*>(m->Clone(newname.c_str()));
+  BOOST_TEST_CHECK((newname==c->GetID().Data()));
+  BOOST_TEST_CHECK((m->GetID()!=newname.c_str()));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
