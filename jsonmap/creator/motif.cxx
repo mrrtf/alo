@@ -34,7 +34,8 @@ int get_padsize_index(float px, float py, const std::vector<std::pair<float, flo
   return pix - padsizes.begin();
 }
 
-std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<float, float>> & padsizes)
+
+std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<float, float>>& padsizes)
 {
   int index = get_padsize_index(motif.GetPadDimensionX(0) * 2.0, motif.GetPadDimensionY(0) * 2.0, padsizes);
 

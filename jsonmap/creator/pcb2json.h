@@ -7,7 +7,7 @@
 #include "AliMpVMotif.h"
 #include "json.h"
 #include "pcb2json.h"
-#include "seg2json.h"
+#include "legacyseg2json.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>

@@ -9,9 +9,13 @@ set(SOURCE_FILES
         ddl2json.h
         de.cxx
         de2json.h
+        json.h
+        legacyseg2json.h
         motif.cxx
         motif.h
         motif2json.h
+        motifPosition.h
+        motifPosition.cxx
         motifType.cxx
         motifType.h
         motiftype2json.h
@@ -25,6 +29,7 @@ set(SOURCE_FILES
         readmapping.h
         sector2json.h
         seg.cxx
+        seg2json.h
         slat2json.h)
 add_library(mchjsoncreator SHARED ${SOURCE_FILES})
 

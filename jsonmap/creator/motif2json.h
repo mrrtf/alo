@@ -13,10 +13,12 @@
 #include <string>
 
 template<typename WRITER>
-void motif2json(const AliMpVMotif& motif, const std::vector<AliMpMotifType*>& motifTypes,
+void motif2json(int index, const AliMpVMotif& motif, const std::vector<AliMpMotifType*>& motifTypes,
                 std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
   w.StartObject();
+  w.Key("index(TBR)");
+  w.Int(index);
   w.Key("id(TBR)");
   w.String(motif.GetID());
   w.Key("motifType");
@@ -50,7 +52,7 @@ void all_motif2json(const std::vector<AliMpVMotif*>& motifs, const std::vector<A
   w.StartArray();
 
   for (auto i = 0; i < motifs.size(); ++i) {
-    motif2json(*motifs[i], motifTypes, padsizes, w);
+    motif2json(i,*motifs[i], motifTypes, padsizes, w);
   }
   w.EndArray();
   w.EndObject();

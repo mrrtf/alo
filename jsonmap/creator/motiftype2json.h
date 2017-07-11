@@ -33,7 +33,7 @@ void motiftype2json(const AliMpMotifType& mt, int index, WRITER& w)
   w.String(mt.GetID());
   w.Key("index(TBR)");
   w.Int(index);
-  w.Key("is_full");
+  w.Key("is_full(TBR)");
   w.Bool(mt.IsFull());
   w.Key("pads");
   w.StartArray();
@@ -45,7 +45,7 @@ void motiftype2json(const AliMpMotifType& mt, int index, WRITER& w)
     ++n;
   }
   w.EndArray();
-  w.Key("nof_pads");
+  w.Key("nof_pads(TBR)");
   w.Int(n);
   w.EndObject();
 }
