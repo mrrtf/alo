@@ -16,8 +16,8 @@
 #ifndef ALO_JSONMAP_READER_CHAMBER_H
 #define ALO_JSONMAP_READER_CHAMBER_H
 
-#include <string>
+#include "rapidjson/document.h"
 
-void readChambers(const std::string& inputfile);
+void readChambers(rapidjson::Value& chambers);
 
 #endif

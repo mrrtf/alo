@@ -20,13 +20,10 @@
 #include "chamber.h"
 #include "jsonReader.h"
 
-void readChambers(const std::string &inputfile) {
-  InputWrapper docw(inputfile.c_str());
-  rapidjson::Document& d = docw.document();
-  if (d.HasMember("chs")) {
-    std::cout << "chs is an array:" << d["chs"].IsArray() << std::endl;
-    for (auto& v: d["chs"].GetArray()) {
-      std::cout << v["id"].GetInt() << std::endl;
-    }
+void readChambers(rapidjson::Value& chambers)
+{
+  for (auto& v: chambers.GetArray()) {
+    std::cout << v["id"].GetInt() << std::endl;
   }
 }
+
