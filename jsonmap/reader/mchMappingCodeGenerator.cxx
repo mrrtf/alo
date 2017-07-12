@@ -13,15 +13,16 @@
 #include "chamber.h"
 #include "codeWriter.h"
 #include "detectionElement.h"
+#include "jsonReader.h"
 #include "motifType.h"
+#include "padSize.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "jsonReader.h"
+#include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <map>
 
 using namespace rapidjson;
 namespace po = boost::program_options;
@@ -96,6 +97,12 @@ int main(int argc, char* argv[])
     outputCode(code.first, code.second, "genMotifType");
   }
 
+  if (documents.count("padsizes")) {
+    Document& doc = documents["padsizes"]->document();
+    std::pair<std::string, std::string> code = generateCodeForPadSizes(doc["padsizes"]);
+    outputCode(code.first, code.second, "genPadSize");
+
+  }
   return 0;
 }
 

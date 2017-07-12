@@ -34,9 +34,9 @@ void all_padsizes(std::string topkey, const std::vector<std::pair<float, float>>
     w.Int(n++);
     w.Key("unit");
     w.String("micron");
-    w.Key("dx");
+    w.Key("x");
     w.Int(std::round(p.first * unit));
-    w.Key("dy");
+    w.Key("y");
     w.Int(std::round(p.second * unit));
     w.EndObject();
   }
