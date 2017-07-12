@@ -13,11 +13,14 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_CHAMBER_H
-#define ALO_JSONMAP_READER_CHAMBER_H
+#ifndef ALO_JSONMAP_CREATOR_TEST_SEGNUMBERS_H
+#define ALO_JSONMAP_CREATOR_TEST_SEGNUMBERS_H
 
-#include "rapidjson/document.h"
+#include <array>
+#include <string>
 
-void readChambers(rapidjson::Value& chambers);
+extern std::array<std::string,21> segnames;
+extern std::array<int, 21> bpads;
+extern std::array<int, 21> nbpads;
 
-#endif
+#endif //ALO_SEGNUMBERS_H

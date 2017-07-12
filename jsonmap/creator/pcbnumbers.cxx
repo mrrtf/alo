@@ -25,6 +25,9 @@ void getPCBs(const AliMpSlat& slat, std::vector<AliMpPCB*>& pcbs)
 
 std::vector<AliMpPCB*> get_allpcbs(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 
+/// get the list of all the PCBs defined for the slats
+/// returned vector is ordered alphabetically by PCB ID
+
     std::vector<AliMpPCB*> pcbs;
     std::vector<int> deids = get_deids(ddlStore);
     std::vector<AliMpVSegmentation*> b = get_segs(mseg,deids,AliMp::kBendingPlane);
@@ -41,6 +44,8 @@ std::vector<AliMpPCB*> get_allpcbs(AliMpDDLStore* ddlStore, AliMpSegmentation* m
             getPCBs(*slat,pcbs);
         }
     }
+
+    std::sort(pcbs.begin(),pcbs.end(),[](AliMpPCB* a, AliMpPCB* b) { return strcmp(a->GetID(),b->GetID())<0; });
 
     return pcbs;
 }

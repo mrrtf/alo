@@ -21,10 +21,10 @@
 #include <utility>
 
 template<typename WRITER>
-void all_padsizes(const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+void all_padsizes(std::string topkey, const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
-   w.StartObject();
-  w.Key("padsizes");
+  w.StartObject();
+  w.Key(topkey.c_str());
   w.StartArray();
   int n = 0;
   float unit = 1E4; // original sizes in AliRoot are in cm
@@ -35,9 +35,9 @@ void all_padsizes(const std::vector<std::pair<float, float>>& padsizes, WRITER& 
     w.Key("unit");
     w.String("micron");
     w.Key("dx");
-    w.Int(std::round(p.first*unit));
+    w.Int(std::round(p.first * unit));
     w.Key("dy");
-    w.Int(std::round(p.second*unit));
+    w.Int(std::round(p.second * unit));
     w.EndObject();
   }
   w.EndArray();

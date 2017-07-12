@@ -18,13 +18,8 @@
 
 using namespace rapidjson;
 
-std::pair<std::string,std::string> readDetectionElements(const std::string& inputfile) {
-  InputWrapper docw(inputfile.c_str());
-  Document& doc = docw.document();
-  if (!doc.HasMember("des")) {
-    std::cout << "inputfile " << inputfile << " does not contain detection element information" << std::endl;
-  }
-  const Value& des = doc["des"];
+std::pair<std::string, std::string> generateCodeForDetectionElements(const rapidjson::Value& des)
+{
   assert(des.IsArray());
   std::vector<int> deids;
   for (const auto& de: des.GetArray()) {
@@ -43,6 +38,7 @@ std::pair<std::string,std::string> readDetectionElements(const std::string& inpu
   std::ostringstream impl;
 
   std::sort(deids.begin(),deids.end());
+
   impl << "#include <array>\n";
   impl << mappingNamespaceBegin() << "\n";
   impl << "std::array<int," << deids.size() << "> detectionElementArray() {\n";

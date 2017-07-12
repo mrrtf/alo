@@ -1,5 +1,5 @@
-#ifndef JSON_H
-#define JSON_H
+#ifndef ALO_JSONMAP_READER_JSON_H
+#define ALO_JSONMAP_READER_JSON_H
 
 #include <iostream>
 #include <string>
@@ -11,7 +11,7 @@
 template<class StreamType, class WriterType>
 class OutputFile {
     public:
-    OutputFile(const char* filename) : mFile(fopen(filename, "wb")),
+    OutputFile(std::string filename) : mFile(fopen(filename.c_str(), "wb")),
     mWriteBuffer(new char[65536]),
     mStream(mFile,mWriteBuffer,sizeof(mWriteBuffer)),
     mWriter(mStream) {}
@@ -33,9 +33,9 @@ class OutputFile {
 using OF = OutputFile<rapidjson::FileWriteStream,rapidjson::PrettyWriter<rapidjson::FileWriteStream>>;
 
 template<typename T>
-void WriteArray(T& w, const char* key, std::vector<int> v)
+void WriteArray(T& w, std::string key, std::vector<int> v)
 {
-    w.Key(key);
+    w.Key(key.c_str());
     w.StartArray();
     for ( std::vector<int>::size_type i = 0; i < v.size(); ++i) {
         w.Int(v[i]);

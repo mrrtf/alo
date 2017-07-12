@@ -7,7 +7,7 @@
 #include "AliMpVMotif.h"
 #include "json.h"
 #include "pcb2json.h"
-#include "seg2json.h"
+#include "legacyseg2json.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -49,11 +49,12 @@ void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<std::pair<float, floa
 }
 
 template<typename WRITER>
-void all_pcb2json(const std::vector<AliMpPCB*>& pcbs, const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+void all_pcb2json(std::string topkey, const std::vector<AliMpPCB*>& pcbs,
+                  const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
 
   w.StartObject();
-  w.Key("pcbs");
+  w.Key(topkey.c_str());
   w.StartArray();
   for (auto& s: pcbs) {
     pcbmotifs2json(*s, padsizes, w);

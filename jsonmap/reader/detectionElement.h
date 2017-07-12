@@ -13,7 +13,8 @@
 
 #include <utility>
 #include <string>
+#include "rapidjson/document.h"
 
-std::pair<std::string,std::string> readDetectionElements(const std::string& inputFileName);
+std::pair<std::string, std::string> generateCodeForDetectionElements(const rapidjson::Value& des);
 
-#endif //ALO_JSONMAP_READER_DE_H
+#endif

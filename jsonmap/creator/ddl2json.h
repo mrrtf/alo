@@ -1,5 +1,5 @@
-#ifndef DDL2JSON_H
-#define DDL2JSON_H
+#ifndef ALO_JSONMAP_READER_DDL2JSON_H
+#define ALO_JSONMAP_READER_DDL2JSON_H
 
 #include "AliMpDDL.h"
 #include "AliDAQ.h"
@@ -7,12 +7,12 @@
 #include "json.h"
 
 template<typename WRITER>
-void all_ddl2json(const std::vector<AliMpDDL*>& ddls, 
+void all_ddl2json(std::string topkey, const std::vector<AliMpDDL*>& ddls,
         const std::vector<std::vector<int> >& desperddl, 
         WRITER& w) 
 {
     w.StartObject();
-    w.Key("ddls");
+    w.Key(topkey.c_str());
     w.StartArray();
     int i = 0;
     for ( auto& ddl: ddls) {

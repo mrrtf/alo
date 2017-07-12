@@ -16,73 +16,86 @@
 #include "motifType.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
+#include "jsonReader.h"
 #include <iostream>
 #include <string>
 #include <vector>
 #include <fstream>
+#include <map>
 
 using namespace rapidjson;
 namespace po = boost::program_options;
 
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[])
+{
   po::variables_map vm;
-  try {
-    po::options_description generic("Generic options");
-    generic.add_options()
-        ("help", "produce help message")
-        ("de", "read detection element information")
-        ("ch", "read chamber information")
-    ("motif","read motif type information");
+  po::options_description generic("Generic options");
+  generic.add_options()
+    ("help", "produce help message")
+    ("detection_elements", "read detection element information")
+    ("chambers", "read chamber information")
+    ("segmentations", "read segmentation information")
+    ("motifs", "read motif information")
+    ("bergs", "read berg connector information")
+    ("padsizes", "read padsize information")
+    ("motiftypes", "read motif type information");
 
-    po::options_description hidden("hidden options");
-    hidden.add_options()
-        ("input-file", po::value<std::vector<std::string> >(), "input file");
+  po::options_description hidden("hidden options");
+  hidden.add_options()
+    ("input-file", po::value<std::vector<std::string> >(), "input file");
 
-    po::options_description cmdline;
-    cmdline.add(generic).add(hidden);
+  po::options_description cmdline;
+  cmdline.add(generic).add(hidden);
 
-    po::positional_options_description p;
-    p.add("input-file", -1);
+  po::positional_options_description p;
+  p.add("input-file", -1);
 
-    po::store(po::command_line_parser(argc, argv).
-        options(cmdline).positional(p).run(), vm);
-    po::notify(vm);
+  po::store(po::command_line_parser(argc, argv).
+    options(cmdline).positional(p).run(), vm);
+  po::notify(vm);
 
-    if (vm.count("help")) {
-      std::cout << generic << std::endl;
-      return 2;
-    }
-    if (vm.count("input-file") == 0) {
-      std::cout << "no input file specified" << std::endl;
-      return 1;
-    }
+  if (vm.count("help")) {
+    std::cout << generic << std::endl;
+    return 2;
   }
-  catch(std::exception& e)
-  {
-    std::cout << e.what() << "\n";
+  if (vm.count("input-file") == 0) {
+    std::cout << "no input file specified" << std::endl;
     return 1;
   }
 
   std::vector<std::string> inputfiles = vm["input-file"].as<std::vector<std::string>>();
+  std::map<std::string, std::unique_ptr<InputWrapper> > documents;
 
-  for ( auto&& file : inputfiles) {
-    if (vm.count("ch")) {
-      readChambers(file);
-    }
+  std::vector<std::string> parts{"motifs", "segmentations"};
 
-    if (vm.count("de")) {
-      std::pair<std::string,std::string> code = readDetectionElements(file);
-      outputCode(code.first,code.second,"de");
-    }
+  for (auto&& file : inputfiles) {
 
-    if (vm.count("motif")) {
-      std::pair<std::string,std::string> code = readMotifTypes(file);
-      outputCode(code.first,code.second,"motif");
-      std::ofstream out("testMotifType.cxx");
-      out << "#include \"motif.h\"\n";
-      out << "int main() { testMotifTypes(); return 0; }\n";
+    for (const auto& opt: generic.options()) {
+      if (vm.count(opt->long_name())) {
+        std::unique_ptr<InputWrapper> doc = std::make_unique<InputWrapper>(file.c_str());
+        if (doc->document().HasMember(opt->long_name().c_str())) {
+          documents.insert(std::make_pair(opt->long_name(), std::make_unique<InputWrapper>(file.c_str())));
+        }
+      }
     }
   }
+
+  if (documents.count("chambers")) {
+    readChambers(documents["chambers"]->document());
+  }
+
+  if (documents.count("detection_elements")) {
+    Document& deDocument = documents["detection_elements"]->document();
+    std::pair<std::string, std::string> code = generateCodeForDetectionElements(deDocument["detection_elements"]);
+    outputCode(code.first, code.second, "genDetectionElement");
+  }
+
+  if (documents.count("motiftypes")) {
+    Document& doc = documents["motiftypes"]->document();
+    std::pair<std::string, std::string> code = generateCodeForMotifTypes(doc["motiftypes"]);
+    outputCode(code.first, code.second, "genMotifType");
+  }
+
   return 0;
 }
+

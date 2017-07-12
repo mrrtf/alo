@@ -26,12 +26,14 @@ void connection2json(const AliMpConnection& c, WRITER& w)
 }
 
 template<typename WRITER>
-void motif2json(const AliMpMotifType& mt, WRITER& w)
+void motiftype2json(const AliMpMotifType& mt, int index, WRITER& w)
 {
   w.StartObject();
   w.Key("id");
   w.String(mt.GetID());
-  w.Key("is_full");
+  w.Key("index(TBR)");
+  w.Int(index);
+  w.Key("is_full(TBR)");
   w.Bool(mt.IsFull());
   w.Key("pads");
   w.StartArray();
@@ -43,21 +45,22 @@ void motif2json(const AliMpMotifType& mt, WRITER& w)
     ++n;
   }
   w.EndArray();
-  w.Key("nof_pads");
+  w.Key("nof_pads(TBR)");
   w.Int(n);
   w.EndObject();
 }
 
 template<typename WRITER>
-void all_motif2json(const std::vector<AliMpMotifType*>& motifTypes,
+void all_motiftype2json(std::string topkey, const std::vector<AliMpMotifType*>& motifTypes,
         WRITER& w) 
 {
     w.StartObject();
-    w.Key("motifs");
+    w.Key(topkey.c_str());
     w.StartArray();
 
+    int ix(0);
     for (auto& mt: motifTypes) {
-        motif2json(*mt,w);
+        motiftype2json(*mt,ix++,w);
     }
     w.EndArray();
     w.EndObject();

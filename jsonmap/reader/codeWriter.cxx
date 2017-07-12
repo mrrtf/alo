@@ -13,11 +13,11 @@
 #include <sstream>
 
 std::string mappingNamespaceBegin() {
-  return "\nnamespace o2\n{\nnamespace MCH\n{\nnamespace mapping\n{\n";
+  return "\nnamespace o2\n{\nnamespace mch\n{\nnamespace mapping\n{\n";
 }
 
 std::string mappingNamespaceEnd() {
-  return "\n} // namespace mapping\n} // namespace MCH\n} // namespace o2\n";
+  return "\n} // namespace mapping\n} // namespace mch\n} // namespace o2\n";
 }
 
 std::string includeGuardName(const std::string& filename) {

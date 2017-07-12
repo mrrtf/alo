@@ -13,13 +13,34 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_MOTIFTYPE_H
-#define ALO_JSONMAP_READER_MOTIFTYPE_H
+#ifndef ALO_JSONMAP_CREATOR_TEST_MAPPING_H
+#define ALO_JSONMAP_CREATOR_TEST_MAPPING_H
 
+class AliMpDDLStore;
+class AliMpSegmentation;
+class AliMpVSegmentation;
+
+#include <vector>
 #include <string>
-#include <utility>
-#include "rapidjson/document.h"
+#include "AliMpPlaneType.h"
 
-std::pair<std::string, std::string> generateCodeForMotifTypes(const rapidjson::Value& motifs);
+class Mapping
+{
+  public:
+
+    Mapping();
+
+    AliMpDDLStore* ddlStore();
+
+    AliMpSegmentation* mseg();
+
+    std::vector<int> deids();
+
+    std::vector<AliMpVSegmentation*> b_segs();
+
+    std::vector<AliMpVSegmentation*> nb_segs();
+};
+
+AliMpVSegmentation* getSegmentation(std::string segname, AliMp::PlaneType plane);
 
 #endif

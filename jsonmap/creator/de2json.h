@@ -1,5 +1,5 @@
-#ifndef DE2JSON_H
-#define DE2JSON_H
+#ifndef ALO_JSONMAP_READER_DE2JSON_H
+#define ALO_JSONMAP_READER_DE2JSON_H
 
 #include <iostream>
 #include <vector>
@@ -8,7 +8,7 @@
 #include <cassert>
 
 template<typename WRITER>
-void de2json(const AliMpDetElement& de, 
+void de2json(const AliMpDetElement& de,
         const std::vector<int>& bps,
         WRITER& w)
 {
@@ -31,12 +31,12 @@ void de2json(const AliMpDetElement& de,
 }
 
 template<typename WRITER>
-void all_de2json(const std::vector<AliMpDetElement*>& des, 
+void all_de2json(std::string topkey, const std::vector<AliMpDetElement*>& des,
         const std::vector<std::vector<int>>& bpsperde, WRITER& w)
 {
     assert(des.size()==bpsperde.size());
     w.StartObject();
-    w.Key("des");
+    w.Key(topkey.c_str());
     w.StartArray();
 
     int i = 0;

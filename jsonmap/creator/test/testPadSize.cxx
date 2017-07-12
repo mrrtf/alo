@@ -13,11 +13,21 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_CHAMBER_H
-#define ALO_JSONMAP_READER_CHAMBER_H
+#define BOOST_TEST_DYN_LINK
 
-#include "rapidjson/document.h"
+#include <boost/test/unit_test.hpp>
+#include "mapping.h"
+#include "padsize.h"
 
-void readChambers(rapidjson::Value& chambers);
+BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping)
 
-#endif
+BOOST_AUTO_TEST_SUITE(padsize)
+
+BOOST_AUTO_TEST_CASE(NumberOfDifferentPadSizes)
+{
+  auto ps = get_padsizes(ddlStore(),mseg());
+  BOOST_TEST_CHECK(ps.size() == 18);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()

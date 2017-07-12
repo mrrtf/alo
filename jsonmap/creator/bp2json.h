@@ -64,10 +64,10 @@ void bp2json(const AliMpBusPatch& bp, WRITER& w) {
 }
 
 template<typename WRITER>
-void all_bp2json(std::vector<AliMpBusPatch*>& bps, WRITER& w) 
+void all_bp2json(std::string topkey, std::vector<AliMpBusPatch*>& bps, WRITER& w) 
 {
     w.StartObject();
-    w.Key("bps");
+    w.Key(topkey.c_str());
     w.StartArray();
     for ( auto& b: bps )
     {
