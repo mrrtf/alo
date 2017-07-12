@@ -42,13 +42,13 @@ void motif2json(int index, const AliMpVMotif& motif, const std::vector<AliMpMoti
 }
 
 template<typename WRITER>
-void all_motif2json(const std::vector<AliMpVMotif*>& motifs, const std::vector<AliMpMotifType*>& motifTypes,
+void all_motif2json(std::string topkey, const std::vector<AliMpVMotif*>& motifs, const std::vector<AliMpMotifType*>& motifTypes,
                     std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
   // convert a vector of motifs to JSON
 
   w.StartObject();
-  w.Key("motifs");
+  w.Key(topkey.c_str());
   w.StartArray();
 
   for (auto i = 0; i < motifs.size(); ++i) {

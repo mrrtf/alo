@@ -51,11 +51,11 @@ void motiftype2json(const AliMpMotifType& mt, int index, WRITER& w)
 }
 
 template<typename WRITER>
-void all_motiftype2json(const std::vector<AliMpMotifType*>& motifTypes,
+void all_motiftype2json(std::string topkey, const std::vector<AliMpMotifType*>& motifTypes,
         WRITER& w) 
 {
     w.StartObject();
-    w.Key("motiftypes");
+    w.Key(topkey.c_str());
     w.StartArray();
 
     int ix(0);

@@ -60,8 +60,9 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
   for (auto m:mp) {
     AliMpVMotif* motif = m->GetMotif();
     std::string motifLabel = prefix + get_motif_id(*motif, padsizes);
-    auto ix = std::find_if(motifs.begin(),motifs.end(),[&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
-    int motifId = std::distance(motifs.begin(),ix);
+    auto ix = std::find_if(motifs.begin(), motifs.end(),
+                           [&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
+    int motifId = std::distance(motifs.begin(), ix);
     motifposition2json(*m, motifLabel, motifId, w);
   }
   w.EndArray();
@@ -88,7 +89,8 @@ void seg2json(std::string segname,
 }
 
 template<typename WRITER>
-void all_seg2json(const std::vector<std::string>& segnames,
+void all_seg2json(std::string topkey,
+                  const std::vector<std::string>& segnames,
                   const std::vector<std::pair<std::vector<AliMpMotifPosition*>,
                     std::vector<AliMpMotifPosition*>>>& motifPositions,
                   const std::vector<AliMpVMotif*>& motifs,
@@ -96,7 +98,7 @@ void all_seg2json(const std::vector<std::string>& segnames,
                   WRITER& w)
 {
   w.StartObject();
-  w.Key("segmentations");
+  w.Key(topkey.c_str());
   w.StartArray();
 
   for (auto i = 0; i < motifPositions.size(); ++i) {
