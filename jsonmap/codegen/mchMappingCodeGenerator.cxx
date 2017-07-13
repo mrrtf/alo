@@ -18,6 +18,7 @@
 #include "padSize.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
+#include "segmentation.h"
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -67,8 +68,6 @@ int main(int argc, char* argv[])
   std::vector<std::string> inputfiles = vm["input-file"].as<std::vector<std::string>>();
   std::map<std::string, std::unique_ptr<InputWrapper> > documents;
 
-  std::vector<std::string> parts{"motifs", "segmentations"};
-
   for (auto&& file : inputfiles) {
 
     for (const auto& opt: generic.options()) {
@@ -101,8 +100,15 @@ int main(int argc, char* argv[])
     Document& doc = documents["padsizes"]->document();
     std::pair<std::string, std::string> code = generateCodeForPadSizes(doc["padsizes"]);
     outputCode(code.first, code.second, "genPadSize");
+  }
+
+  if (documents.count("segmentations")) {
+    Document& doc = documents["segmentations"]->document();
+    std::pair<std::string, std::string> code = generateCodeForSegmentations(doc["segmentations"]);
+    outputCode(code.first, code.second, "genSegmentation");
 
   }
+
   return 0;
 }
 
