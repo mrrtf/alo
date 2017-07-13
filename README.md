@@ -15,6 +15,6 @@ construction, as it is meant to disappear (the sooner the better)
 More documentation is to be found under the different sub-directories :
 
 - [dhlt](dhlt/README.md) for HLT-related devices
-- [jsonmap](jsonmap/creator/README.md) for the work on MCH mapping format evolution
+- [jsonmap](jsonmap/README.md) for the work on MCH mapping format evolution
 - [r23](r23/README.md) for the run2 to run3 data converters
 

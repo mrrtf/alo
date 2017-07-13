@@ -106,7 +106,7 @@ int AliHLTMUONDigitReaderComponent::DoInit(int argc, const char** argv)
   /// Inherited from AliHLTComponent.
   /// Parses the command line parameters and initialises the component.
 
-  HLTInfo("Initialising dHLT digit reader component.");
+  HLTInfo("Initialising dHLT digit codegen component.");
 
   const char* fileName = NULL;
 
@@ -174,7 +174,7 @@ int AliHLTMUONDigitReaderComponent::DoDeinit()
 {
   /// Inherited from AliHLTComponent. Performs a cleanup of the component.
 
-  HLTInfo("Deinitialising dHLT digit reader component.");
+  HLTInfo("Deinitialising dHLT digit codegen component.");
 
   CleanMemory();
 

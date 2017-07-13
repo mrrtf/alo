@@ -31,7 +31,7 @@ set(SOURCE_FILES
         seg.cxx
         seg2json.h
         slat2json.h)
-add_library(mchjsoncreator SHARED ${SOURCE_FILES})
+add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
 
