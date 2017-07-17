@@ -43,10 +43,6 @@ std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<f
 
   s << motif.GetMotifType()->GetID().Data();
 
-  if (motif.GetNofPadDimensions()>1) {
-    s << "*";
-  }
-
   s << "-" << index;
 
   return s.str();

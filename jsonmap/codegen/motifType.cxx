@@ -62,13 +62,13 @@ void generateCode(const Value& motif, std::ostringstream& code)
 
   std::string motifID = motif["id"].GetString();
 
-  code << "MotifType("
+  code << "  MotifType("
        << returnVectorAsString(berg)
-       << ","
+       << ",\n  "
        << returnVectorAsString(ix)
-       << ","
+       << ",\n  "
        << returnVectorAsString(iy)
-       << ","
+       << ",\n  "
        << berg.size()
        << ")";
 }
@@ -85,39 +85,38 @@ std::pair<std::string, std::string> generateCodeForMotifTypes(const rapidjson::V
   decl << "#include <algorithm>\n";
   decl << "#include <iostream>\n";
   decl << "#include <vector>\n";
+  decl << "#include <array>\n";
 
   decl << mappingNamespaceBegin();
-  decl << "\n";
-  decl << "class MotifType {\n";
-  decl << "public:\n";
-  decl << "  MotifType(const std::array<int,64>& berg, const std::array<int,64>& ix, const std::array<int,64>& iy, int nofPads) :\n";
-  decl << "  mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {\n";
-  decl << "  }\n";
-  decl << "  int NofPads() { return mNofPads; }\n";
-  decl << "  int NofPadsX() { \n";
-  decl << "    auto result = std::minmax_element(mIx.begin(),mIx.begin()+mNofPads);\n";
-  decl << "    return 1+*result.second - *result.first;\n";
-  decl << "  }\n";
-  decl << "  int NofPadsY() { \n";
-  decl << "    auto result = std::minmax_element(begin(mIy), end(mIy)+mNofPads);\n";
-  decl << "    return 1+*result.second - *result.first;\n";
-  decl << "  }\n";
-  decl << "private:\n";
-  decl << "  std::array<int,64> mBerg;\n";
-  decl << "  std::array<int,64> mIx;\n";
-  decl << "  std::array<int,64> mIy;\n";
-  decl << "  int mNofPads;\n";
-  decl << "};\n";
-  decl << "\n";
+  decl << R"(
+class MotifType {
+  public:
+    MotifType(const std::array<int,64>& berg, const std::array<int,64>& ix, const std::array<int,64>& iy, int nofPads) :
+      mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {}
+    int NofPads() const { return mNofPads; }
+    int NofPadsX() const {
+      auto result = std::minmax_element(mIx.begin(),mIx.begin()+mNofPads);
+      return 1+*result.second - *result.first;
+    }
+    int NofPadsY() const {
+      auto result = std::minmax_element(begin(mIy), end(mIy)+mNofPads);
+      return 1+*result.second - *result.first;
+    }
+  private:
+   std::array<int,64> mBerg;
+   std::array<int,64> mIx;
+   std::array<int,64> mIy;
+   int mNofPads;
+};
 
-  decl << "std::vector<MotifType> MotifTypes();\n";
+extern std::array<MotifType,)";
+  decl << motifs.Size() << "> ArrayOfMotifTypes;\n";
   decl << mappingNamespaceEnd();
 
   int n{0};
   //impl << "#include \"" << filename << ".h\"\n";
   impl << mappingNamespaceBegin();
-  impl << "std::vector<MotifType> MotifTypes() {\n";
-  impl << "return std::vector<MotifType>{";
+  impl << "std::array<MotifType," << motifs.Size() << "> ArrayOfMotifTypes{\n";
   for (const auto& motifType: motifs.GetArray()) {
     assert(motifType.IsObject());
     generateCode(motifType, impl);
@@ -125,7 +124,6 @@ std::pair<std::string, std::string> generateCodeForMotifTypes(const rapidjson::V
     if (n < motifs.Size()) { impl << ",\n"; }
   }
   impl << "\n};\n";
-  impl << "}\n";
   impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());

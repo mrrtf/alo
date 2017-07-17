@@ -2,6 +2,7 @@
 #define ALO_JSONMAP_CREATOR_MOTIFTYPE_H
 
 #include <vector>
+#include <string>
 class AliMpMotifType;
 class AliMpPCB;
 class AliMpSector;

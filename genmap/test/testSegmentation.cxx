@@ -14,7 +14,7 @@
 
 #define BOOST_TEST_DYN_LINK
 
-#include "Segmentation.h"
+#include "genSegmentation.h"
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
@@ -37,18 +37,106 @@ std::array<int, 21> nbpads = {
   1568, 896
 };
 
-std::array<int,21> bfecs = {};
-std::array<int,21> nbfecs = {};
-
-BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20) {
-  BOOST_CHECK_THROW(Segmentation s(-1,Segmentation::kBendingPlane),std::out_of_range);
-  BOOST_CHECK_THROW(Segmentation s(21,Segmentation::kBendingPlane),std::out_of_range);
+BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
+{
+  using WRONG1 = Segmentation<-1, true>;
+  using WRONG2 = Segmentation<21, true>;
+  using OK = Segmentation<2, true>;
+  BOOST_CHECK_THROW(WRONG1 s, std::out_of_range);
+  BOOST_CHECK_THROW(WRONG2 s, std::out_of_range);
+  BOOST_CHECK_NO_THROW(OK s);
 }
 
-BOOST_TEST_DECORATOR(* boost::unit_test::disabled())
-BOOST_DATA_TEST_CASE(NofFEC, bdata::xrange(21), segid ) {
-  Segmentation seg(segid,Segmentation::kBendingPlane);
-  BOOST_TEST_CHECK(seg.NofDualSampas()==bfecs[segid]);
+template<int N, bool isBendingPlane>
+void CheckNofFEC(int b)
+{
+  Segmentation<N, isBendingPlane> seg;
+  BOOST_CHECK_EQUAL(seg.NofDualSampas(),b);
+}
+
+template<int N, bool isBendingPlane>
+void CheckNofPads(int b)
+{
+  Segmentation<N, isBendingPlane> seg;
+  BOOST_CHECK_EQUAL(seg.NofPads(),b);
+}
+
+BOOST_AUTO_TEST_CASE(NofBendingPads) {
+  CheckNofPads<0,true>(14392);
+  CheckNofPads<1,true>(13947);
+  CheckNofPads<2,true>(2928);
+  CheckNofPads<3,true>(3568);
+  CheckNofPads<4,true>(3120);
+  CheckNofPads<5,true>(1920);
+  CheckNofPads<6,true>(1280);
+  CheckNofPads<7,true>(3008);
+  CheckNofPads<8,true>(3648);
+  CheckNofPads<9,true>(3200);
+  CheckNofPads<10,true>(3200);
+  CheckNofPads<11,true>(4096);
+  CheckNofPads<12,true>(4160);
+  CheckNofPads<13,true>(2560);
+  CheckNofPads<14,true>(1920);
+  CheckNofPads<15,true>(960);
+  CheckNofPads<16,true>(640);
+  CheckNofPads<17,true>(4480);
+  CheckNofPads<18,true>(2880);
+  CheckNofPads<19,true>(2240);
+  CheckNofPads<20,true>(1280);
+}
+
+BOOST_AUTO_TEST_CASE(NofNonBendingPads) {
+  CheckNofPads<0,false>(14280);
+}
+
+BOOST_AUTO_TEST_CASE(NofNonBendingFEC)
+{
+  CheckNofFEC<0, false>(225);
+  CheckNofFEC<1, false>(222);
+  CheckNofFEC<2, false>(32);
+  CheckNofFEC<3, false>(39);
+  CheckNofFEC<4, false>(34);
+  CheckNofFEC<5, false>(21);
+  CheckNofFEC<6, false>(14);
+  CheckNofFEC<7, false>(33);
+  CheckNofFEC<8, false>(40);
+  CheckNofFEC<9, false>(35);
+  CheckNofFEC<10, false>(36);
+  CheckNofFEC<11, false>(46);
+  CheckNofFEC<12, false>(46);
+  CheckNofFEC<13, false>(29);
+  CheckNofFEC<14, false>(22);
+  CheckNofFEC<15, false>(12);
+  CheckNofFEC<16, false>(8);
+  CheckNofFEC<17, false>(50);
+  CheckNofFEC<18, false>(33);
+  CheckNofFEC<19, false>(26);
+  CheckNofFEC<20, false>(16);
+}
+
+BOOST_AUTO_TEST_CASE(NofBendingFEC)
+{
+  CheckNofFEC<0, true>(226);
+  CheckNofFEC<1, true>(221);
+  CheckNofFEC<2, true>(46);
+  CheckNofFEC<3, true>(56);
+  CheckNofFEC<4, true>(49);
+  CheckNofFEC<5, true>(30);
+  CheckNofFEC<6, true>(20);
+  CheckNofFEC<7, true>(47);
+  CheckNofFEC<8, true>(57);
+  CheckNofFEC<9, true>(50);
+  CheckNofFEC<10, true>(50);
+  CheckNofFEC<11, true>(64);
+  CheckNofFEC<12, true>(65);
+  CheckNofFEC<13, true>(40);
+  CheckNofFEC<14, true>(30);
+  CheckNofFEC<15, true>(15);
+  CheckNofFEC<16, true>(10);
+  CheckNofFEC<17, true>(70);
+  CheckNofFEC<18, true>(45);
+  CheckNofFEC<19, true>(35);
+  CheckNofFEC<20, true>(20);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -25,7 +25,7 @@ std::vector<AliMpMotifType*> get_allslatmotiftypes(const std::vector<AliMpPCB*>&
                          return strcmp(a->GetID(), mt->GetID()) == 0;
                        }
       ) == motifTypes.end()) {
-        motifTypes.push_back(mt);
+        motifTypes.push_back(static_cast<AliMpMotifType*>(mt->Clone()));
       }
     }
   }

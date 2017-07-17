@@ -28,7 +28,8 @@
 #include <string>
 
 template<typename WRITER>
-void motifposition2json(const AliMpMotifPosition& motifPosition, std::string motifLabel, int motifId, int padSizeId, WRITER& w)
+void motifposition2json(const AliMpMotifPosition& motifPosition, std::string motifLabel, int motifId, int motifTypeId,
+                        int padSizeId, WRITER& w)
 {
   w.StartObject();
   w.Key("fec");
@@ -37,9 +38,10 @@ void motifposition2json(const AliMpMotifPosition& motifPosition, std::string mot
   w.Double(motifPosition.GetPositionX());
   w.Key("y");
   w.Double(motifPosition.GetPositionY());
-  AliMpVMotif* motif = motifPosition.GetMotif();
-  w.Key("motif");
+  w.Key("motif(TBR)");
   w.Int(motifId);
+  w.Key("motiftype");
+  w.Int(motifTypeId);
   w.Key("padsize");
   w.Int(padSizeId);
   w.Key("motifLabel(TBR)");
@@ -50,6 +52,7 @@ void motifposition2json(const AliMpMotifPosition& motifPosition, std::string mot
 template<typename WRITER>
 void segplane2json(std::string stype, std::string prefix, const std::vector<AliMpMotifPosition*>& mp,
                    const std::vector<AliMpVMotif*>& motifs,
+                   const std::vector<AliMpMotifType*>& motiftypes,
                    const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
   prefix += stype == "bending" ? "B" : "NB";
@@ -65,8 +68,9 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
     auto ix = std::find_if(motifs.begin(), motifs.end(),
                            [&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
     int motifId = std::distance(motifs.begin(), ix);
+    int motifTypeId = get_motiftype_index(motifLabel,motiftypes);
     int padSizeId = get_padsize_index(motif->GetPadDimensionX(0) * 2.0, motif->GetPadDimensionY(0) * 2.0, padsizes);
-    motifposition2json(*m, motifLabel, motifId, padSizeId, w);
+    motifposition2json(*m, motifLabel, motifId, motifTypeId, padSizeId, w);
   }
   w.EndArray();
   w.EndObject();
@@ -77,6 +81,7 @@ void seg2json(std::string segname,
               const std::vector<AliMpMotifPosition*>& b,
               const std::vector<AliMpMotifPosition*>& nb,
               const std::vector<AliMpVMotif*>& motifs,
+              const std::vector<AliMpMotifType*>& motiftypes,
               const std::vector<std::pair<float, float>>& padsizes,
               WRITER& w)
 {
@@ -86,8 +91,8 @@ void seg2json(std::string segname,
   if (i != std::string::npos) {
     prefix = segname.substr(2, 1);
   }
-  segplane2json("bending", prefix, b, motifs, padsizes, w);
-  segplane2json("non-bending", prefix, nb, motifs, padsizes, w);
+  segplane2json("bending", prefix, b, motifs, motiftypes, padsizes, w);
+  segplane2json("non-bending", prefix, nb, motifs, motiftypes, padsizes, w);
   w.EndObject();
 }
 
@@ -97,6 +102,7 @@ void all_seg2json(std::string topkey,
                   const std::vector<std::pair<std::vector<AliMpMotifPosition*>,
                     std::vector<AliMpMotifPosition*>>>& motifPositions,
                   const std::vector<AliMpVMotif*>& motifs,
+                  const std::vector<AliMpMotifType*>& motiftypes,
                   const std::vector<std::pair<float, float>>& padsizes,
                   WRITER& w)
 {
@@ -105,7 +111,7 @@ void all_seg2json(std::string topkey,
   w.StartArray();
 
   for (auto i = 0; i < motifPositions.size(); ++i) {
-    seg2json(segnames[i], motifPositions[i].first, motifPositions[i].second, motifs, padsizes, w);
+    seg2json(segnames[i], motifPositions[i].first, motifPositions[i].second, motifs, motiftypes, padsizes, w);
   }
 
   w.EndArray();

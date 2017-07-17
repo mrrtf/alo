@@ -21,37 +21,36 @@
 void generateCodeForMotifPosition(std::ostringstream& code, const rapidjson::Value& mp)
 {
   code << "MotifPosition{ " << mp["x"].GetDouble() << "," << mp["y"].GetDouble() << ",";
-  code << mp["motif"].GetInt() << "," << mp["padsize"].GetInt() << ",";
+  code << mp["motiftype"].GetInt() << "," << mp["padsize"].GetInt() << ",";
   code << mp["fec"].GetInt() << "}";
 }
 
-void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstream& decl,
-                                    std::ostringstream& impl,
+void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstream& code,
                                     const rapidjson::Value& seg)
 {
   assert(seg.IsObject());
   const rapidjson::Value& plane = isBending ? seg["bending"] : seg["non-bending"];
   assert(plane.IsObject());
 
-  impl << "template<>\n";
-  impl << "Segmentation<" << index << "," << (isBending ? "true":"false") << ">::Segmentation() : mId(" << index;
-  impl << "), mIsBendingPlane(" << (isBending ? "true":"false") << "), mMP{";
+  code << "template<>\n";
+  code << "Segmentation<" << index << "," << (isBending ? "true" : "false") << ">::Segmentation() : mId(" << index;
+  code << "), mIsBendingPlane(" << (isBending ? "true" : "false") << "), mMP{";
 
   auto ab = plane["motifpositions"].GetArray();
-  impl << "  ";
+  code << "  ";
   int i{0};
   for (auto& mp: ab) {
-    generateCodeForMotifPosition(impl, mp);
-    if (++i < ab.Size()) { impl << ", "; }
-    impl << "\n  ";
+    generateCodeForMotifPosition(code, mp);
+    if (++i < ab.Size()) { code << ", "; }
+    code << "\n  ";
   }
-  impl << "}\n";
-  impl << "{}\n";
+  code << "}\n";
+  code << "{}\n";
 }
 
-void generateMotifPositionCode(std::ostringstream& decl, std::ostringstream& impl)
+void generateMotifPositionCode(std::ostringstream& code)
 {
-  decl << R"(struct MotifPosition
+  code << R"(struct MotifPosition
 {
     float x;
     float y;
@@ -73,13 +72,13 @@ generateCodeForSegmentations(const rapidjson::Value& segmentations, const rapidj
   std::ostringstream decl;
   std::ostringstream impl;
 
-  impl << mappingNamespaceBegin();
-
-  decl << "#include <vector>\n";
+  decl << R"(#include <vector>
+#include "genMotifType.h"
+)";
 
   decl << mappingNamespaceBegin();
 
-  generateMotifPositionCode(decl, impl);
+  generateMotifPositionCode(decl);
 
   decl << R"(
 template<int N, bool isBendingPlane>
@@ -98,6 +97,15 @@ class Segmentation
     int NofDualSampas() const
     { return mMP.size(); }
 
+    int NofPads() const
+    {
+      int n{0};
+      for (const auto& mp : mMP) {
+        const MotifType& motifType = ArrayOfMotifTypes[mp.motifTypeId];
+        n += motifType.NofPads();
+      }
+      return n;
+    }
   private:
     int mId;
     bool mIsBendingPlane;
@@ -105,17 +113,15 @@ class Segmentation
 };
 )";
 
-
   int index{0};
   for (auto& seg : segmentations.GetArray()) {
-    generateCodeForOneSegmentation(index, true, decl, impl, seg);
-    generateCodeForOneSegmentation(index, false, decl, impl, seg);
+    generateCodeForOneSegmentation(index, true, decl, seg);
+    generateCodeForOneSegmentation(index, false, decl, seg);
     ++index;
-    impl << "\n";
+    decl << "\n";
   }
 
   decl << mappingNamespaceEnd();
-  impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }

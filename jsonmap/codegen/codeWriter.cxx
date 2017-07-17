@@ -21,7 +21,7 @@ std::string mappingNamespaceEnd() {
 }
 
 std::string includeGuardName(const std::string& filename) {
-  std::string rv = "ALO_JSONMAP_READER_" + filename;
+  std::string rv = "O2_MCH_MAPPING_" + filename;
   std::transform(rv.begin(), rv.end(), rv.begin(), [](unsigned char c) { return std::toupper(c); });
   rv += "_H";
   return rv;
