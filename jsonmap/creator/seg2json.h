@@ -55,7 +55,10 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
                    const std::vector<AliMpMotifType*>& motiftypes,
                    const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
 {
-  prefix += stype == "bending" ? "B" : "NB";
+  if (prefix == '1' || prefix == '2') {
+    // sectors
+    prefix += (stype == "bending" ? "B" : "N");
+  }
   w.Key(stype.c_str());
   w.StartObject();
   w.Key("n(TBR)");
@@ -68,7 +71,7 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
     auto ix = std::find_if(motifs.begin(), motifs.end(),
                            [&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
     int motifId = std::distance(motifs.begin(), ix);
-    int motifTypeId = get_motiftype_index(motifLabel,motiftypes);
+    int motifTypeId = get_motiftype_index(motifLabel, motiftypes);
     int padSizeId = get_padsize_index(motif->GetPadDimensionX(0) * 2.0, motif->GetPadDimensionY(0) * 2.0, padsizes);
     motifposition2json(*m, motifLabel, motifId, motifTypeId, padSizeId, w);
   }

@@ -27,15 +27,6 @@ namespace bdata = boost::unit_test::data;
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation)
 
-std::array<int, 21> bpads = {
-  14392, 13947, 2928, 3568, 3120, 1920, 1280, 3008, 3648, 3200, 3200, 4096, 4160, 2560, 1920, 960, 640, 4480, 2880,
-  2240, 1280
-};
-
-std::array<int, 21> nbpads = {
-  14280, 13986, 2048, 2496, 2176, 1344, 896, 2112, 2560, 2240, 2240, 2880, 2912, 1792, 1344, 672, 448, 3136, 2016,
-  1568, 896
-};
 
 BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
 {
@@ -87,6 +78,26 @@ BOOST_AUTO_TEST_CASE(NofBendingPads) {
 
 BOOST_AUTO_TEST_CASE(NofNonBendingPads) {
   CheckNofPads<0,false>(14280);
+  CheckNofPads<1,false>(13986);
+  CheckNofPads<2,false>(2048);
+  CheckNofPads<3,false>(2496);
+  CheckNofPads<4,false>(2176);
+  CheckNofPads<5,false>(1344);
+  CheckNofPads<6,false>(896);
+  CheckNofPads<7,false>(2112);
+  CheckNofPads<8,false>(2560);
+  CheckNofPads<9,false>(2240);
+  CheckNofPads<10,false>(2240);
+  CheckNofPads<11,false>(2880);
+  CheckNofPads<12,false>(2912);
+  CheckNofPads<13,false>(1792);
+  CheckNofPads<14,false>(1344);
+  CheckNofPads<15,false>(672);
+  CheckNofPads<16,false>(448);
+  CheckNofPads<17,false>(3136);
+  CheckNofPads<18,false>(2016);
+  CheckNofPads<19,false>(1568);
+  CheckNofPads<20,false>(896);
 }
 
 BOOST_AUTO_TEST_CASE(NofNonBendingFEC)
