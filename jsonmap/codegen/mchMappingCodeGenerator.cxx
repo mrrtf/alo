@@ -102,9 +102,11 @@ int main(int argc, char* argv[])
     outputCode(code.first, code.second, "genPadSize");
   }
 
-  if (documents.count("segmentations")) {
-    Document& doc = documents["segmentations"]->document();
-    std::pair<std::string, std::string> code = generateCodeForSegmentations(doc["segmentations"]);
+  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")) {
+    Document& segmentations = documents["segmentations"]->document();
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    std::pair<std::string, std::string> code = generateCodeForSegmentations(segmentations["segmentations"],motiftypes["motiftypes"],padsizes["padsizes"]);
     outputCode(code.first, code.second, "genSegmentation");
 
   }

@@ -28,10 +28,10 @@
 #include <string>
 
 template<typename WRITER>
-void motifposition2json(const AliMpMotifPosition& motifPosition, std::string motifLabel, int motifId, WRITER& w)
+void motifposition2json(const AliMpMotifPosition& motifPosition, std::string motifLabel, int motifId, int padSizeId, WRITER& w)
 {
   w.StartObject();
-  w.Key("manuId");
+  w.Key("fec");
   w.Int(motifPosition.GetID());
   w.Key("x");
   w.Double(motifPosition.GetPositionX());
@@ -40,6 +40,8 @@ void motifposition2json(const AliMpMotifPosition& motifPosition, std::string mot
   AliMpVMotif* motif = motifPosition.GetMotif();
   w.Key("motif");
   w.Int(motifId);
+  w.Key("padsize");
+  w.Int(padSizeId);
   w.Key("motifLabel(TBR)");
   w.String(motifLabel.c_str());
   w.EndObject();
@@ -63,7 +65,8 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
     auto ix = std::find_if(motifs.begin(), motifs.end(),
                            [&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
     int motifId = std::distance(motifs.begin(), ix);
-    motifposition2json(*m, motifLabel, motifId, w);
+    int padSizeId = get_padsize_index(motif->GetPadDimensionX(0) * 2.0, motif->GetPadDimensionY(0) * 2.0, padsizes);
+    motifposition2json(*m, motifLabel, motifId, padSizeId, w);
   }
   w.EndArray();
   w.EndObject();
