@@ -18,33 +18,53 @@ struct MotifPosition
     int padSizeId;
     int fecId;
 };
+int gMotifTypeIdMax{0};
+int gPadSizeIdMax{0};
+int gFecIdMax{0};
+
+class SegmentationInterface {
+  public:
+    virtual bool IsBendingPlane() const = 0;
+    virtual int GetId() const = 0;
+    virtual int NofDualSampas() const = 0;
+    virtual int NofPads() const = 0;
+};
 
 template<int N, bool isBendingPlane>
-class Segmentation
+class Segmentation : public SegmentationInterface
 {
   public:
     Segmentation()
     { throw std::out_of_range("invalid segmentation initialization"); }
 
-    int Id() const
+    int GetId() const override
     { return mId; }
 
-    int IsBendingPlane() const
+    bool IsBendingPlane() const override
     { return mIsBendingPlane; }
 
-    int NofDualSampas() const
+    int NofDualSampas() const override
     { return mMP.size(); }
 
-    int NofPads() const
+    int NofPads() const override
     {
       int n{0};
       for (const auto& mp : mMP) {
         const MotifType& motifType = ArrayOfMotifTypes[mp.motifTypeId];
-        n += motifType.NofPads();
+        n += motifType.GetNofPads();
       }
       return n;
     }
   private:
+
+    void init() {
+      for (const auto& mp: mMP) {
+        gMotifTypeIdMax = std::max(gMotifTypeIdMax,mp.motifTypeId);
+        gPadSizeIdMax = std::max(gPadSizeIdMax,mp.padSizeId);
+        gFecIdMax = std::max(gFecIdMax,mp.fecId);
+      }
+    }
+
     int mId;
     bool mIsBendingPlane;
     std::vector <MotifPosition> mMP;
@@ -277,7 +297,7 @@ Segmentation<0,true>::Segmentation() : mId(0), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 3.78,50.4,3,0,199}, 
   MotifPosition{ 25.2,77.28,3,14,235}
   }
-{}
+{ init(); }
 template<>
 Segmentation<0,false>::Segmentation() : mId(0), mIsBendingPlane(false), mMP{  MotifPosition{ 31.185,43.89,9,0,1192}, 
   MotifPosition{ 47.565,57.33,13,1,1228}, 
@@ -505,7 +525,7 @@ Segmentation<0,false>::Segmentation() : mId(0), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 21.105,23.73,9,0,1120}, 
   MotifPosition{ 75.285,37.17,14,2,1156}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<1,true>::Segmentation() : mId(1), mIsBendingPlane(true), mMP{  MotifPosition{ 51.5,11.25,24,7,36}, 
@@ -730,7 +750,7 @@ Segmentation<1,true>::Segmentation() : mId(1), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 56,51.25,28,12,163}, 
   MotifPosition{ 32,87.25,34,15,235}
   }
-{}
+{ init(); }
 template<>
 Segmentation<1,false>::Segmentation() : mId(1), mIsBendingPlane(false), mMP{  MotifPosition{ 26.375,51.5,71,8,1192}, 
   MotifPosition{ 56.375,67.5,71,8,1228}, 
@@ -955,7 +975,7 @@ Segmentation<1,false>::Segmentation() : mId(1), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 21.875,27.5,68,7,1120}, 
   MotifPosition{ 89.375,43.5,73,9,1156}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<2,true>::Segmentation() : mId(2), mIsBendingPlane(true), mMP{  MotifPosition{ 127.5,12,134,13,306}, 
@@ -1005,7 +1025,7 @@ Segmentation<2,true>::Segmentation() : mId(2), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 122.5,12,132,13,304}, 
   MotifPosition{ 125,12,133,13,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<2,false>::Segmentation() : mId(2), mIsBendingPlane(false), mMP{  MotifPosition{ 22.8571,10,181,5,1231}, 
   MotifPosition{ 34.2857,10,181,5,1230}, 
@@ -1040,7 +1060,7 @@ Segmentation<2,false>::Segmentation() : mId(2), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 47.1429,30,162,5,1132}, 
   MotifPosition{ 72.8571,30,163,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<3,true>::Segmentation() : mId(3), mIsBendingPlane(true), mMP{  MotifPosition{ 122.5,8,176,13,4}, 
@@ -1100,7 +1120,7 @@ Segmentation<3,true>::Segmentation() : mId(3), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 86.25,30,205,13,231}, 
   MotifPosition{ 82.5,30,164,13,232}
   }
-{}
+{ init(); }
 template<>
 Segmentation<3,false>::Segmentation() : mId(3), mIsBendingPlane(false), mMP{  MotifPosition{ 22.8571,30,182,5,1226}, 
   MotifPosition{ 60,30,182,5,1233}, 
@@ -1142,7 +1162,7 @@ Segmentation<3,false>::Segmentation() : mId(3), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 11.4286,30,182,5,1225}, 
   MotifPosition{ 34.2857,30,182,5,1227}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<4,true>::Segmentation() : mId(4), mIsBendingPlane(true), mMP{  MotifPosition{ 2.5,10,166,13,1}, 
@@ -1195,7 +1215,7 @@ Segmentation<4,true>::Segmentation() : mId(4), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 52.5,30,205,16,221}, 
   MotifPosition{ 45,30,164,16,222}
   }
-{}
+{ init(); }
 template<>
 Segmentation<4,false>::Segmentation() : mId(4), mIsBendingPlane(false), mMP{  MotifPosition{ 137.143,30,182,5,1231}, 
   MotifPosition{ 125.714,30,182,5,1230}, 
@@ -1232,7 +1252,7 @@ Segmentation<4,false>::Segmentation() : mId(4), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 72.8571,10,160,5,1140}, 
   MotifPosition{ 47.1429,10,156,5,1142}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<5,true>::Segmentation() : mId(5), mIsBendingPlane(true), mMP{  MotifPosition{ 85,10,166,16,4}, 
@@ -1266,7 +1286,7 @@ Segmentation<5,true>::Segmentation() : mId(5), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 12.5,30,205,16,122}, 
   MotifPosition{ 5,30,164,16,123}
   }
-{}
+{ init(); }
 template<>
 Segmentation<5,false>::Segmentation() : mId(5), mIsBendingPlane(false), mMP{  MotifPosition{ 112.857,10,160,5,1025}, 
   MotifPosition{ 87.1429,10,156,5,1027}, 
@@ -1290,7 +1310,7 @@ Segmentation<5,false>::Segmentation() : mId(5), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 35,27.5,193,5,1151}, 
   MotifPosition{ 25.7143,27.5,189,5,1150}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<6,true>::Segmentation() : mId(6), mIsBendingPlane(true), mMP{  MotifPosition{ 45,10,166,16,4}, 
@@ -1314,7 +1334,7 @@ Segmentation<6,true>::Segmentation() : mId(6), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 12.5,30,205,16,113}, 
   MotifPosition{ 5,30,164,16,114}
   }
-{}
+{ init(); }
 template<>
 Segmentation<6,false>::Segmentation() : mId(6), mIsBendingPlane(false), mMP{  MotifPosition{ 72.8571,10,160,5,1025}, 
   MotifPosition{ 47.1429,10,156,5,1027}, 
@@ -1331,7 +1351,7 @@ Segmentation<6,false>::Segmentation() : mId(6), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 14.2857,27.5,188,5,1140}, 
   MotifPosition{ 35,27.5,193,5,1142}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<7,true>::Segmentation() : mId(7), mIsBendingPlane(true), mMP{  MotifPosition{ 127.5,12,134,13,306}, 
@@ -1382,7 +1402,7 @@ Segmentation<7,true>::Segmentation() : mId(7), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 122.5,12,132,13,304}, 
   MotifPosition{ 125,12,133,13,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<7,false>::Segmentation() : mId(7), mIsBendingPlane(false), mMP{  MotifPosition{ 25.7143,12.5,195,5,1231}, 
   MotifPosition{ 35,12.5,191,5,1230}, 
@@ -1418,7 +1438,7 @@ Segmentation<7,false>::Segmentation() : mId(7), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 72.8571,30,163,5,1135}, 
   MotifPosition{ 60,30,182,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<8,true>::Segmentation() : mId(8), mIsBendingPlane(true), mMP{  MotifPosition{ 122.5,8,176,13,4}, 
@@ -1479,7 +1499,7 @@ Segmentation<8,true>::Segmentation() : mId(8), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 86.25,30,205,13,232}, 
   MotifPosition{ 82.5,30,164,13,233}
   }
-{}
+{ init(); }
 template<>
 Segmentation<8,false>::Segmentation() : mId(8), mIsBendingPlane(false), mMP{  MotifPosition{ 20,30,182,5,1226}, 
   MotifPosition{ 47.1429,30,162,5,1233}, 
@@ -1522,7 +1542,7 @@ Segmentation<8,false>::Segmentation() : mId(8), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 7.14286,30,162,5,1225}, 
   MotifPosition{ 32.8571,30,163,5,1227}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<9,true>::Segmentation() : mId(9), mIsBendingPlane(true), mMP{  MotifPosition{ 2.5,10,166,13,1}, 
@@ -1576,7 +1596,7 @@ Segmentation<9,true>::Segmentation() : mId(9), mIsBendingPlane(true), mMP{  Moti
   MotifPosition{ 52.5,30,205,16,222}, 
   MotifPosition{ 45,30,164,16,223}
   }
-{}
+{ init(); }
 template<>
 Segmentation<9,false>::Segmentation() : mId(9), mIsBendingPlane(false), mMP{  MotifPosition{ 134.286,27.5,188,5,1231}, 
   MotifPosition{ 125,27.5,192,5,1230}, 
@@ -1614,7 +1634,7 @@ Segmentation<9,false>::Segmentation() : mId(9), mIsBendingPlane(false), mMP{  Mo
   MotifPosition{ 47.1429,10,156,5,1143}, 
   MotifPosition{ 60,10,181,5,1142}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<10,true>::Segmentation() : mId(10), mIsBendingPlane(true), mMP{  MotifPosition{ 2.5,10,166,13,1}, 
@@ -1668,7 +1688,7 @@ Segmentation<10,true>::Segmentation() : mId(10), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 92.5,30,205,16,214}, 
   MotifPosition{ 85,30,164,16,215}
   }
-{}
+{ init(); }
 template<>
 Segmentation<10,false>::Segmentation() : mId(10), mIsBendingPlane(false), mMP{  MotifPosition{ 190,30,184,6,1229}, 
   MotifPosition{ 170,30,183,6,1228}, 
@@ -1707,7 +1727,7 @@ Segmentation<10,false>::Segmentation() : mId(10), mIsBendingPlane(false), mMP{  
   MotifPosition{ 87.1429,10,156,5,1135}, 
   MotifPosition{ 100,10,181,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<11,true>::Segmentation() : mId(11), mIsBendingPlane(true), mMP{  MotifPosition{ 206.25,4.25,152,13,1}, 
@@ -1775,7 +1795,7 @@ Segmentation<11,true>::Segmentation() : mId(11), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 92.5,30,205,16,215}, 
   MotifPosition{ 85,30,164,16,216}
   }
-{}
+{ init(); }
 template<>
 Segmentation<11,false>::Segmentation() : mId(11), mIsBendingPlane(false), mMP{  MotifPosition{ 50,30,183,6,1229}, 
   MotifPosition{ 70,30,184,6,1230}, 
@@ -1824,7 +1844,7 @@ Segmentation<11,false>::Segmentation() : mId(11), mIsBendingPlane(false), mMP{  
   MotifPosition{ 10,30,183,6,1225}, 
   MotifPosition{ 30,30,184,6,1226}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<12,true>::Segmentation() : mId(12), mIsBendingPlane(true), mMP{  MotifPosition{ 2.5,10,166,13,1}, 
@@ -1893,7 +1913,7 @@ Segmentation<12,true>::Segmentation() : mId(12), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 92.5,30,205,16,218}, 
   MotifPosition{ 85,30,164,16,219}
   }
-{}
+{ init(); }
 template<>
 Segmentation<12,false>::Segmentation() : mId(12), mIsBendingPlane(false), mMP{  MotifPosition{ 190,30,184,6,1229}, 
   MotifPosition{ 170,30,183,6,1228}, 
@@ -1942,7 +1962,7 @@ Segmentation<12,false>::Segmentation() : mId(12), mIsBendingPlane(false), mMP{  
   MotifPosition{ 87.1429,10,156,5,1139}, 
   MotifPosition{ 100,10,181,5,1138}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<13,true>::Segmentation() : mId(13), mIsBendingPlane(true), mMP{  MotifPosition{ 20,32,187,16,306}, 
@@ -1986,7 +2006,7 @@ Segmentation<13,true>::Segmentation() : mId(13), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 35,30,165,16,304}, 
   MotifPosition{ 27.5,30,206,16,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<13,false>::Segmentation() : mId(13), mIsBendingPlane(false), mMP{  MotifPosition{ 190,30,184,6,1229}, 
   MotifPosition{ 170,30,183,6,1228}, 
@@ -2018,7 +2038,7 @@ Segmentation<13,false>::Segmentation() : mId(13), mIsBendingPlane(false), mMP{  
   MotifPosition{ 87.1429,10,156,5,1135}, 
   MotifPosition{ 100,10,181,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<14,true>::Segmentation() : mId(14), mIsBendingPlane(true), mMP{  MotifPosition{ 20,32,187,16,306}, 
@@ -2052,7 +2072,7 @@ Segmentation<14,true>::Segmentation() : mId(14), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 35,30,165,16,304}, 
   MotifPosition{ 27.5,30,206,16,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<14,false>::Segmentation() : mId(14), mIsBendingPlane(false), mMP{  MotifPosition{ 150,30,184,6,1229}, 
   MotifPosition{ 130,30,183,6,1228}, 
@@ -2077,7 +2097,7 @@ Segmentation<14,false>::Segmentation() : mId(14), mIsBendingPlane(false), mMP{  
   MotifPosition{ 47.1429,10,156,5,1135}, 
   MotifPosition{ 60,10,181,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<15,true>::Segmentation() : mId(15), mIsBendingPlane(true), mMP{  MotifPosition{ 90,8,172,17,3}, 
@@ -2096,7 +2116,7 @@ Segmentation<15,true>::Segmentation() : mId(15), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 20,32,171,17,112}, 
   MotifPosition{ 10,28,168,17,113}
   }
-{}
+{ init(); }
 template<>
 Segmentation<15,false>::Segmentation() : mId(15), mIsBendingPlane(false), mMP{  MotifPosition{ 110,10,186,6,1025}, 
   MotifPosition{ 90,10,185,6,1026}, 
@@ -2111,7 +2131,7 @@ Segmentation<15,false>::Segmentation() : mId(15), mIsBendingPlane(false), mMP{  
   MotifPosition{ 30,30,184,6,1139}, 
   MotifPosition{ 10,30,183,6,1138}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<16,true>::Segmentation() : mId(16), mIsBendingPlane(true), mMP{  MotifPosition{ 50,8,172,17,3}, 
@@ -2125,7 +2145,7 @@ Segmentation<16,true>::Segmentation() : mId(16), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 20,32,171,17,107}, 
   MotifPosition{ 10,28,168,17,108}
   }
-{}
+{ init(); }
 template<>
 Segmentation<16,false>::Segmentation() : mId(16), mIsBendingPlane(false), mMP{  MotifPosition{ 70,10,186,6,1025}, 
   MotifPosition{ 50,10,185,6,1026}, 
@@ -2136,7 +2156,7 @@ Segmentation<16,false>::Segmentation() : mId(16), mIsBendingPlane(false), mMP{  
   MotifPosition{ 10,30,183,6,1133}, 
   MotifPosition{ 30,30,184,6,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<17,true>::Segmentation() : mId(17), mIsBendingPlane(true), mMP{  MotifPosition{ 2.5,10,166,13,1}, 
@@ -2210,7 +2230,7 @@ Segmentation<17,true>::Segmentation() : mId(17), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 132.5,30,205,16,214}, 
   MotifPosition{ 125,30,164,16,215}
   }
-{}
+{ init(); }
 template<>
 Segmentation<17,false>::Segmentation() : mId(17), mIsBendingPlane(false), mMP{  MotifPosition{ 230,30,184,6,1229}, 
   MotifPosition{ 210,30,183,6,1228}, 
@@ -2263,7 +2283,7 @@ Segmentation<17,false>::Segmentation() : mId(17), mIsBendingPlane(false), mMP{  
   MotifPosition{ 127.143,10,156,5,1135}, 
   MotifPosition{ 140,10,181,5,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<18,true>::Segmentation() : mId(18), mIsBendingPlane(true), mMP{  MotifPosition{ 20,32,187,16,306}, 
@@ -2312,7 +2332,7 @@ Segmentation<18,true>::Segmentation() : mId(18), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 35,30,165,16,304}, 
   MotifPosition{ 27.5,30,206,16,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<18,false>::Segmentation() : mId(18), mIsBendingPlane(false), mMP{  MotifPosition{ 230,30,184,6,1229}, 
   MotifPosition{ 210,30,183,6,1228}, 
@@ -2348,7 +2368,7 @@ Segmentation<18,false>::Segmentation() : mId(18), mIsBendingPlane(false), mMP{  
   MotifPosition{ 150,10,186,6,1133}, 
   MotifPosition{ 130,10,185,6,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<19,true>::Segmentation() : mId(19), mIsBendingPlane(true), mMP{  MotifPosition{ 20,32,187,16,306}, 
@@ -2387,7 +2407,7 @@ Segmentation<19,true>::Segmentation() : mId(19), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 35,30,165,16,304}, 
   MotifPosition{ 27.5,30,206,16,305}
   }
-{}
+{ init(); }
 template<>
 Segmentation<19,false>::Segmentation() : mId(19), mIsBendingPlane(false), mMP{  MotifPosition{ 190,30,184,6,1229}, 
   MotifPosition{ 170,30,183,6,1228}, 
@@ -2416,7 +2436,7 @@ Segmentation<19,false>::Segmentation() : mId(19), mIsBendingPlane(false), mMP{  
   MotifPosition{ 110,10,186,6,1133}, 
   MotifPosition{ 90,10,185,6,1134}
   }
-{}
+{ init(); }
 
 template<>
 Segmentation<20,true>::Segmentation() : mId(20), mIsBendingPlane(true), mMP{  MotifPosition{ 10,12,159,17,1}, 
@@ -2440,7 +2460,7 @@ Segmentation<20,true>::Segmentation() : mId(20), mIsBendingPlane(true), mMP{  Mo
   MotifPosition{ 30,32,171,17,303}, 
   MotifPosition{ 10,32,171,17,304}
   }
-{}
+{ init(); }
 template<>
 Segmentation<20,false>::Segmentation() : mId(20), mIsBendingPlane(false), mMP{  MotifPosition{ 150,30,184,6,1229}, 
   MotifPosition{ 130,30,183,6,1228}, 
@@ -2459,8 +2479,10 @@ Segmentation<20,false>::Segmentation() : mId(20), mIsBendingPlane(false), mMP{  
   MotifPosition{ 70,10,186,6,1133}, 
   MotifPosition{ 50,10,185,6,1134}
   }
-{}
+{ init(); }
 
+std::array<std::unique_ptr<SegmentationInterface>,21> BendingSegmentations {std::make_unique<Segmentation<0,true>>(),std::make_unique<Segmentation<1,true>>(),std::make_unique<Segmentation<2,true>>(),std::make_unique<Segmentation<3,true>>(),std::make_unique<Segmentation<4,true>>(),std::make_unique<Segmentation<5,true>>(),std::make_unique<Segmentation<6,true>>(),std::make_unique<Segmentation<7,true>>(),std::make_unique<Segmentation<8,true>>(),std::make_unique<Segmentation<9,true>>(),std::make_unique<Segmentation<10,true>>(),std::make_unique<Segmentation<11,true>>(),std::make_unique<Segmentation<12,true>>(),std::make_unique<Segmentation<13,true>>(),std::make_unique<Segmentation<14,true>>(),std::make_unique<Segmentation<15,true>>(),std::make_unique<Segmentation<16,true>>(),std::make_unique<Segmentation<17,true>>(),std::make_unique<Segmentation<18,true>>(),std::make_unique<Segmentation<19,true>>(),std::make_unique<Segmentation<20,true>>()};
+std::array<std::unique_ptr<SegmentationInterface>,21> NonBendingSegmentations {std::make_unique<Segmentation<0,false>>(),std::make_unique<Segmentation<1,false>>(),std::make_unique<Segmentation<2,false>>(),std::make_unique<Segmentation<3,false>>(),std::make_unique<Segmentation<4,false>>(),std::make_unique<Segmentation<5,false>>(),std::make_unique<Segmentation<6,false>>(),std::make_unique<Segmentation<7,false>>(),std::make_unique<Segmentation<8,false>>(),std::make_unique<Segmentation<9,false>>(),std::make_unique<Segmentation<10,false>>(),std::make_unique<Segmentation<11,false>>(),std::make_unique<Segmentation<12,false>>(),std::make_unique<Segmentation<13,false>>(),std::make_unique<Segmentation<14,false>>(),std::make_unique<Segmentation<15,false>>(),std::make_unique<Segmentation<16,false>>(),std::make_unique<Segmentation<17,false>>(),std::make_unique<Segmentation<18,false>>(),std::make_unique<Segmentation<19,false>>(),std::make_unique<Segmentation<20,false>>()};
 
 } // namespace mapping
 } // namespace mch

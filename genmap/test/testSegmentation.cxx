@@ -27,7 +27,6 @@ namespace bdata = boost::unit_test::data;
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation)
 
-
 BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
 {
   using WRONG1 = Segmentation<-1, true>;
@@ -42,62 +41,67 @@ template<int N, bool isBendingPlane>
 void CheckNofFEC(int b)
 {
   Segmentation<N, isBendingPlane> seg;
-  BOOST_CHECK_EQUAL(seg.NofDualSampas(),b);
+  BOOST_CHECK_EQUAL(seg.NofDualSampas(), b);
 }
 
 template<int N, bool isBendingPlane>
 void CheckNofPads(int b)
 {
   Segmentation<N, isBendingPlane> seg;
-  BOOST_CHECK_EQUAL(seg.NofPads(),b);
+  BOOST_CHECK_EQUAL(seg.NofPads(), b);
 }
 
-BOOST_AUTO_TEST_CASE(NofBendingPads) {
-  CheckNofPads<0,true>(14392);
-  CheckNofPads<1,true>(13947);
-  CheckNofPads<2,true>(2928);
-  CheckNofPads<3,true>(3568);
-  CheckNofPads<4,true>(3120);
-  CheckNofPads<5,true>(1920);
-  CheckNofPads<6,true>(1280);
-  CheckNofPads<7,true>(3008);
-  CheckNofPads<8,true>(3648);
-  CheckNofPads<9,true>(3200);
-  CheckNofPads<10,true>(3200);
-  CheckNofPads<11,true>(4096);
-  CheckNofPads<12,true>(4160);
-  CheckNofPads<13,true>(2560);
-  CheckNofPads<14,true>(1920);
-  CheckNofPads<15,true>(960);
-  CheckNofPads<16,true>(640);
-  CheckNofPads<17,true>(4480);
-  CheckNofPads<18,true>(2880);
-  CheckNofPads<19,true>(2240);
-  CheckNofPads<20,true>(1280);
+BOOST_AUTO_TEST_CASE(NofBendingPads)
+{
+  // we explicitely don't make a loop
+  // (that would be possible using some array of SegmentationInterface)
+  // as a simpler way to document the number of pads per segmentation
+  CheckNofPads<0, true>(14392);
+  CheckNofPads<1, true>(13947);
+  CheckNofPads<2, true>(2928);
+  CheckNofPads<3, true>(3568);
+  CheckNofPads<4, true>(3120);
+  CheckNofPads<5, true>(1920);
+  CheckNofPads<6, true>(1280);
+  CheckNofPads<7, true>(3008);
+  CheckNofPads<8, true>(3648);
+  CheckNofPads<9, true>(3200);
+  CheckNofPads<10, true>(3200);
+  CheckNofPads<11, true>(4096);
+  CheckNofPads<12, true>(4160);
+  CheckNofPads<13, true>(2560);
+  CheckNofPads<14, true>(1920);
+  CheckNofPads<15, true>(960);
+  CheckNofPads<16, true>(640);
+  CheckNofPads<17, true>(4480);
+  CheckNofPads<18, true>(2880);
+  CheckNofPads<19, true>(2240);
+  CheckNofPads<20, true>(1280);
 }
 
-BOOST_AUTO_TEST_CASE(NofNonBendingPads) {
-  CheckNofPads<0,false>(14280);
-  CheckNofPads<1,false>(13986);
-  CheckNofPads<2,false>(2048);
-  CheckNofPads<3,false>(2496);
-  CheckNofPads<4,false>(2176);
-  CheckNofPads<5,false>(1344);
-  CheckNofPads<6,false>(896);
-  CheckNofPads<7,false>(2112);
-  CheckNofPads<8,false>(2560);
-  CheckNofPads<9,false>(2240);
-  CheckNofPads<10,false>(2240);
-  CheckNofPads<11,false>(2880);
-  CheckNofPads<12,false>(2912);
-  CheckNofPads<13,false>(1792);
-  CheckNofPads<14,false>(1344);
-  CheckNofPads<15,false>(672);
-  CheckNofPads<16,false>(448);
-  CheckNofPads<17,false>(3136);
-  CheckNofPads<18,false>(2016);
-  CheckNofPads<19,false>(1568);
-  CheckNofPads<20,false>(896);
+BOOST_AUTO_TEST_CASE(NofNonBendingPads)
+{
+  CheckNofPads<0, false>(14280);
+  CheckNofPads<1, false>(13986);
+  CheckNofPads<2, false>(2048);
+  CheckNofPads<3, false>(2496);
+  CheckNofPads<4, false>(2176);
+  CheckNofPads<5, false>(1344);
+  CheckNofPads<6, false>(896);
+  CheckNofPads<7, false>(2112);
+  CheckNofPads<8, false>(2560);
+  CheckNofPads<9, false>(2240);
+  CheckNofPads<10, false>(2240);
+  CheckNofPads<11, false>(2880);
+  CheckNofPads<12, false>(2912);
+  CheckNofPads<13, false>(1792);
+  CheckNofPads<14, false>(1344);
+  CheckNofPads<15, false>(672);
+  CheckNofPads<16, false>(448);
+  CheckNofPads<17, false>(3136);
+  CheckNofPads<18, false>(2016);
+  CheckNofPads<19, false>(1568);
+  CheckNofPads<20, false>(896);
 }
 
 BOOST_AUTO_TEST_CASE(NofNonBendingFEC)
@@ -149,6 +153,28 @@ BOOST_AUTO_TEST_CASE(NofBendingFEC)
   CheckNofFEC<19, true>(35);
   CheckNofFEC<20, true>(20);
 }
+
+BOOST_AUTO_TEST_CASE(MotifTypeIdFitsIntoAUint8)
+{
+  BOOST_CHECK_EQUAL(gMotifTypeIdMax, 209);
+}
+
+BOOST_AUTO_TEST_CASE(PadSizeIdFitsIntoAUint8)
+{
+  BOOST_CHECK_EQUAL(gPadSizeIdMax, 17);
+}
+
+BOOST_AUTO_TEST_CASE(FecIdFitsIntoAShort) {
+  BOOST_CHECK_EQUAL(gFecIdMax,1361);
+}
+
+/*
+BOOST_AUTO_TEST_CASE(FindByPosition) {
+  Segmentation<0,true> seg;
+  int padid = seg.FindPadIdByPosition(12.0,12.0);
+  BOOST_CHECK_EQUAL(padid,2);
+}
+*/
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

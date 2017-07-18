@@ -90,12 +90,29 @@ BOOST_AUTO_TEST_CASE(NumberOfPads) {
     const MotifType& mt = ArrayOfMotifTypes[i];
     auto f = std::find_if(Non64Motifs.begin(),Non64Motifs.end(),[&](const std::pair<int,int>& p) { return p.first == i; });
     if ( f == Non64Motifs.end() ) {
-      BOOST_CHECK_EQUAL(mt.NofPads(),64);
+      BOOST_CHECK_EQUAL(mt.GetNofPads(),64);
     }
     else {
-      BOOST_CHECK_EQUAL(mt.NofPads(),f->second);
+      BOOST_CHECK_EQUAL(mt.GetNofPads(),f->second);
     }
   }
+}
+
+BOOST_AUTO_TEST_CASE(IntegerRangesAreShort) {
+  int maxBerg{0};
+  int maxIx{0};
+  int maxIy{0};
+  for ( auto i = 0; i <ArrayOfMotifTypes.size(); ++i ) {
+    const MotifType& mt = ArrayOfMotifTypes[i];
+    for ( auto p = 0; p < mt.GetNofPads(); ++p ){
+      maxBerg = std::max(maxBerg,static_cast<int>(mt.GetBerg(p)));
+      maxIx = std::max(maxIx,static_cast<int>(mt.GetIx(p)));
+      maxIy = std::max(maxIy,static_cast<int>(mt.GetIy(p)));
+    }
+  }
+  BOOST_CHECK_EQUAL(maxBerg,83);
+  BOOST_CHECK_EQUAL(maxIx,27);
+  BOOST_CHECK_EQUAL(maxIy,63);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -17,6 +17,7 @@
 #include "codeWriter.h"
 #include <sstream>
 #include <iostream>
+#include <array>
 
 void generateCodeForMotifPosition(std::ostringstream& code, const rapidjson::Value& mp)
 {
@@ -45,7 +46,7 @@ void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstrea
     code << "\n  ";
   }
   code << "}\n";
-  code << "{}\n";
+  code << "{ init(); }\n";
 }
 
 void generateMotifPositionCode(std::ostringstream& code)
@@ -58,6 +59,9 @@ void generateMotifPositionCode(std::ostringstream& code)
     int padSizeId;
     int fecId;
 };
+int gMotifTypeIdMax{0};
+int gPadSizeIdMax{0};
+int gFecIdMax{0};
 )";
 };
 
@@ -81,32 +85,49 @@ generateCodeForSegmentations(const rapidjson::Value& segmentations, const rapidj
   generateMotifPositionCode(decl);
 
   decl << R"(
+class SegmentationInterface {
+  public:
+    virtual bool IsBendingPlane() const = 0;
+    virtual int GetId() const = 0;
+    virtual int NofDualSampas() const = 0;
+    virtual int NofPads() const = 0;
+};
+
 template<int N, bool isBendingPlane>
-class Segmentation
+class Segmentation : public SegmentationInterface
 {
   public:
     Segmentation()
     { throw std::out_of_range("invalid segmentation initialization"); }
 
-    int Id() const
+    int GetId() const override
     { return mId; }
 
-    int IsBendingPlane() const
+    bool IsBendingPlane() const override
     { return mIsBendingPlane; }
 
-    int NofDualSampas() const
+    int NofDualSampas() const override
     { return mMP.size(); }
 
-    int NofPads() const
+    int NofPads() const override
     {
       int n{0};
       for (const auto& mp : mMP) {
         const MotifType& motifType = ArrayOfMotifTypes[mp.motifTypeId];
-        n += motifType.NofPads();
+        n += motifType.GetNofPads();
       }
       return n;
     }
   private:
+
+    void init() {
+      for (const auto& mp: mMP) {
+        gMotifTypeIdMax = std::max(gMotifTypeIdMax,mp.motifTypeId);
+        gPadSizeIdMax = std::max(gPadSizeIdMax,mp.padSizeId);
+        gFecIdMax = std::max(gFecIdMax,mp.fecId);
+      }
+    }
+
     int mId;
     bool mIsBendingPlane;
     std::vector <MotifPosition> mMP;
@@ -121,7 +142,27 @@ class Segmentation
     decl << "\n";
   }
 
+  //decl << "extern std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> BendingSegmentations;\n";
+  //decl << "extern std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> NonBendingSegmentations;\n";
+
+
+
+  //impl << mappingNamespaceBegin();
+
+  for ( auto plane : std::array<bool,2>{true,false}) {
+    decl << "std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> " << (plane ? "Bending" : "NonBending")
+         << "Segmentations {";
+
+    for ( auto i = 0; i < segmentations.Size(); ++i ) {
+      decl << "std::make_unique<Segmentation<" << i << "," << (plane ? "true":"false") << ">>()";
+      if ( i < segmentations.Size()-1 ) decl << ",";
+    }
+
+    decl << "};\n";
+  }
   decl << mappingNamespaceEnd();
+
+//impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }

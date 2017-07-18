@@ -18,15 +18,18 @@ class MotifType {
   public:
     MotifType(const std::array<int,64>& berg, const std::array<int,64>& ix, const std::array<int,64>& iy, int nofPads) :
       mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {}
-    int NofPads() const { return mNofPads; }
-    int NofPadsX() const {
+    int GetNofPads() const { return mNofPads; }
+    int GetNofPadsX() const {
       auto result = std::minmax_element(mIx.begin(),mIx.begin()+mNofPads);
       return 1+*result.second - *result.first;
     }
-    int NofPadsY() const {
+    int GetNofPadsY() const {
       auto result = std::minmax_element(begin(mIy), end(mIy)+mNofPads);
       return 1+*result.second - *result.first;
     }
+    int GetBerg(int i) const { return mBerg[i]; }
+    int GetIx(int i) const { return mIx[i]; }
+    int GetIy(int i) const { return mIy[i]; }
   private:
    std::array<int,64> mBerg;
    std::array<int,64> mIx;
