@@ -91,61 +91,6 @@ BOOST_AUTO_TEST_CASE(countAllPads)
   BOOST_TEST_CHECK((nb == 64042), "nb=" << nb << " expected 64042");
 }
 
-BOOST_TEST_DECORATOR(* boost::unit_test::disabled())
-BOOST_AUTO_TEST_CASE(testSt2Manu1098) {
-
-  AliMpVSegmentation* seg = getSegmentation("st2",AliMp::kNonBendingPlane);
-
-  AliMpPad pad = seg->PadByPosition(14.75,24.25);
-  BOOST_TEST_CHECK(pad.GetManuId()==1122);
-
-  pad = seg->PadByPosition(14.75,24.75);
-  BOOST_TEST_CHECK(pad.GetManuId()==1122);
-
-  pad = seg->PadByPosition(14.75,24.25-0.5);
-  BOOST_TEST_CHECK(pad.GetManuId()==1098);
-}
-
-BOOST_TEST_DECORATOR(* boost::unit_test::disabled())
-BOOST_DATA_TEST_CASE(testPadUniqueness , (bdata::make({"st2"}) * bdata::make({AliMp::kNonBendingPlane})), segname, plane)
-{
-  AliMpVSegmentation* seg = getSegmentation(segname, plane);
-  AliMpArea area(16 + 1, 19.5 + 0.75, 12,12);
-  std::unique_ptr<AliMpVPadIterator> it{seg->CreateIterator(area)};
-  it->First();
-
-  std::vector<AliMpPad> pads;
-
-  while (!it->IsDone()) {
-    it->Next();
-    if (!it->IsDone()) {
-      AliMpPad p = it->CurrentItem();
-      pads.push_back(p);
-    }
-  }
-
-  BOOST_TEST_CHECK((pads[0] == pads[0]));
-
-  const float cmtomicron = 1E4;
-
-  int n = 0;
-  for (const auto& p : pads ) {
-    if (p.GetManuId() == 1122 ) {
-      n++;
-    }
-  }
-
-  BOOST_TEST_CHECK((n==60),"n=" << n << " expected 60");
-
-  for (auto i = 0; i < pads.size(); ++i) {
-    for (auto j = i + 1; j < pads.size(); ++j) {
-      double dx = pads[i].GetPositionX() - pads[j].GetPositionX();
-      double dy = pads[i].GetPositionY() - pads[j].GetPositionY();
-      double distance = sqrt(dx * dx + dy * dy);
-      BOOST_TEST_CHECK(distance > 0.1);
-    }
-  }
-}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
