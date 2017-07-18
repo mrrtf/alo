@@ -142,27 +142,7 @@ class Segmentation : public SegmentationInterface
     decl << "\n";
   }
 
-  //decl << "extern std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> BendingSegmentations;\n";
-  //decl << "extern std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> NonBendingSegmentations;\n";
-
-
-
-  //impl << mappingNamespaceBegin();
-
-  for ( auto plane : std::array<bool,2>{true,false}) {
-    decl << "std::array<std::unique_ptr<SegmentationInterface>," << segmentations.Size() << "> " << (plane ? "Bending" : "NonBending")
-         << "Segmentations {";
-
-    for ( auto i = 0; i < segmentations.Size(); ++i ) {
-      decl << "std::make_unique<Segmentation<" << i << "," << (plane ? "true":"false") << ">>()";
-      if ( i < segmentations.Size()-1 ) decl << ",";
-    }
-
-    decl << "};\n";
-  }
   decl << mappingNamespaceEnd();
-
-//impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }
