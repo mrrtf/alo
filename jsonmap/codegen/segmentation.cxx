@@ -69,7 +69,7 @@ void generateCodeForMotifPosition(std::ostringstream& code,
     float padx = pad["ix"].GetInt() * dx + x;
     float pady = pad["iy"].GetInt() * dy + y;
     pads[atoi(pin["manu"].GetString())] = {
-      fec, (atoi(pin["manu"].GetString())), padx-dx, pady-dy, padx+dx, pady+dy
+      fec, (atoi(pin["manu"].GetString())), padx - dx, pady - dy, padx + dx, pady + dy
     };
   }
 
@@ -93,7 +93,7 @@ void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstrea
   assert(plane.IsObject());
 
   code << "template<>\n";
-  code << "Segmentation<" << index << "," << (isBending ? "true" : "false") << ">::Segmentation() "
+  code << "SegmentationImpl0<" << index << "," << (isBending ? "true" : "false") << ">::SegmentationImpl0() "
        << " : mId(" << index;
   code << "), mIsBendingPlane(" << (isBending ? "true" : "false")
        << ") {\n";
@@ -151,16 +151,10 @@ void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstrea
 }
 
 std::pair<std::string, std::string>
-generateCodeForSegmentationCommon()
+generateCodeForSegmentationInterface()
 {
   std::ostringstream decl;
   std::ostringstream impl;
-
-  decl << R"(#include <vector>
-#include "genMotifType.h"
-#include <tuple>
-#include "genPadSize.h"
-)";
 
   decl << mappingNamespaceBegin();
 
@@ -174,12 +168,33 @@ class SegmentationInterface {
     virtual bool hasPadByPosition(float x, float y) const = 0;
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
 };
+)";
 
+  decl << mappingNamespaceEnd();
+  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+}
+
+std::pair<std::string, std::string>
+generateCodeForSegmentationCommon()
+{
+  std::ostringstream decl;
+  std::ostringstream impl;
+
+  decl << R"(#include <vector>
+#include "genMotifType.h"
+#include <tuple>
+#include "genPadSize.h"
+#include "genSegmentationInterface.h"
+)";
+
+  decl << mappingNamespaceBegin();
+
+  decl << R"(
 template<int N, bool>
-class Segmentation : public SegmentationInterface
+class SegmentationImpl0 : public SegmentationInterface
 {
   public:
-    Segmentation()
+    SegmentationImpl0()
     { throw std::out_of_range("invalid segmentation initialization"); }
 
     int getId() const override
@@ -226,8 +241,8 @@ class Segmentation : public SegmentationInterface
 
 std::pair<std::string, std::string>
 generateCodeForSegmentationType(int index, const rapidjson::Value& segmentations, const rapidjson::Value& motiftypes,
-                             const rapidjson::Value& padsizes,
-                             const rapidjson::Value& bergs)
+                                const rapidjson::Value& padsizes,
+                                const rapidjson::Value& bergs)
 {
   std::ostringstream decl;
   std::ostringstream impl;
@@ -236,7 +251,7 @@ generateCodeForSegmentationType(int index, const rapidjson::Value& segmentations
   assert(segmentations.IsArray());
   assert(bergs.IsArray());
 
-  decl << "#include \"genSegmentation.h\"\n";
+  decl << "#include \"genSegmentationImpl0.h\"\n";
 
   decl << mappingNamespaceBegin();
 
@@ -250,5 +265,74 @@ generateCodeForSegmentationType(int index, const rapidjson::Value& segmentations
   decl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+}
+
+std::pair<std::string, std::string> generateCodeForSegmentationFactory() {
+  std::ostringstream decl;
+  std::ostringstream impl;
+
+  decl << R"(#include "genSegmentationInterface.h"
+#include <memory>
+)";
+
+  decl << mappingNamespaceBegin();
+
+  decl << R"(
+
+std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
+
+  )";
+  decl << mappingNamespaceEnd();
+
+  impl << R"(#include "genSegmentationImpl0.h"
+)";
+  for ( int i = 0; i < 21; ++i ) {
+    impl << "#include \"genSegmentationImpl0Type" << i << ".h\"\n";
+  }
+  impl << mappingNamespaceBegin();
+
+  impl << R"(
+  std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
+)";
+
+  for ( int i = 0; i < 21; ++i ) {
+    for ( auto b : std::array<bool,2>{true,false} ) {
+      impl << "    if (isBendingPlane==" << (b ? "true" : "false") << " && type==" << i << ") {\n";
+      impl << "      return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<" << i << "," << (b ? "true" : "false") << ">{}};\n";
+      impl << "    };\n";
+    }
+  }
+
+  impl << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true>{}};\n";
+  impl << "}\n";
+
+  impl << mappingNamespaceEnd();
+
+  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+}
+
+void generateCodeForSegmentations(const rapidjson::Value& segmentations, const rapidjson::Value& motiftypes,
+                                  const rapidjson::Value& padsizes,
+                                  const rapidjson::Value& bergs)
+{
+  std::pair<std::string, std::string> code = generateCodeForSegmentationInterface();
+  outputCode(code.first, code.second, "genSegmentationInterface");
+
+  code = generateCodeForSegmentationFactory();
+  outputCode(code.first,code.second,"genSegmentationFactory");
+
+  code = generateCodeForSegmentationCommon();
+  outputCode(code.first, code.second, "genSegmentationImpl0");
+
+  for (int i = 0; i < segmentations.GetArray().Size(); ++i) {
+    code = generateCodeForSegmentationType(i,
+                                           segmentations,
+                                           motiftypes,
+                                           padsizes,
+                                           bergs);
+    std::ostringstream outputFile;
+    outputFile << "genSegmentationImpl0Type" << i;
+    outputCode(code.first, code.second, outputFile.str());
+  }
 }
 
