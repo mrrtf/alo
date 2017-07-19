@@ -102,13 +102,26 @@ int main(int argc, char* argv[])
     outputCode(code.first, code.second, "genPadSize");
   }
 
-  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")) {
+  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
+      && documents.count("bergs")) {
     Document& segmentations = documents["segmentations"]->document();
     Document& motiftypes = documents["motiftypes"]->document();
     Document& padsizes = documents["padsizes"]->document();
-    std::pair<std::string, std::string> code = generateCodeForSegmentations(segmentations["segmentations"],motiftypes["motiftypes"],padsizes["padsizes"]);
+    Document& bergs = documents["bergs"]->document();
+
+    std::pair<std::string, std::string> code = generateCodeForSegmentationCommon();
     outputCode(code.first, code.second, "genSegmentation");
 
+    for (int i = 0; i < segmentations["segmentations"].GetArray().Size(); ++i) {
+      std::pair<std::string, std::string> code = generateCodeForSegmentationType(i,
+                                                                                 segmentations["segmentations"],
+                                                                                 motiftypes["motiftypes"],
+                                                                                 padsizes["padsizes"],
+                                                                                 bergs["bergs"]);
+      std::ostringstream outputFile;
+      outputFile << "genSegmentationType" << i;
+      outputCode(code.first, code.second, outputFile.str());
+    }
   }
 
   return 0;

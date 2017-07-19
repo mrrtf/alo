@@ -15,6 +15,28 @@
 #define BOOST_TEST_DYN_LINK
 
 #include "genSegmentation.h"
+#include "genSegmentationType0.h"
+#include "genSegmentationType1.h"
+#include "genSegmentationType2.h"
+#include "genSegmentationType3.h"
+#include "genSegmentationType4.h"
+#include "genSegmentationType5.h"
+#include "genSegmentationType6.h"
+#include "genSegmentationType7.h"
+#include "genSegmentationType8.h"
+#include "genSegmentationType9.h"
+#include "genSegmentationType10.h"
+#include "genSegmentationType11.h"
+#include "genSegmentationType12.h"
+#include "genSegmentationType13.h"
+#include "genSegmentationType14.h"
+#include "genSegmentationType15.h"
+#include "genSegmentationType16.h"
+#include "genSegmentationType17.h"
+#include "genSegmentationType18.h"
+#include "genSegmentationType19.h"
+#include "genSegmentationType20.h"
+
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
@@ -54,9 +76,9 @@ void CheckNofPads(int b)
 
 BOOST_AUTO_TEST_CASE(NofBendingPads)
 {
-  // we explicitely don't make a loop
-  // (that would be possible using some array of SegmentationInterface)
-  // as a simpler way to document the number of pads per segmentation
+  // we explicitly don't make a loop
+  // that would be possible using some array of SegmentationInterface
+  // but we prefer this solution to more simply document the number of pads per segmentation
   CheckNofPads<0, true>(14392);
   CheckNofPads<1, true>(13947);
   CheckNofPads<2, true>(2928);
@@ -155,36 +177,9 @@ BOOST_AUTO_TEST_CASE(NofBendingFEC)
   CheckNofFEC<20, true>(20);
 }
 
-BOOST_AUTO_TEST_CASE(MotifTypeIdFitsIntoAUint8)
-{
-  BOOST_CHECK_EQUAL(MotifPosition::getMotifTypeIdMax(), 209);
-}
-
-BOOST_AUTO_TEST_CASE(PadSizeIdFitsIntoAUint8)
-{
-  BOOST_CHECK_EQUAL(MotifPosition::getPadSizeIdMax(), 17);
-}
-
-BOOST_AUTO_TEST_CASE(FecIdFitsIntoAShort) {
-  BOOST_CHECK_EQUAL(MotifPosition::getFecIdMax(),1361);
-}
-
-BOOST_AUTO_TEST_CASE(FindByPosition) {
+BOOST_AUTO_TEST_CASE(HasPadByPosition) {
   Segmentation<0,true> seg;
-  int padid = seg.padIdByPosition(40.0,30.0);
-  BOOST_CHECK_EQUAL(padid,2);
-}
-
-BOOST_AUTO_TEST_CASE(ShowAllPads) {
-  Segmentation<0,true> seg;
-  std::vector<MotifPosition> mps = seg.MotifPositions();
-  for ( const auto& mp: mps ) {
-    const MotifType& mt = arrayOfMotifTypes[mp.getMotifTypeId()];
-    const std::pair<int,int>& padsize = arrayOfPadSizes[mp.getPadSizeId()];
-    std::cout << boost::format("MP %4d") % mp.getFecId()
-              << std::endl;
-  }
-  BOOST_CHECK(true);
+  BOOST_CHECK_EQUAL(seg.hasPadByPosition(40.0,30.0),true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

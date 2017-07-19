@@ -20,7 +20,12 @@
 #include <string>
 #include <utility>
 
-std::pair<std::string, std::string> generateCodeForSegmentations(const rapidjson::Value& segmentations,
-const rapidjson::Value& motiftypes, const rapidjson::Value& padsizes);
+std::pair<std::string, std::string> generateCodeForSegmentationCommon();
+
+std::pair<std::string, std::string> generateCodeForSegmentationType(int i,
+                                                                    const rapidjson::Value& segmentations,
+                                                                    const rapidjson::Value& motiftypes,
+                                                                    const rapidjson::Value& padsizes,
+                                                                    const rapidjson::Value& bergs);
 
 #endif
