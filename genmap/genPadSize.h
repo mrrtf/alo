@@ -10,7 +10,8 @@ namespace mch
 {
 namespace mapping
 {
-extern std::array<std::pair<int,int>,18> PadSizes;
+using PadSizeArray = std::array<std::pair<int,int>,18>;
+extern PadSizeArray arrayOfPadSizes;
 
 } // namespace mapping
 } // namespace mch

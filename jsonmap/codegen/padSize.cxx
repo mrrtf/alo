@@ -23,18 +23,19 @@ std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Val
   std::ostringstream decl;
 
   std::ostringstream returnType;
-  returnType << "std::array<std::pair<int,int>," << padsizes.Size() << ">";
+
 
   decl << "#include <array>\n";
   decl << "#include <utility>\n";
   decl << mappingNamespaceBegin();
-  decl << "extern " << returnType.str() << " PadSizes;\n";
+  decl << "using PadSizeArray = std::array<std::pair<int,int>," << padsizes.Size() << ">;\n";
+  decl << "extern PadSizeArray arrayOfPadSizes;\n";
   decl << mappingNamespaceEnd();
 
   std::ostringstream impl;
 
   impl << mappingNamespaceBegin();
-  impl << returnType.str() << " PadSizes {\n";
+  impl << "PadSizeArray arrayOfPadSizes {\n";
   int n{0};
   for (auto& ps: padsizes.GetArray()) {
     impl << "std::make_pair<int,int>(" << ps["x"].GetInt() << "," << ps["y"].GetInt() << ")";

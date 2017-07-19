@@ -29,18 +29,18 @@ BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(padsize)
 
 BOOST_AUTO_TEST_CASE(NumberOfPadSizes) {
-  BOOST_TEST_CHECK(PadSizes.size()==18);
+  BOOST_TEST_CHECK(arrayOfPadSizes.size()==18);
 }
 
 BOOST_AUTO_TEST_CASE(ExpectedPadSizeX) {
-  auto ps = PadSizes;
+  auto ps = arrayOfPadSizes;
   for (auto i = 0; i < ps.size(); ++i ) {
     BOOST_TEST_CHECK(ps[i].first==padsizex[i]);
   }
 }
 
 BOOST_AUTO_TEST_CASE(ExpectedPadSizeY) {
-  auto ps = PadSizes;
+  auto ps = arrayOfPadSizes;
   for (auto i = 0; i < ps.size(); ++i ) {
     BOOST_TEST_CHECK(ps[i].second==padsizey[i]);
   }

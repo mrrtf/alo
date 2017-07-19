@@ -20,6 +20,7 @@
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <array>
+#include "boost/format.hpp"
 
 using namespace o2::mch::mapping;
 namespace bdata = boost::unit_test::data;
@@ -41,14 +42,14 @@ template<int N, bool isBendingPlane>
 void CheckNofFEC(int b)
 {
   Segmentation<N, isBendingPlane> seg;
-  BOOST_CHECK_EQUAL(seg.NofDualSampas(), b);
+  BOOST_CHECK_EQUAL(seg.nofDualSampas(), b);
 }
 
 template<int N, bool isBendingPlane>
 void CheckNofPads(int b)
 {
   Segmentation<N, isBendingPlane> seg;
-  BOOST_CHECK_EQUAL(seg.NofPads(), b);
+  BOOST_CHECK_EQUAL(seg.nofPads(), b);
 }
 
 BOOST_AUTO_TEST_CASE(NofBendingPads)
@@ -156,25 +157,35 @@ BOOST_AUTO_TEST_CASE(NofBendingFEC)
 
 BOOST_AUTO_TEST_CASE(MotifTypeIdFitsIntoAUint8)
 {
-  BOOST_CHECK_EQUAL(gMotifTypeIdMax, 209);
+  BOOST_CHECK_EQUAL(MotifPosition::getMotifTypeIdMax(), 209);
 }
 
 BOOST_AUTO_TEST_CASE(PadSizeIdFitsIntoAUint8)
 {
-  BOOST_CHECK_EQUAL(gPadSizeIdMax, 17);
+  BOOST_CHECK_EQUAL(MotifPosition::getPadSizeIdMax(), 17);
 }
 
 BOOST_AUTO_TEST_CASE(FecIdFitsIntoAShort) {
-  BOOST_CHECK_EQUAL(gFecIdMax,1361);
+  BOOST_CHECK_EQUAL(MotifPosition::getFecIdMax(),1361);
 }
 
-/*
 BOOST_AUTO_TEST_CASE(FindByPosition) {
   Segmentation<0,true> seg;
-  int padid = seg.FindPadIdByPosition(12.0,12.0);
+  int padid = seg.padIdByPosition(40.0,30.0);
   BOOST_CHECK_EQUAL(padid,2);
 }
-*/
+
+BOOST_AUTO_TEST_CASE(ShowAllPads) {
+  Segmentation<0,true> seg;
+  std::vector<MotifPosition> mps = seg.MotifPositions();
+  for ( const auto& mp: mps ) {
+    const MotifType& mt = arrayOfMotifTypes[mp.getMotifTypeId()];
+    const std::pair<int,int>& padsize = arrayOfPadSizes[mp.getPadSizeId()];
+    std::cout << boost::format("MP %4d") % mp.getFecId()
+              << std::endl;
+  }
+  BOOST_CHECK(true);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

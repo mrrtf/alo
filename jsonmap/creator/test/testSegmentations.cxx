@@ -21,7 +21,12 @@
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <iostream>
+#include <TArrayI.h>
+#include <boost/format.hpp>
 #include "de.h"
+#include "AliMpVSegmentation.h"
+#include "AliMpMotifPosition.h"
+#include "AliMpVPadIterator.h"
 
 std::array<std::string, 156> desegnames{
   "st1", "st1", "st1", "st1", "st1", "st1", "st1", "st1", "st2", "st2", "st2", "st2", "st2", "st2", "st2", "st2",
@@ -80,6 +85,28 @@ BOOST_AUTO_TEST_CASE(segmentationOrder)
   }
 }
 
+BOOST_AUTO_TEST_CASE(sectorPositionIsRelativeToSectorBottomLeft)
+{
+  constexpr double percentDifference = 1.0;
+  for (auto i = 0; i < 2; ++i) {
+    auto x = b_segs()[i]->GetPositionX();
+    BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
+    auto y = b_segs()[i]->GetPositionY();
+    BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(slatPositionIsRelativeToSlatCenter)
+{
+  constexpr double percentDifference = 1.0;
+  for (auto i = 2; i < b_segs().size(); ++i) {
+    auto x = b_segs()[i]->GetPositionX() - b_segs()[i]->GetDimensionX();
+    BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
+    auto y = b_segs()[i]->GetPositionY() - b_segs()[i]->GetDimensionY();
+    BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
+  }
+}
+
 BOOST_AUTO_TEST_CASE(segmentationNames)
 {
   std::vector<std::string> names = get_all_segmentation_names(ddlStore(), mseg());
@@ -110,6 +137,42 @@ BOOST_DATA_TEST_CASE(DetectionElementIdsPerSegmentationName,
 //BOOST_DATA_TEST_CASE(segmentationMotifPositions, (bdata::make(deids)),deid) {
 //std::vector<AliMpVSegmentation*> segs = get_segs(mseg(),std::vector<int>{deid},AliMp::kBendingPlane));
 //}
+
+bool isPositionWithinPadArea(const AliMpPad& pad, float x, float y)
+{
+  return pad.GetPositionX() - pad.GetDimensionX() < x && pad.GetDimensionX() + pad.GetPositionX() > x
+         && pad.GetPositionY() - pad.GetDimensionY() < y && pad.GetPositionY() + pad.GetDimensionY() > y;
+}
+
+BOOST_TEST_DECORATOR(*boost::unit_test::enabled())
+
+BOOST_AUTO_TEST_CASE(PrintAllPadPositions)
+{
+  for (int s = 0; s < 2; ++s) {
+    AliMpVSegmentation* segmentation = b_segs()[s];
+    TArrayI manuId;
+    segmentation->GetAllElectronicCardIDs(manuId);
+    for (int i = 0; i < manuId.GetSize(); ++i) {
+      //if (manuId[i] != 89 && manuId[i] != 115) { continue; }
+      AliMpMotifPosition* mp = segmentation->MotifPosition(manuId[i]);
+      std::unique_ptr<AliMpVPadIterator> it{mp->CreateIterator()};
+      it->First();
+      while (!it->IsDone()) {
+        AliMpPad pad = it->CurrentItem();
+        it->Next();
+        std::cout << boost::format("PAD MANU %4d CH %2d X %7.3f Y %7.3f DX %5.3f DY %5.3f") % pad.GetManuId()
+                     % pad.GetManuChannel() % pad.GetPositionX() % pad.GetPositionY() % pad.GetDimensionX() %
+                     pad.GetDimensionY();
+        if (isPositionWithinPadArea(pad, 40.0, 30.0)) {
+          std::cout << " xxx";
+        }
+        std::cout << std::endl;
+        break;
+      }
+    }
+  }
+  BOOST_TEST(true);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

@@ -21,7 +21,12 @@
 
 using namespace o2::mch::mapping;
 
-std::array<std::pair<int, int>,47> Non64Motifs = {
+struct MT
+{
+    MotifType mt{arrayOfMotifTypes.back()};
+};
+
+std::array<std::pair<int, int>, 47> Non64Motifs = {
   std::make_pair<int, int>(4, 48),
   std::make_pair<int, int>(5, 63),
   std::make_pair<int, int>(7, 46),
@@ -76,43 +81,89 @@ BOOST_AUTO_TEST_SUITE(motiftype)
 
 BOOST_AUTO_TEST_CASE(NumberOfMotifTypes)
 {
-  BOOST_CHECK_EQUAL(ArrayOfMotifTypes.size(), 210);
+  BOOST_CHECK_EQUAL(arrayOfMotifTypes.size(), 210);
 }
 
 BOOST_AUTO_TEST_CASE(NumberOfNon64Motifs)
 {
-  BOOST_CHECK_EQUAL(Non64Motifs.size(),47);
+  BOOST_CHECK_EQUAL(Non64Motifs.size(), 47);
 }
 
-BOOST_AUTO_TEST_CASE(NumberOfPads) {
+BOOST_AUTO_TEST_CASE(NumberOfPads)
+{
 
-  for ( auto i = 0; i <ArrayOfMotifTypes.size(); ++i ) {
-    const MotifType& mt = ArrayOfMotifTypes[i];
-    auto f = std::find_if(Non64Motifs.begin(),Non64Motifs.end(),[&](const std::pair<int,int>& p) { return p.first == i; });
-    if ( f == Non64Motifs.end() ) {
-      BOOST_CHECK_EQUAL(mt.GetNofPads(),64);
-    }
-    else {
-      BOOST_CHECK_EQUAL(mt.GetNofPads(),f->second);
+  for (auto i = 0; i < arrayOfMotifTypes.size(); ++i) {
+    const MotifType& mt = arrayOfMotifTypes[i];
+    auto f = std::find_if(Non64Motifs.begin(), Non64Motifs.end(),
+                          [&](const std::pair<int, int>& p) { return p.first == i; });
+    if (f == Non64Motifs.end()) {
+      BOOST_CHECK_EQUAL(mt.getNofPads(), 64);
+    } else {
+      BOOST_CHECK_EQUAL(mt.getNofPads(), f->second);
     }
   }
 }
 
-BOOST_AUTO_TEST_CASE(IntegerRangesAreShort) {
+BOOST_FIXTURE_TEST_SUITE(PadBy, MT)
+
+BOOST_AUTO_TEST_CASE(PadIdByValidBerg)
+{
+  BOOST_CHECK_EQUAL(mt.padIdByBerg(83), 63);
+  BOOST_CHECK_EQUAL(mt.padIdByBerg(33), 0);
+}
+
+BOOST_AUTO_TEST_CASE(HasPadByBerg)
+{
+  BOOST_CHECK_EQUAL(mt.hasPadByBerg(83), true);
+  BOOST_CHECK_EQUAL(mt.hasPadByBerg(33), true);
+  BOOST_CHECK_EQUAL(mt.hasPadByBerg(100), false);
+  BOOST_CHECK_EQUAL(mt.hasPadByBerg(-1), false);
+}
+
+BOOST_AUTO_TEST_CASE(HasPadByIndices)
+{
+  BOOST_CHECK_EQUAL(mt.hasPadByIndices(2, 7), true);
+  BOOST_CHECK_EQUAL(mt.hasPadByIndices(0, 24), true);
+  BOOST_CHECK_EQUAL(mt.hasPadByIndices(2, 24), false);
+  BOOST_CHECK_EQUAL(mt.hasPadByIndices(-1, -1), false);
+}
+
+BOOST_AUTO_TEST_CASE(PadIdByInvalidBerg)
+{
+  BOOST_CHECK_EQUAL(mt.padIdByBerg(-1), -1);
+  BOOST_CHECK_EQUAL(mt.padIdByBerg(100), -1);
+}
+
+BOOST_AUTO_TEST_CASE(PadIdByValidIndices)
+{
+  BOOST_CHECK_EQUAL(mt.padIdByIndices(2, 7), 63);
+  BOOST_CHECK_EQUAL(mt.padIdByIndices(0, 24), 0);
+}
+
+BOOST_AUTO_TEST_CASE(PadIdByInvalidIndices)
+{
+  BOOST_CHECK_EQUAL(mt.padIdByIndices(2, 24), -1);
+  BOOST_CHECK_EQUAL(mt.padIdByIndices(-1, -1), -1);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_CASE(IntegerRangesAreShort)
+{
   int maxBerg{0};
   int maxIx{0};
   int maxIy{0};
-  for ( auto i = 0; i <ArrayOfMotifTypes.size(); ++i ) {
-    const MotifType& mt = ArrayOfMotifTypes[i];
-    for ( auto p = 0; p < mt.GetNofPads(); ++p ){
-      maxBerg = std::max(maxBerg,static_cast<int>(mt.GetBerg(p)));
-      maxIx = std::max(maxIx,static_cast<int>(mt.GetIx(p)));
-      maxIy = std::max(maxIy,static_cast<int>(mt.GetIy(p)));
+  for (auto i = 0; i < arrayOfMotifTypes.size(); ++i) {
+    const MotifType& mt = arrayOfMotifTypes[i];
+    for (auto p = 0; p < mt.getNofPads(); ++p) {
+      maxBerg = std::max(maxBerg, static_cast<int>(mt.getBerg(p)));
+      maxIx = std::max(maxIx, static_cast<int>(mt.getIx(p)));
+      maxIy = std::max(maxIy, static_cast<int>(mt.getIy(p)));
     }
   }
-  BOOST_CHECK_EQUAL(maxBerg,83);
-  BOOST_CHECK_EQUAL(maxIx,27);
-  BOOST_CHECK_EQUAL(maxIy,63);
+  BOOST_CHECK_EQUAL(maxBerg, 83);
+  BOOST_CHECK_EQUAL(maxIx, 27);
+  BOOST_CHECK_EQUAL(maxIy, 63);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

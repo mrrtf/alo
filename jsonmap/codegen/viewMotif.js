@@ -127,7 +127,7 @@ function showAllMotifNames(motifs) {
 function decodeJSON(json) {
     const padsizex=63/2;
     const padsizey=42/3;
-    motifs=json.motifs;
+    motifs=json.motiftypes;
     defineSVGMotifs(motifs,padsizex,padsizey);
     plotMotifByName("E15");
     showAllMotifNames(motifs);
@@ -169,7 +169,7 @@ $(function() {
         }
     });
 
-    fetch("http://localhost:8080/motif.json",
+    fetch("http://localhost:8080/motiftypes.json",
         { method: 'get',
             headers: {
                 'Accept': 'application/json'
