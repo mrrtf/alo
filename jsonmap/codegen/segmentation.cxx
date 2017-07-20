@@ -151,16 +151,21 @@ generateCodeForSegmentationCommon()
 {
   std::ostringstream decl;
 
-  decl << R"(#include <array>
+  decl << R"(
+#include <array>
 #include "genMotifType.h"
 #include <tuple>
 #include "genSegmentationInterface.h"
 #include <sstream>
+#include <algorithm>
+#include <stdexcept>
+#include <ostream>
+#include "boost/format.hpp"
 )";
 
   decl << mappingNamespaceBegin();
 
-  decl << R"(
+  decl << R"***(
 template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int)>
 class SegmentationImpl0 : public SegmentationInterface
 {
@@ -182,21 +187,53 @@ class SegmentationImpl0 : public SegmentationInterface
       return mNofPads;
     }
 
-    bool hasPadByPosition(float x, float y) const override {
-       return false;
+    bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const override
+    {
+      if (dualSampaChannel < 0 || dualSampaChannel > 63) {
+        throw std::out_of_range("dualSampaChannel should be between 0 and 63");
+      }
+      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MotifPosition& mp) { return mp.fecId==dualSampaId; });
+      if (it == mMotifPositions.end()) {
+        throw std::out_of_range("dualSampaId is not there");
+      }
+      int index = std::distance(mMotifPositions.begin(), it);
+      int padIndex = index * 64 + dualSampaChannel;
+      return mPads[padIndex].isValid();
     }
 
-    bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const override {
+    bool hasPadByPosition(float x, float y) const override {
        return false;
     }
 
   private:
 
-    struct Pad {
-      float xBottomLeft;
-      float yBottomLeft;
-      float xTopRight;
-      float yTopRight;
+    struct Pad
+    {
+        Pad(float x1 = 0, float y1 = 0, float x2 = 0, float y2 = 0) :
+          xBottomLeft{x1}, yBottomLeft{y1},
+          xTopRight{x2}, yTopRight{y2}
+        {}
+
+        bool isValid() const
+        { return (xTopRight-xBottomLeft) > 0.1; }
+
+        friend std::ostream& operator<<(std::ostream& os, const Pad& pad)
+        {
+          if (pad.isValid()) {
+            os << boost::format("(%7.2f,%7.2f)->(%7.2f,%7.2f)") % pad.xBottomLeft % pad.yBottomLeft %
+                                                                  pad.xTopRight % pad.yTopRight;
+          }
+        else
+        {
+          os << " ( not existing pad )";
+        }
+        return os;
+        }
+
+        float xBottomLeft;
+        float yBottomLeft;
+        float xTopRight;
+        float yTopRight;
     };
 
     struct MotifPosition
@@ -237,7 +274,7 @@ class SegmentationImpl0 : public SegmentationInterface
     std::array<Pad,NFEC*64> mPads;
     std::array<MotifPosition,NFEC> mMotifPositions;
 };
-)";
+)***";
   return decl.str();
 }
 

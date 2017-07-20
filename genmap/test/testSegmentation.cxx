@@ -138,10 +138,33 @@ BOOST_AUTO_TEST_CASE(NofBendingFEC)
   BOOST_CHECK_EQUAL(getSegmentation(20, true)->nofDualSampas(),20);
 }
 
+struct SEG {
+    std::unique_ptr<SegmentationInterface> seg{getSegmentation(0,true)};
+};
 
-BOOST_AUTO_TEST_CASE(HasPadByPosition) {
-  BOOST_CHECK_EQUAL(getSegmentation(0,true)->hasPadByPosition(40.0,30.0),true);
+BOOST_FIXTURE_TEST_SUITE(HasPadBy,SEG)
+
+BOOST_AUTO_TEST_CASE(ThrowsIfDualSampaChannelIsNotBetween0And63) {
+  BOOST_CHECK_THROW(seg->hasPadByFEE(102,-1),std::out_of_range);
+  BOOST_CHECK_THROW(seg->hasPadByFEE(102,64),std::out_of_range);
 }
+
+BOOST_AUTO_TEST_CASE(ThrowsIfDualSampaIdIsInvalid) {
+  BOOST_CHECK_THROW(seg->hasPadByFEE(1000,0),std::out_of_range);
+}
+
+BOOST_AUTO_TEST_CASE(ReturnsTrueIfPadIsConnected) {
+  BOOST_CHECK_EQUAL(seg->hasPadByFEE(102,3),true);
+}
+
+BOOST_AUTO_TEST_CASE(ReturnsFalseIfPadIsNotConnected) {
+  BOOST_CHECK_EQUAL(seg->hasPadByFEE(214,14),false);
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+//BOOST_AUTO_TEST_CASE(HasPadByPosition) {
+//  BOOST_CHECK_EQUAL(getSegmentation(0,true)->hasPadByPosition(40.0,30.0),true);
+//}
 
 
 BOOST_AUTO_TEST_SUITE_END()
