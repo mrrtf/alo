@@ -15,7 +15,7 @@
 
 std::string mappingNamespaceBegin();
 std::string mappingNamespaceEnd();
-void outputCode(const std::string decl,
+void outputCode(const std::string& decl,
                 const std::string& impl,
                 const std::string& outputFileName);
 

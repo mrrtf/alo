@@ -20,6 +20,8 @@
 #include <array>
 #include <vector>
 
+using rapidjson::Value;
+
 struct MotifPosition
 {
     int fecId;
@@ -30,83 +32,35 @@ struct MotifPosition
     float y;
 };
 
-struct Pad
+std::ostream& operator<<(std::ostream& os, const MotifPosition& position)
 {
-    Pad() : fecId{0}, fecChannel{0}, x{0}, y{0}, dx{0}, dy{0}
-    {}
-
-    Pad(int f, int c, float x_, float y_, float dx_, float dy_) : fecId{f},
-                                                                  fecChannel{c},
-                                                                  x{x_},
-                                                                  y{y_},
-                                                                  dx{dx_},
-                                                                  dy{dy_}
-    {}
-
-    int fecId;
-    int fecChannel;
-    float x;
-    float y;
-    float dx;
-    float dy;
-};
-
-void generateCodeForMotifPosition(std::ostringstream& code,
-                                  int fec,
-                                  float x, float y,
-                                  float dx, float dy, /* TODO : special motifs with 2 pad sizes */
-                                  const rapidjson::Value& mt,
-                                  const rapidjson::Value& bergpins)
-{
-  assert(bergpins.IsArray());
-  auto bergArray = bergpins.GetArray();
-  auto jsonpads = mt["pads"].GetArray();
-  std::array<Pad, 64> pads{};
-  for (auto& pad: jsonpads) {
-    int b = pad["berg"].GetInt();
-    auto& pin = bergArray[b - 1];
-    assert(pin.IsObject());
-    float padx = pad["ix"].GetInt() * dx + x;
-    float pady = pad["iy"].GetInt() * dy + y;
-    pads[atoi(pin["manu"].GetString())] = {
-      fec, (atoi(pin["manu"].GetString())), padx - dx, pady - dy, padx + dx, pady + dy
-    };
-  }
-
-  for (auto i = 0; i < pads.size(); ++i) {
-    const Pad& pad = pads[i];
-    code << "  {" << pad.x << "," << pad.y << "," << pad.dx << "," << pad.dy << "}";
-    if (pad.dx < 0.1 && pad.dy < 0.1) { code << " /* not connected */"; }
-    if (i < pads.size() - 1) { code << ",\n"; }
-  }
+  os << "{" << position.fecId << "," << position.motifTypeId << "," << position.dx << ","
+     << position.dy << "," << position.x << "," << position.y << "}";
+  return os;
 }
 
-void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstream& code,
-                                    const rapidjson::Value& seg,
-                                    const rapidjson::Value& motiftypes,
-                                    const rapidjson::Value& padsizes, const rapidjson::Value& bergpins)
+
+auto
+getMotifPositionArray(int index, const Value& segmentations, bool isBendingPlane)
 {
-  //if (index!=6 || isBending) return;
+  const auto& seg = segmentations.GetArray()[index];
+  const Value& plane = isBendingPlane ? seg["bending"] : seg["non-bending"];
+  return plane["motifpositions"].GetArray();
+}
 
-  assert(seg.IsObject());
-  const rapidjson::Value& plane = isBending ? seg["bending"] : seg["non-bending"];
-  assert(plane.IsObject());
 
-  code << "template<>\n";
-  code << "SegmentationImpl0<" << index << "," << (isBending ? "true" : "false") << ">::SegmentationImpl0() "
-       << " : mId(" << index;
-  code << "), mIsBendingPlane(" << (isBending ? "true" : "false")
-       << ") {\n";
+std::vector<MotifPosition>
+getMotifPositions(int index, bool bending, const Value& segmentations, const Value& motiftypes,
+                  const Value& padsizes)
+{
+  std::vector<MotifPosition> motifpositions;
 
-  auto mpArray = plane["motifpositions"].GetArray();
+  auto mpArray = getMotifPositionArray(index, segmentations, bending);
   auto mtArray = motiftypes.GetArray();
   auto psArray = padsizes.GetArray();
 
-  std::vector<MotifPosition> motifpositions;
-
   for (auto& mp: mpArray) {
     int padSizeId = mp["padsize"].GetInt();
-
     motifpositions.push_back({
                                mp["fec"].GetInt(),
                                mp["motiftype"].GetInt(),
@@ -118,36 +72,54 @@ void generateCodeForOneSegmentation(int index, bool isBending, std::ostringstrea
   }
 
   // sort the motifpositions by fecId => is that needed at all as we have a fecid <-> index array ?
-
   std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition& mp1,
                                                              const MotifPosition& mp2) {
     return mp1.fecId < mp2.fecId;
   });
 
-  code << "  mFecId = { ";
+  return motifpositions;
+}
+
+std::string bergToChannelFunctionName(int index)
+{
+  if (index < 2 )
+  {
+    return "berg80ToManu";
+  }
+  return "berg100ToManu";
+}
+
+std::string generateCodeForOneSegmentation(int index, bool isBending,
+                                           const Value& segmentations,
+                                           const Value& motiftypes,
+                                           const Value& padsizes)
+{
+  std::vector<MotifPosition> motifpositions = getMotifPositions(index, isBending, segmentations, motiftypes, padsizes);
+
+  std::ostringstream code;
+
+  std::string bendingString = (isBending ? "true" : "false");
+  code << "template<>\n";
+  code << "SegmentationImpl0<" << index << "," << bendingString
+       << "," << motifpositions.size() << "," << bergToChannelFunctionName(index) << ">::SegmentationImpl0(const MotifTypeArray& motifTypes)"
+       << " : mId(" << index << "),mIsBendingPlane(" << bendingString << "), "
+       << "mNofPads{0},"
+       << "mMotifPositions{ {\n";
 
   int i{0};
-  for (auto& mp: motifpositions) {
-    code << mp.fecId;
-    ++i;
-    if (i < motifpositions.size()) { code << ","; }
+  for (const auto& mp: motifpositions) {
+    code << "  " << mp;
+    if (i++ < motifpositions.size() - 1) { code << ",\n"; }
   }
+  code << "}}\n";
 
-  code << "};\n";
+  code << "{";
 
-  code << "  mPads = {\n";
+  code << "  populatePads(motifTypes);\n";
 
-  int npads{0};
-  i = 0;
-  for (auto& mp: motifpositions) {
-    auto& mt = mtArray[mp.motifTypeId];
-    generateCodeForMotifPosition(code, mp.fecId, mp.x, mp.y, mp.dx, mp.dy, mt, bergpins);
-    npads += mt["pads"].GetArray().Size();
-    if (i < motifpositions.size() - 1) { code << ",\n"; }
-  }
-  code << "};\n";
-  code << "  mNofPads = " << npads << ";\n";
   code << "}\n";
+
+  return code.str();
 }
 
 std::pair<std::string, std::string>
@@ -174,28 +146,27 @@ class SegmentationInterface {
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }
 
-std::pair<std::string, std::string>
+std::string
 generateCodeForSegmentationCommon()
 {
   std::ostringstream decl;
-  std::ostringstream impl;
 
-  decl << R"(#include <vector>
+  decl << R"(#include <array>
 #include "genMotifType.h"
 #include <tuple>
-#include "genPadSize.h"
 #include "genSegmentationInterface.h"
+#include <sstream>
 )";
 
   decl << mappingNamespaceBegin();
 
   decl << R"(
-template<int N, bool>
+template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int)>
 class SegmentationImpl0 : public SegmentationInterface
 {
   public:
-    SegmentationImpl0()
-    { throw std::out_of_range("invalid segmentation initialization"); }
+    SegmentationImpl0(const MotifTypeArray& motifTypes)
+    { throw std::out_of_range("Invalid segmentation initialization. Only specific specializations are allowed."); }
 
     int getId() const override
     { return mId; }
@@ -204,7 +175,7 @@ class SegmentationImpl0 : public SegmentationInterface
     { return mIsBendingPlane; }
 
     int nofDualSampas() const override
-    { return mFecId.size(); }
+    { return NFEC; }
 
     int nofPads() const override
     {
@@ -228,50 +199,64 @@ class SegmentationImpl0 : public SegmentationInterface
       float yTopRight;
     };
 
+    struct MotifPosition
+    {
+      MotifPosition(int f=0, int m=0, float dx_=0, float dy_=0, float x_=0, float y_=0) :
+        fecId(f), motifTypeId(m), dx(dx_),dy(dy_), x(x_), y(y_) {}
+      int fecId;
+      int motifTypeId;
+      float dx;
+      float dy;
+      float x;
+      float y;
+    };
+
+    void populatePadsForOneMotifPosition(int index, const MotifPosition& mp, const MotifTypeArray& motifTypes) {
+      const MotifType& mt = motifTypes[mp.motifTypeId];
+      for ( int i = 0; i < mt.getNofPads(); ++i ) {
+         int fecChannel = berg2channel(mt.getBerg(i));
+         float padx = mp.x + mt.getIx(i) * mp.dx;
+         float pady = mp.y + mt.getIy(i) * mp.dy;
+         int padIndex = index*64 + fecChannel;
+         mPads[padIndex] = { padx-mp.dx, pady-mp.dy, padx+mp.dx, pady+mp.dy };
+      }
+    }
+
+    void populatePads(const MotifTypeArray& motifTypes) {
+      for ( int index = 0; index < mMotifPositions.size(); ++index ) {
+        const MotifPosition& mp = mMotifPositions[index];
+        const MotifType& mt = motifTypes[mp.motifTypeId];
+        populatePadsForOneMotifPosition(index,mp,motifTypes);
+        mNofPads += mt.getNofPads();
+      }
+    }
+
     int mId;
     bool mIsBendingPlane;
     int mNofPads;
-    std::vector<Pad> mPads;
-    std::vector<int> mFecId;
+    std::array<Pad,NFEC*64> mPads;
+    std::array<MotifPosition,NFEC> mMotifPositions;
 };
 )";
-  decl << mappingNamespaceEnd();
-  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+  return decl.str();
 }
 
-std::pair<std::string, std::string>
-generateCodeForSegmentationType(int index, const rapidjson::Value& segmentations, const rapidjson::Value& motiftypes,
-                                const rapidjson::Value& padsizes,
-                                const rapidjson::Value& bergs)
+std::string
+generateCodeForSegmentationType(int index, const Value& segmentations, const Value& motiftypes,
+                                const Value& padsizes)
 {
-  std::ostringstream decl;
-  std::ostringstream impl;
-  assert(motiftypes.IsArray());
-  assert(padsizes.IsArray());
-  assert(segmentations.IsArray());
-  assert(bergs.IsArray());
-
-  decl << "#include \"genSegmentationImpl0.h\"\n";
-
-  decl << mappingNamespaceBegin();
-
-  auto berg80 = (bergs[0]["id"].GetInt() == 80) ? bergs[0].GetObject() : bergs[1].GetObject();
-  auto berg100 = (bergs[0]["id"].GetInt() == 100) ? bergs[0].GetObject() : bergs[1].GetObject();
-  auto& bergpins = (index < 1) ? berg80["pins"] : berg100["pins"];
-  const auto& seg = segmentations.GetArray()[index];
-  generateCodeForOneSegmentation(index, true, decl, seg, motiftypes, padsizes, bergpins);
-  generateCodeForOneSegmentation(index, false, decl, seg, motiftypes, padsizes, bergpins);
-
-  decl << mappingNamespaceEnd();
-
-  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+  std::string code = generateCodeForOneSegmentation(index, true, segmentations, motiftypes, padsizes);
+  code += generateCodeForOneSegmentation(index, false, segmentations, motiftypes, padsizes);
+  return code;
 }
 
-std::pair<std::string, std::string> generateCodeForSegmentationFactory() {
+std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Value& segmentations)
+{
   std::ostringstream decl;
   std::ostringstream impl;
 
   decl << R"(#include "genSegmentationInterface.h"
+#include "genMotifType.h"
 #include <memory>
 )";
 
@@ -286,24 +271,23 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
 
   impl << R"(#include "genSegmentationImpl0.h"
 )";
-  for ( int i = 0; i < 21; ++i ) {
-    impl << "#include \"genSegmentationImpl0Type" << i << ".h\"\n";
-  }
   impl << mappingNamespaceBegin();
 
   impl << R"(
   std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
 )";
 
-  for ( int i = 0; i < 21; ++i ) {
-    for ( auto b : std::array<bool,2>{true,false} ) {
+  for (int i = 0; i < 21; ++i) {
+    for (auto b : std::array<bool, 2>{true, false}) {
+      auto n = getMotifPositionArray(i, segmentations, b).Size();
       impl << "    if (isBendingPlane==" << (b ? "true" : "false") << " && type==" << i << ") {\n";
-      impl << "      return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<" << i << "," << (b ? "true" : "false") << ">{}};\n";
+      impl << "      return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<" << i << ","
+           << (b ? "true" : "false") << "," << n << "," << bergToChannelFunctionName(i) << ">{arrayOfMotifTypes}};\n";
       impl << "    };\n";
     }
   }
 
-  impl << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true>{}};\n";
+  impl << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr>{arrayOfMotifTypes}};\n";
   impl << "}\n";
 
   impl << mappingNamespaceEnd();
@@ -311,28 +295,52 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }
 
-void generateCodeForSegmentations(const rapidjson::Value& segmentations, const rapidjson::Value& motiftypes,
-                                  const rapidjson::Value& padsizes,
-                                  const rapidjson::Value& bergs)
+std::string generateCodeForBerg2Manu(const Value& bergs, int id)
+{
+  std::ostringstream code;
+
+  int npins = bergs[id]["id"].GetInt();
+
+  code << "int berg" << npins << "ToManu(int berg) {\n";
+
+  int i{0};
+  for (const auto& b: bergs[id]["pins"].GetArray()) {
+    std::string smanu = b["manu"].GetString();
+    if (isdigit(smanu[0])) {
+      code << "  if (berg==" << b["id"].GetInt() << ") return " << atoi(smanu.c_str()) << ";\n";
+    }
+    ++i;
+  }
+
+  code << R"(
+  std::ostringstream msg;
+  msg << "berg number " << berg << " is invalid";
+  throw std::out_of_range(msg.str());
+}
+  )";
+
+  return code.str();
+}
+
+void generateCodeForSegmentations(const Value& segmentations, const Value& motiftypes,
+                                  const Value& padsizes,
+                                  const Value& bergs)
 {
   std::pair<std::string, std::string> code = generateCodeForSegmentationInterface();
   outputCode(code.first, code.second, "genSegmentationInterface");
 
-  code = generateCodeForSegmentationFactory();
-  outputCode(code.first,code.second,"genSegmentationFactory");
-
-  code = generateCodeForSegmentationCommon();
-  outputCode(code.first, code.second, "genSegmentationImpl0");
-
+  std::string decl = generateCodeForSegmentationCommon();
+  decl += "\n";
+  decl += generateCodeForBerg2Manu(bergs, 0);
+  decl += generateCodeForBerg2Manu(bergs, 1);
+  decl += "\n";
   for (int i = 0; i < segmentations.GetArray().Size(); ++i) {
-    code = generateCodeForSegmentationType(i,
-                                           segmentations,
-                                           motiftypes,
-                                           padsizes,
-                                           bergs);
-    std::ostringstream outputFile;
-    outputFile << "genSegmentationImpl0Type" << i;
-    outputCode(code.first, code.second, outputFile.str());
+    decl += generateCodeForSegmentationType(i, segmentations, motiftypes, padsizes);
   }
+  decl += mappingNamespaceEnd();
+  outputCode(decl, "", "genSegmentationImpl0");
+
+  code = generateCodeForSegmentationFactory(segmentations);
+  outputCode(code.first, code.second, "genSegmentationFactory");
 }
 

@@ -3,27 +3,6 @@ add_library(genmap STATIC genMotifType.h genMotifType.cxx genDetectionElement.h 
         genSegmentationFactory.h
         genSegmentationFactory.cxx
         genSegmentationImpl0.h
-        genSegmentationImpl0Type0.h
-        genSegmentationImpl0Type1.h
-        genSegmentationImpl0Type2.h
-        genSegmentationImpl0Type3.h
-        genSegmentationImpl0Type4.h
-        genSegmentationImpl0Type5.h
-        genSegmentationImpl0Type6.h
-        genSegmentationImpl0Type7.h
-        genSegmentationImpl0Type8.h
-        genSegmentationImpl0Type9.h
-        genSegmentationImpl0Type10.h
-        genSegmentationImpl0Type11.h
-        genSegmentationImpl0Type12.h
-        genSegmentationImpl0Type13.h
-        genSegmentationImpl0Type14.h
-        genSegmentationImpl0Type15.h
-        genSegmentationImpl0Type16.h
-        genSegmentationImpl0Type17.h
-        genSegmentationImpl0Type18.h
-        genSegmentationImpl0Type19.h
-        genSegmentationImpl0Type20.h
         )
 
 add_subdirectory(test)

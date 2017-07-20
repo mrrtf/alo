@@ -2,6 +2,7 @@
 #define O2_MCH_MAPPING_GENSEGMENTATIONFACTORY_H
 
 #include "genSegmentationInterface.h"
+#include "genMotifType.h"
 #include <memory>
 
 namespace o2

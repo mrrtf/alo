@@ -43,7 +43,7 @@ std::string includeGuardEnd(const std::string& filename)
   return "\n#endif // " + includeGuardName(filename);
 }
 
-void outputCode(const std::string decl, const std::string& impl, const std::string& outputFileName)
+void outputCode(const std::string& decl, const std::string& impl, const std::string& outputFileName)
 {
 
   std::string includeFileName = outputFileName + ".h";
