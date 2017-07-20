@@ -8,15 +8,19 @@
 // In applying this license CERN does not waive the privileges and immunities
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
-#ifndef ALO_JSONMAP_READER_GENCODE_H
-#define ALO_JSONMAP_READER_GENCODE_H
 
-#include <string>
+///
+/// @author  Laurent Aphecetche
 
-std::string mappingNamespaceBegin();
-std::string mappingNamespaceEnd();
-void outputCode(const std::string& decl,
-                const std::string& impl,
-                const std::string& outputFileName);
+
+#ifndef ALO_JSONMAP_READER_SEGMENTATION_H
+#define ALO_JSONMAP_READER_SEGMENTATION_H
+
+#include "rapidjson/document.h"
+
+void generateCodeForSegmentations(const rapidjson::Value& segmentations,
+                                  const rapidjson::Value& motiftypes,
+                                  const rapidjson::Value& padsizes,
+                                  const rapidjson::Value& bergs);
 
 #endif

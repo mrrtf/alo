@@ -21,28 +21,30 @@
 
 using namespace o2::mch::mapping;
 
-std::array<int,18> padsizex{6300,6300,6300,6300,7143,7143,7143,7500,7500,7500,8400,12600,15000,25000,25200,30000,50000,100000};
+std::array<float,18> padsizex{0.6300,0.6300,0.6300,0.6300,0.7143,0.7143,0.7143,0.75,0.75,0.75,0.84,1.26,1.5,2.5,2.52,3.0,5.0,10.0};
 
-std::array<int,18> padsizey{4200,8400,16800,33600,25000,50000,100000,5000,10000,20000,4200,4200,5000,5000,4200,5000,5000,5000};
+std::array<float,18> padsizey{0.42,0.84,1.68,3.36,2.5,5.0,10.0,0.5,1.0,2.0,0.42,0.42,0.5,0.5,0.42,0.5,0.5,0.5};
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
+BOOST_AUTO_TEST_SUITE(padsize)
 
 BOOST_AUTO_TEST_CASE(NumberOfPadSizes) {
-  BOOST_TEST_CHECK(padSizes().size()==18);
+  BOOST_TEST_CHECK(arrayOfPadSizes.size()==18);
 }
 
 BOOST_AUTO_TEST_CASE(ExpectedPadSizeX) {
-  auto ps = padSizes();
+  auto ps = arrayOfPadSizes;
   for (auto i = 0; i < ps.size(); ++i ) {
-    BOOST_TEST_CHECK(ps[i].first==padsizex[i]);
+    BOOST_CHECK_CLOSE(ps[i].first,padsizex[i],0.01);
   }
 }
 
 BOOST_AUTO_TEST_CASE(ExpectedPadSizeY) {
-  auto ps = padSizes();
+  auto ps = arrayOfPadSizes;
   for (auto i = 0; i < ps.size(); ++i ) {
-    BOOST_TEST_CHECK(ps[i].second==padsizey[i]);
+    BOOST_CHECK_CLOSE(ps[i].second,padsizey[i],0.01);
   }
 }
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

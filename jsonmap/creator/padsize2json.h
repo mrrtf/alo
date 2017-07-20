@@ -27,17 +27,16 @@ void all_padsizes(std::string topkey, const std::vector<std::pair<float, float>>
   w.Key(topkey.c_str());
   w.StartArray();
   int n = 0;
-  float unit = 1E4; // original sizes in AliRoot are in cm
   for (const auto& p: padsizes) {
     w.StartObject();
     w.Key("id");
     w.Int(n++);
     w.Key("unit");
-    w.String("micron");
+    w.String("cm");
     w.Key("x");
-    w.Int(std::round(p.first * unit));
+    w.Double(p.first);
     w.Key("y");
-    w.Int(std::round(p.second * unit));
+    w.Double(p.second);
     w.EndObject();
   }
   w.EndArray();

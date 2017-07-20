@@ -1,5 +1,5 @@
-#ifndef ALO_JSONMAP_READER_GENPADSIZE_H
-#define ALO_JSONMAP_READER_GENPADSIZE_H
+#ifndef O2_MCH_MAPPING_GENPADSIZE_H
+#define O2_MCH_MAPPING_GENPADSIZE_H
 
 #include <array>
 #include <utility>
@@ -10,10 +10,11 @@ namespace mch
 {
 namespace mapping
 {
-std::array<std::pair<int,int>,18> padSizes();
+using PadSizeArray = std::array<std::pair<float,float>,18>;
+extern PadSizeArray arrayOfPadSizes;
 
 } // namespace mapping
 } // namespace mch
 } // namespace o2
 
-#endif // ALO_JSONMAP_READER_GENPADSIZE_H
+#endif // O2_MCH_MAPPING_GENPADSIZE_H

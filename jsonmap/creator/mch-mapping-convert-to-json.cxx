@@ -115,7 +115,8 @@ void convert_seg(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* ms
   std::vector<const AliMpSector*> sectors = get_allsectors(mseg);
   std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
   std::vector<AliMpVMotif*> motifs = get_allmotifs(pcbs, sectors, padsizes);
-  all_seg2json(key,segnames, motifpositions, motifs, padsizes, OF(key + ".json").Writer());
+  std::vector<AliMpMotifType*> motiftypes = get_allmotiftypes(pcbs, sectors);
+  all_seg2json(key,segnames, motifpositions, motifs, motiftypes, padsizes, OF(key + ".json").Writer());
 }
 
 void convert_padsize(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)

@@ -24,11 +24,14 @@
 #include <seg.h>
 #include "motifPosition.h"
 #include "AliMpPlaneType.h"
+#include "TArrayI.h"
+#include "AliMpVSegmentation.h"
+#include "boost/format.hpp"
 
 namespace bdata = boost::unit_test::data;
 struct MPS
 {
-
+    Mapping m;
 };
 
 std::array<int, 21> motifPositionPerSegmentation{
@@ -47,8 +50,6 @@ BOOST_AUTO_TEST_SUITE(motifposition)
 
 BOOST_DATA_TEST_CASE(NumberOfMotifPositions, (bdata::make(segnames)), segname)
 {
-  Mapping m;
-
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(m.ddlStore(), m.mseg(), segname);
 
   auto i = std::distance(segnames.begin(), std::find(segnames.begin(), segnames.end(), segname));
@@ -58,8 +59,6 @@ BOOST_DATA_TEST_CASE(NumberOfMotifPositions, (bdata::make(segnames)), segname)
 
 BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInBendingPlane, (bdata::make(segnames)), segname)
 {
-  Mapping m;
-
   AliMpVSegmentation* segmentation = get_seg(m.ddlStore(), m.mseg(), segname, AliMp::kBendingPlane);
 
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(*segmentation);
@@ -71,16 +70,33 @@ BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInBendingPlane, (bdata::make(segnames
 
 BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInNonBendingPlane, (bdata::make(segnames)), segname)
 {
-  Mapping m;
-
   AliMpVSegmentation* segmentation = get_seg(m.ddlStore(), m.mseg(), segname, AliMp::kNonBendingPlane);
 
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(*segmentation);
 
   auto i = std::distance(segnames.begin(), std::find(segnames.begin(), segnames.end(), segname));
 
-  BOOST_TEST_CHECK(motifPositions.size()==motifPositionPerSegmentationNB[i]);
+  BOOST_TEST_CHECK(motifPositions.size() == motifPositionPerSegmentationNB[i]);
 }
+
+/*
+BOOST_AUTO_TEST_CASE(MotifPositionDetails)
+{
+  AliMpVSegmentation* segmentation = get_seg(m.ddlStore(), m.mseg(), "st1", AliMp::kBendingPlane);
+  TArrayI manuId;
+  segmentation->GetAllElectronicCardIDs(manuId);
+  for (int i = 0; i < manuId.GetSize(); ++i) {
+    AliMpMotifPosition* mp = segmentation->MotifPosition(manuId[i]);
+    std::cout << boost::format("MP %3d (xmin,ymin)=(%7.2f,%7.2f) (xmax,ymax)=(%7.2f,%7.2f) ManuId %4d") % i %
+                 (mp->GetPositionX() - mp->GetDimensionX()) %
+                 (mp->GetPositionY() - mp->GetDimensionY()) % (mp->GetPositionX() + mp->GetDimensionX()) %
+                 (mp->GetPositionY() + mp->GetDimensionY()) % manuId[i] << std::endl;
+  }
+  AliMpPad pad = segmentation->PadByPosition(40,30);
+  pad.Print();
+  BOOST_CHECK(true);
+}
+*/
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
