@@ -30,12 +30,12 @@ set(SOURCE_FILES
         sector2json.h
         seg.cxx
         seg2json.h
-        slat2json.h)
+        slat2json.h contour.cxx contour.h)
 add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
 
-target_link_libraries(mchjsoncreator MUONmapping STEERBase Core)
+target_link_libraries(mchjsoncreator MUONmapping STEERBase Core MUONgraphics)
 target_link_libraries(mch-mapping-convert-to-json mchjsoncreator)
 
 target_include_directories(mchjsoncreator PUBLIC ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
