@@ -65,10 +65,14 @@
 #include <boost/geometry/geometries/box.hpp>
 #include "svg.h"
 #include <boost/geometry/geometries/linestring.hpp>
+#include <AliMUONContourMaker.h>
+#include <TArrayD.h>
+#include <AliMUONSegment.h>
 
 constexpr int NLOOP = 1;
 
 using namespace o2::mch::geometry;
+namespace bg = boost::geometry;
 
 struct CONTOURS
 {
@@ -97,7 +101,7 @@ struct POLYGONS
     SimplePolygon polygon;
     SimplePolygon testPolygon{
       {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {2.0, 1.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 0.0}}};
-
+    Segment segment;
 };
 
 SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
@@ -105,7 +109,7 @@ SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
   SimplePolygon p;
 
   for (int i = 0; i < polygon.NumberOfVertices(); ++i) {
-    boost::geometry::append(p.outer(), Point{polygon.X(i), polygon.Y(i)});
+    bg::append(p.outer(), Point{polygon.X(i), polygon.Y(i)});
   }
 
   return p;
@@ -145,16 +149,16 @@ BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
 {
   SimplePolygon a, b;
 
-  boost::geometry::read_wkt("POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))", a);
-  boost::geometry::read_wkt("POLYGON((0.0 1.0, 1.0 1.0, 1.0 2.0, 0.0 2.0, 0.0 1.0))", b);
-  boost::geometry::correct(a);
-  boost::geometry::correct(b);
+  bg::read_wkt("POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))", a);
+  bg::read_wkt("POLYGON((0.0 1.0, 1.0 1.0, 1.0 2.0, 0.0 2.0, 0.0 1.0))", b);
+  bg::correct(a);
+  bg::correct(b);
   MultiPolygon c;
-  boost::geometry::union_(a, b, c);
-  boost::geometry::correct(c);
+  bg::union_(a, b, c);
+  bg::correct(c);
   MultiPolygon expected;
-  boost::geometry::read_wkt("MULTIPOLYGON(((0 1,0 0,1 0,1 1,1 2,0 2,0 1)))", expected);
-  BOOST_CHECK(boost::geometry::equals(c, expected));
+  bg::read_wkt("MULTIPOLYGON(((0 1,0 0,1 0,1 1,1 2,0 2,0 1)))", expected);
+  BOOST_CHECK(bg::equals(c, expected));
 }
 
 //BOOST_AUTO_TEST_CASE(CompareWithAliRootContour)
@@ -168,14 +172,14 @@ BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
 
 BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 {
-  boost::geometry::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
+  bg::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
   BOOST_CHECK(isCounterClockwiseOriented(polygon));
 
 }
 
 BOOST_AUTO_TEST_CASE(CreateClockwiseOrientedPolygon)
 {
-  boost::geometry::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
+  bg::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
   BOOST_CHECK(!isCounterClockwiseOriented(polygon));
 }
 
@@ -188,13 +192,13 @@ BOOST_AUTO_TEST_CASE(ContourCreationGeneratesEmptyContourForEmptyInput)
 {
   MultiPolygon list;
   MultiPolygon contour = createContour(list);
-  BOOST_CHECK(boost::geometry::is_empty(contour));
+  BOOST_CHECK(bg::is_empty(contour));
 }
 
 BOOST_AUTO_TEST_CASE(ContourCreationThrowsIfInputPolygonsAreNotCounterClockwiseOriented)
 {
   MultiPolygon list;
-  boost::geometry::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
+  bg::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
   BOOST_CHECK(!isCounterClockwiseOriented(polygon));
   list.push_back(polygon);
   BOOST_CHECK_THROW(createContour(list), std::invalid_argument);
@@ -204,11 +208,11 @@ BOOST_AUTO_TEST_CASE(ContourCreationThrowsIfInputPolygonsAreNotCounterClockwiseO
 BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
 {
   MultiPolygon list;
-  boost::geometry::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
+  bg::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
   list.push_back(polygon);
   MultiPolygon contour = createContour(list);
   BOOST_REQUIRE(contour.size() == 1);
-  BOOST_CHECK(boost::geometry::equals(contour[0], polygon));
+  BOOST_CHECK(bg::equals(contour[0], polygon));
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
@@ -216,10 +220,10 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
   auto edges = getVerticalEdges(testPolygon);
 
   BOOST_REQUIRE(edges.size()==4);
-  BOOST_CHECK(boost::geometry::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
+  BOOST_CHECK(bg::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
+  BOOST_CHECK(bg::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
+  BOOST_CHECK(bg::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
+  BOOST_CHECK(bg::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
@@ -232,11 +236,92 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
   auto edges = getVerticalEdges(group);
 
   BOOST_REQUIRE(edges.size()==5);
-  BOOST_CHECK(boost::geometry::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
-  BOOST_CHECK(boost::geometry::equals(edges[4],Segment{ {0.0,1.0},{ 0.0, 0.0}}));
+  BOOST_CHECK(bg::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
+  BOOST_CHECK(bg::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
+  BOOST_CHECK(bg::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
+  BOOST_CHECK(bg::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
+  BOOST_CHECK(bg::equals(edges[4],Segment{ {0.0,1.0},{ 0.0, 0.0}}));
+}
+
+BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsTrueForAVerticalSegment) {
+  bg::read_wkt("LINESTRING(1.2 0.0, 1.2 10.0)",segment);
+  BOOST_CHECK(isVertical(segment));
+}
+
+BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsFalseForANonVerticalSegment) {
+  bg::read_wkt("LINESTRING(1.201 0.0, 1.2 10.0)",segment);
+  BOOST_CHECK_EQUAL(isVertical(segment),false);
+}
+
+BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdge) {
+  bg::read_wkt("LINESTRING(2 0, 4 0)",segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment),false); // not vertical
+  bg::read_wkt("LINESTRING(0 2, 0 4)",segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment),false); // first point below
+  bg::read_wkt("LINESTRING(0 4, 0 2)",segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment),true);
+}
+
+BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointBelowTheSecondPointIsARightEdge) {
+  bg::read_wkt("LINESTRING(2 0, 4 0)",segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment),false); // not vertical
+  bg::read_wkt("LINESTRING(0 4, 0 2)",segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment),false); // first point above
+  bg::read_wkt("LINESTRING(0 2, 0 4)",segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment),true);
+}
+
+BOOST_AUTO_TEST_CASE(ASegmentHasASmallestY)
+{
+  bg::read_wkt("LINESTRING(2 -10, 4 -12)",segment);
+  BOOST_CHECK_EQUAL(smallestY(segment),-12);
+}
+
+BOOST_AUTO_TEST_CASE(VerticalEdgeSortingThrowsIfPresentedWithNonVerticalEdges)
+{
+  std::vector<Segment> edges;
+  edges.push_back(Segment{ { 0.0,0.0 }, { 0.01, 1000.0 }});
+  BOOST_CHECK_THROW(sortVerticalEdges(edges),std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
+{
+  std::vector<Segment> edges;
+  constexpr double sameX{42.42};
+  Segment leftEdgeBottom{ { sameX, 2.0}, { sameX, 0.0 }};
+  Segment leftEdgeTop{ { sameX, 10.0}, { sameX, 5.0 }};
+  Segment rightEdge{ { sameX, 0.0}, { sameX, 2.0 }};
+
+  edges.push_back(rightEdge);
+  edges.push_back(leftEdgeTop);
+  edges.push_back(leftEdgeBottom);
+
+  sortVerticalEdges(edges);
+
+  BOOST_CHECK(bg::equals(edges[0],leftEdgeBottom));
+  BOOST_CHECK(bg::equals(edges[1],leftEdgeTop));
+  BOOST_CHECK(bg::equals(edges[2],rightEdge));
+}
+
+BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
+{
+  AliMUONContourMaker maker;
+
+  TObjArray polygonVerticalEdges(kTRUE);
+  TArrayD yPositions;
+
+  polygonVerticalEdges.AddLast(new AliMUONSegment(0,2,0,3));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(1,2,1,3));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(2,2,2,4));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(3,2,3,4));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(3,5,3,6));
+
+  maker.GetYPositions(polygonVerticalEdges,yPositions);
+
+  for (int i = 0; i < yPositions.GetSize(); ++i ) {
+    std::cout << boost::format("y[%d]=%g") % i % yPositions[i] << std::endl;
+  }
+  BOOST_CHECK(yPositions.GetSize()==3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -313,22 +398,22 @@ BOOST_AUTO_TEST_SUITE_END()
 //{
 //  SimplePolygon green, blue;
 //
-//  boost::geometry::read_wkt(
+//  bg::read_wkt(
 //    "POLYGON((2 1.3,2.4 1.7,2.8 1.8,3.4 1.2,3.7 1.6,3.4 2,4.1 3,5.3 2.6,5.4 1.2,4.9 0.8,2.9 0.7,2 1.3)"
 //      "(4.0 2.0, 4.2 1.4, 4.8 1.9, 4.4 2.2, 4.0 2.0))", green);
-//  boost::geometry::read_wkt(
+//  bg::read_wkt(
 //    "POLYGON((4.0 -0.5 , 3.5 1.0 , 2.0 1.5 , 3.5 2.0 , 4.0 3.5 , 4.5 2.0 , 6.0 1.5 , 4.5 1.0 , 4.0 -0.5))", blue);
 //
 //  MultiPolygon output;
-//  boost::geometry::correct(green);
-//  boost::geometry::correct(blue);
-//  boost::geometry::union_(green, blue, output);
+//  bg::correct(green);
+//  bg::correct(blue);
+//  bg::union_(green, blue, output);
 //
-//  boost::geometry::correct(output[0]);
+//  bg::correct(output[0]);
 //
-//  std::cout << boost::geometry::wkt(output) << std::endl;
+//  std::cout << bg::wkt(output) << std::endl;
 //  MultiPolygon expected;
-//  boost::geometry::read_wkt(
+//  bg::read_wkt(
 //    "MULTIPOLYGON(((2.15 1.45,2 1.3,2.9 0.7,3.58852 0.734426,4 -0.5,4.42542 0.776271,4.9 0.8,5.4 1.2,5.39302 1.29767,"
 //      "6 1.5,5.36341 1.7122,5.3 2.6,4.175 2.975,4 3.5,3.59091 2.27273,3.4 2,3.42 1.97333,2.825 1.775,2.8 1.8,2.4 1.7,"
 //      "2.3 1.6,2 1.5,2.15 1.45),(4.8 1.9,4.5 2,4.44444 2.16667,4.8 1.9)))",
@@ -336,8 +421,8 @@ BOOST_AUTO_TEST_SUITE_END()
 //
 //  expected = output;
 //
-//  bool areEqual = boost::geometry::equals(output, expected);
-//  std::cout << boost::geometry::wkt(expected) << " " << areEqual << std::endl;
+//  bool areEqual = bg::equals(output, expected);
+//  std::cout << bg::wkt(expected) << " " << areEqual << std::endl;
 //  BOOST_CHECK(areEqual);
 //
 //  auto list = {green, blue};

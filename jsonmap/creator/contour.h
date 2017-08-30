@@ -42,9 +42,22 @@ double signedArea(const SimplePolygon& polygon);
 bool isCounterClockwiseOriented(const SimplePolygon& polygon);
 
 std::vector<Segment> getVerticalEdges(const SimplePolygon& polygon);
+
 std::vector<Segment> getVerticalEdges(const MultiPolygon& polygons);
 
+void sortVerticalEdges(std::vector<Segment>& verticalEdges);
+
+std::vector<Segment> sweep(const std::vector<Segment>& polygonVerticalEdges);
+
 bool areEqual(double a, double b);
+
+bool isVertical(const Segment& segment);
+
+bool isLeftEdge(const Segment& segment);
+
+bool isRightEdge(const Segment& segment);
+
+double smallestY(const Segment& segment);
 
 }
 }
