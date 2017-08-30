@@ -318,10 +318,9 @@ BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
 
   maker.GetYPositions(polygonVerticalEdges,yPositions);
 
-  for (int i = 0; i < yPositions.GetSize(); ++i ) {
-    std::cout << boost::format("y[%d]=%g") % i % yPositions[i] << std::endl;
-  }
-  BOOST_CHECK(yPositions.GetSize()==3);
+  std::vector<double> ypos{yPositions.GetArray(),yPositions.GetArray()+yPositions.GetSize()};
+  const std::vector<double> expected{ 2,3,4,5,6 };
+  BOOST_TEST(ypos==expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
