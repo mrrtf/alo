@@ -5,6 +5,8 @@ set(SOURCE_FILES
         bp2json.h
         ch.cxx
         ch2json.h
+        contour.cxx
+        contour.h
         ddl.cxx
         ddl2json.h
         de.cxx
@@ -14,8 +16,8 @@ set(SOURCE_FILES
         motif.cxx
         motif.h
         motif2json.h
-        motifPosition.h
         motifPosition.cxx
+        motifPosition.h
         motifType.cxx
         motifType.h
         motiftype2json.h
@@ -30,7 +32,9 @@ set(SOURCE_FILES
         sector2json.h
         seg.cxx
         seg2json.h
-        slat2json.h contour.cxx contour.h)
+        segmentTree.cxx
+        segmentTree.h
+        slat2json.h)
 add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)

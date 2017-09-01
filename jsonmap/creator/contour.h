@@ -13,8 +13,8 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_CREATOR_CONTOUR_H
-#define ALO_JSONMAP_CREATOR_CONTOUR_H
+#ifndef O2_MCH_GEOMETRY_CONTOUR_H
+#define O2_MCH_GEOMETRY_CONTOUR_H
 
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
@@ -63,4 +63,4 @@ double smallestY(const Segment& segment);
 }
 }
 
-#endif //ALO_JSONMAP_CREATOR_CONTOUR_H
+#endif

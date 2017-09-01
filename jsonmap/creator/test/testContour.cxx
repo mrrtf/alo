@@ -115,21 +115,31 @@ SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
   return p;
 }
 
+MultiPolygon convertToGGL(const TObjArray& polygons)
+{
+  TIter next(&polygons);
+  AliMUONPolygon* polygon;
+
+  MultiPolygon contourGGL;
+  contourGGL.resize(polygons.GetSize());
+  int i{0};
+  while ((polygon = static_cast<AliMUONPolygon*>(next()))) {
+    if (polygon->NumberOfVertices()>2) {
+      contourGGL[i] = convertToGGL(*polygon);
+    };
+    ++i;
+  }
+  contourGGL.resize(i);
+  return contourGGL;
+}
+
+
 MultiPolygon createManuContour(int detElemId, int manuId)
 {
   AliMUONManuContourMaker contourMaker(nullptr);
   std::unique_ptr<AliMUONContour> contour(contourMaker.CreateManuContour(detElemId, manuId));
-  TIter next(contour->Polygons());
-  AliMUONPolygon* polygon;
 
-  MultiPolygon contourGGL;
-  contourGGL.resize(contour->Polygons()->GetSize());
-  int i{0};
-  while ((polygon = static_cast<AliMUONPolygon*>(next()))) {
-    contourGGL[i] = convertToGGL(*polygon);
-    ++i;
-  }
-  return contourGGL;
+  return convertToGGL(*(contour->Polygons()));
 }
 
 BOOST_AUTO_TEST_SUITE(mch_aliroot_mapping)
@@ -139,6 +149,50 @@ BOOST_FIXTURE_TEST_SUITE(contoursFromAliRoot, CONTOURS)
 BOOST_AUTO_TEST_CASE(NumberOfMotifPositionsIs2265)
 {
   BOOST_CHECK_EQUAL(motifPositions.size(), 2265);
+}
+
+BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
+{
+  AliMUONContourMaker maker;
+
+  TObjArray polygonVerticalEdges(kTRUE);
+  TArrayD yPositions;
+
+  polygonVerticalEdges.AddLast(new AliMUONSegment(0, 2, 0, 3));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(1, 2, 1, 3));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(2, 2, 2, 4));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(3, 2, 3, 4));
+  polygonVerticalEdges.AddLast(new AliMUONSegment(3, 5, 3, 6));
+
+  maker.GetYPositions(polygonVerticalEdges, yPositions);
+
+  std::vector<double> ypos{yPositions.GetArray(), yPositions.GetArray() + yPositions.GetSize()};
+  const std::vector<double> expected{2, 3, 4, 5, 6};
+  BOOST_TEST(ypos == expected);
+}
+
+BOOST_AUTO_TEST_CASE(AliRootCreateContour)
+{
+  TObjArray pads(kTRUE);
+
+  pads.AddLast(new AliMUONPolygon(0.5, 0.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(0.5, 1.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 0.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 1.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 2.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 3.5, 0.5, 0.5));
+
+  MultiPolygon p = convertToGGL(pads);
+
+  std::cout << bg::wkt(p) << '\n';
+
+  AliMUONContourMaker maker;
+
+  AliMUONContour* contour = maker.CreateContour(pads);
+
+  MultiPolygon c = convertToGGL(*(contour->Polygons()));
+
+  std::cout << bg::wkt(c) << '\n';
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -165,8 +219,8 @@ BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
 //{
 //  Contour c = createManuContour(1001, 407);
 //  Contour c2 = createContour(m.mseg(), 1001, 407);
-//  std::cout << wkt(c) << std::endl;
-//  std::cout << wkt(c2) << std::endl;
+//  std::cout << wkt(c) << '\n';
+//  std::cout << wkt(c2) << '\n';
 //  BOOST_CHECK(equals(c, c2));
 //}
 
@@ -219,78 +273,95 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
 {
   auto edges = getVerticalEdges(testPolygon);
 
-  BOOST_REQUIRE(edges.size()==4);
-  BOOST_CHECK(bg::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
-  BOOST_CHECK(bg::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
-  BOOST_CHECK(bg::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
-  BOOST_CHECK(bg::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
+  BOOST_REQUIRE(edges.size() == 4);
+  BOOST_CHECK(bg::equals(edges[0], Segment{{1.0, 0.0},
+                                           {1.0, 1.0}}));
+  BOOST_CHECK(bg::equals(edges[1], Segment{{2.0, 1.0},
+                                           {2.0, 3.0}}));
+  BOOST_CHECK(bg::equals(edges[2], Segment{{1.0, 3.0},
+                                           {1.0, 2.0}}));
+  BOOST_CHECK(bg::equals(edges[3], Segment{{0.0, 2.0},
+                                           {0.0, 0.0}}));
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
 {
   MultiPolygon group;
-  SimplePolygon triangle{ { {0.0,0},{1.0,0.0},{0.0,1.0},{0.0,0.0}}};
+  SimplePolygon triangle{{{0.0, 0}, {1.0, 0.0}, {0.0, 1.0}, {0.0, 0.0}}};
   group.push_back(testPolygon);
   group.push_back(triangle);
 
   auto edges = getVerticalEdges(group);
 
-  BOOST_REQUIRE(edges.size()==5);
-  BOOST_CHECK(bg::equals(edges[0],Segment{ {1.0,0.0},{ 1.0, 1.0}}));
-  BOOST_CHECK(bg::equals(edges[1],Segment{ {2.0,1.0},{ 2.0, 3.0}}));
-  BOOST_CHECK(bg::equals(edges[2],Segment{ {1.0,3.0},{ 1.0, 2.0}}));
-  BOOST_CHECK(bg::equals(edges[3],Segment{ {0.0,2.0},{ 0.0, 0.0}}));
-  BOOST_CHECK(bg::equals(edges[4],Segment{ {0.0,1.0},{ 0.0, 0.0}}));
+  BOOST_REQUIRE(edges.size() == 5);
+  BOOST_CHECK(bg::equals(edges[0], Segment{{1.0, 0.0},
+                                           {1.0, 1.0}}));
+  BOOST_CHECK(bg::equals(edges[1], Segment{{2.0, 1.0},
+                                           {2.0, 3.0}}));
+  BOOST_CHECK(bg::equals(edges[2], Segment{{1.0, 3.0},
+                                           {1.0, 2.0}}));
+  BOOST_CHECK(bg::equals(edges[3], Segment{{0.0, 2.0},
+                                           {0.0, 0.0}}));
+  BOOST_CHECK(bg::equals(edges[4], Segment{{0.0, 1.0},
+                                           {0.0, 0.0}}));
 }
 
-BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsTrueForAVerticalSegment) {
-  bg::read_wkt("LINESTRING(1.2 0.0, 1.2 10.0)",segment);
+BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsTrueForAVerticalSegment)
+{
+  bg::read_wkt("LINESTRING(1.2 0.0, 1.2 10.0)", segment);
   BOOST_CHECK(isVertical(segment));
 }
 
-BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsFalseForANonVerticalSegment) {
-  bg::read_wkt("LINESTRING(1.201 0.0, 1.2 10.0)",segment);
-  BOOST_CHECK_EQUAL(isVertical(segment),false);
+BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsFalseForANonVerticalSegment)
+{
+  bg::read_wkt("LINESTRING(1.201 0.0, 1.2 10.0)", segment);
+  BOOST_CHECK_EQUAL(isVertical(segment), false);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdge) {
-  bg::read_wkt("LINESTRING(2 0, 4 0)",segment);
-  BOOST_CHECK_EQUAL(isLeftEdge(segment),false); // not vertical
-  bg::read_wkt("LINESTRING(0 2, 0 4)",segment);
-  BOOST_CHECK_EQUAL(isLeftEdge(segment),false); // first point below
-  bg::read_wkt("LINESTRING(0 4, 0 2)",segment);
-  BOOST_CHECK_EQUAL(isLeftEdge(segment),true);
+BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdge)
+{
+  bg::read_wkt("LINESTRING(2 0, 4 0)", segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // not vertical
+  bg::read_wkt("LINESTRING(0 2, 0 4)", segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // first point below
+  bg::read_wkt("LINESTRING(0 4, 0 2)", segment);
+  BOOST_CHECK_EQUAL(isLeftEdge(segment), true);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointBelowTheSecondPointIsARightEdge) {
-  bg::read_wkt("LINESTRING(2 0, 4 0)",segment);
-  BOOST_CHECK_EQUAL(isRightEdge(segment),false); // not vertical
-  bg::read_wkt("LINESTRING(0 4, 0 2)",segment);
-  BOOST_CHECK_EQUAL(isRightEdge(segment),false); // first point above
-  bg::read_wkt("LINESTRING(0 2, 0 4)",segment);
-  BOOST_CHECK_EQUAL(isRightEdge(segment),true);
+BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointBelowTheSecondPointIsARightEdge)
+{
+  bg::read_wkt("LINESTRING(2 0, 4 0)", segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment), false); // not vertical
+  bg::read_wkt("LINESTRING(0 4, 0 2)", segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment), false); // first point above
+  bg::read_wkt("LINESTRING(0 2, 0 4)", segment);
+  BOOST_CHECK_EQUAL(isRightEdge(segment), true);
 }
 
 BOOST_AUTO_TEST_CASE(ASegmentHasASmallestY)
 {
-  bg::read_wkt("LINESTRING(2 -10, 4 -12)",segment);
-  BOOST_CHECK_EQUAL(smallestY(segment),-12);
+  bg::read_wkt("LINESTRING(2 -10, 4 -12)", segment);
+  BOOST_CHECK_EQUAL(smallestY(segment), -12);
 }
 
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingThrowsIfPresentedWithNonVerticalEdges)
 {
   std::vector<Segment> edges;
-  edges.push_back(Segment{ { 0.0,0.0 }, { 0.01, 1000.0 }});
-  BOOST_CHECK_THROW(sortVerticalEdges(edges),std::invalid_argument);
+  edges.push_back(Segment{{0.0,  0.0},
+                          {0.01, 1000.0}});
+  BOOST_CHECK_THROW(sortVerticalEdges(edges), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
   std::vector<Segment> edges;
   constexpr double sameX{42.42};
-  Segment leftEdgeBottom{ { sameX, 2.0}, { sameX, 0.0 }};
-  Segment leftEdgeTop{ { sameX, 10.0}, { sameX, 5.0 }};
-  Segment rightEdge{ { sameX, 0.0}, { sameX, 2.0 }};
+  Segment leftEdgeBottom{{sameX, 2.0},
+                         {sameX, 0.0}};
+  Segment leftEdgeTop{{sameX, 10.0},
+                      {sameX, 5.0}};
+  Segment rightEdge{{sameX, 0.0},
+                    {sameX, 2.0}};
 
   edges.push_back(rightEdge);
   edges.push_back(leftEdgeTop);
@@ -298,29 +369,9 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
   sortVerticalEdges(edges);
 
-  BOOST_CHECK(bg::equals(edges[0],leftEdgeBottom));
-  BOOST_CHECK(bg::equals(edges[1],leftEdgeTop));
-  BOOST_CHECK(bg::equals(edges[2],rightEdge));
-}
-
-BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
-{
-  AliMUONContourMaker maker;
-
-  TObjArray polygonVerticalEdges(kTRUE);
-  TArrayD yPositions;
-
-  polygonVerticalEdges.AddLast(new AliMUONSegment(0,2,0,3));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(1,2,1,3));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(2,2,2,4));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(3,2,3,4));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(3,5,3,6));
-
-  maker.GetYPositions(polygonVerticalEdges,yPositions);
-
-  std::vector<double> ypos{yPositions.GetArray(),yPositions.GetArray()+yPositions.GetSize()};
-  const std::vector<double> expected{ 2,3,4,5,6 };
-  BOOST_TEST(ypos==expected);
+  BOOST_CHECK(bg::equals(edges[0], leftEdgeBottom));
+  BOOST_CHECK(bg::equals(edges[1], leftEdgeTop));
+  BOOST_CHECK(bg::equals(edges[2], rightEdge));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -342,7 +393,7 @@ BOOST_AUTO_TEST_CASE(TimeAliRootContourCreation)
   }
   std::cout << "TimeAliRootContourCreation"
             << std::chrono::duration_cast<std::chrono::milliseconds>(timer.now() - start).count() << " ms"
-            << std::endl;
+            << '\n';
 
   BOOST_CHECK(true);
 }
@@ -410,7 +461,7 @@ BOOST_AUTO_TEST_SUITE_END()
 //
 //  bg::correct(output[0]);
 //
-//  std::cout << bg::wkt(output) << std::endl;
+//  std::cout << bg::wkt(output) << '\n';
 //  MultiPolygon expected;
 //  bg::read_wkt(
 //    "MULTIPOLYGON(((2.15 1.45,2 1.3,2.9 0.7,3.58852 0.734426,4 -0.5,4.42542 0.776271,4.9 0.8,5.4 1.2,5.39302 1.29767,"
@@ -421,7 +472,7 @@ BOOST_AUTO_TEST_SUITE_END()
 //  expected = output;
 //
 //  bool areEqual = bg::equals(output, expected);
-//  std::cout << bg::wkt(expected) << " " << areEqual << std::endl;
+//  std::cout << bg::wkt(expected) << " " << areEqual << '\n';
 //  BOOST_CHECK(areEqual);
 //
 //  auto list = {green, blue};
