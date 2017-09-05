@@ -24,29 +24,67 @@ namespace o2 {
 namespace mch {
 namespace geometry {
 
+class Interval
+{
+  public:
+    Interval(int b, int e) : mBegin(b), mEnd(e)
+    {
+      if (b > e) { throw std::invalid_argument("begin should be < end"); }
+    }
+
+    bool isFullyContainedIn(Interval i) const;
+
+    int begin() const
+    { return mBegin; }
+
+    int end() const
+    { return mEnd; }
+
+    int midpoint() const
+    { return (mBegin + mEnd) / 2; }
+
+    //void merge(int b, int e )
+
+    friend std::ostream& operator<<(std::ostream& os, const Interval& i)
+    {
+      os << "[" << i.mBegin << "," << i.mEnd << "]";
+      return os;
+    }
+
+    bool isElementary() const
+    { return mEnd - mBegin == 1; }
+
+    Interval left() const
+    { return Interval{begin(), midpoint()}; }
+
+    Interval right() const
+    { return Interval{midpoint(), end()}; }
+
+  private:
+    int mBegin;
+    int mEnd;
+};
+
 class Node
 {
 // TODO : include Node within SegmentTree as we don't need it elsewhere
   public:
     Node() = delete;
 
+    Node(Interval i);
+
     ~Node();
 
-    Node(int begin, int end);
-
     friend std::ostream& operator<<(std::ostream& os, const Node& node);
-
-    bool isFullyContainedInInterval(int b, int e) const;
-
-    int midpoint() const
-    { return (mBegin + mEnd) / 2; }
 
     bool isActive()
     { return mCardinality > 0 || mPotent; }
 
-    void insertInterval(int b, int e);
+    void insertInterval(Interval i);
 
-    void deleteInterval(int b, int e);
+    void deleteInterval(Interval i);
+
+    //void contribution(Interval i, std::vector<Interval>& edgeStack);
 
     void update();
 
@@ -57,8 +95,7 @@ class Node
     Node* mLeftChild;
     Node* mRightChild;
 
-    int mBegin;
-    int mEnd;
+    Interval mInterval;
     int mCardinality; // cardinality
     bool mPotent; // potent state
 
@@ -72,15 +109,15 @@ class SegmentTree
 
     SegmentTree(const std::vector<double>& values);
 
-    Node* build(int b, int e);
+    Node* build(Interval i);
 
     friend std::ostream& operator<<(std::ostream& os, const SegmentTree& tree);
 
-    void insertInterval(int b, int e)
-    { mRoot->insertInterval(b, e); }
+    void insertInterval(Interval i)
+    { mRoot->insertInterval(i); }
 
-    void deleteInterval(int b, int e)
-    { mRoot->deleteInterval(b, e); }
+    void deleteInterval(Interval i)
+    { mRoot->deleteInterval(i); }
 
   private:
     std::vector<double> mValues; // sorted values
