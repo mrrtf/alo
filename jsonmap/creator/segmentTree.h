@@ -27,9 +27,10 @@ namespace geometry {
 class Interval
 {
   public:
-    Interval(int b, int e) : mBegin(b), mEnd(e)
+
+    Interval(int b = {}, int e = {}) : mBegin(b), mEnd(e)
     {
-      if (b > e) { throw std::invalid_argument("begin should be < end"); }
+      if (b >= e) { throw std::invalid_argument("begin should be strictly < end"); }
     }
 
     bool isFullyContainedIn(Interval i) const;
@@ -45,21 +46,6 @@ class Interval
 
     //void merge(int b, int e )
 
-    friend std::ostream& operator<<(std::ostream& os, const Interval& i)
-    {
-      os << "[" << i.mBegin << "," << i.mEnd << "]";
-      return os;
-    }
-
-    bool isElementary() const
-    { return mEnd - mBegin == 1; }
-
-    Interval left() const
-    { return Interval{begin(), midpoint()}; }
-
-    Interval right() const
-    { return Interval{midpoint(), end()}; }
-
   private:
     int mBegin;
     int mEnd;
@@ -67,22 +53,55 @@ class Interval
 
 class Node
 {
-// TODO : include Node within SegmentTree as we don't need it elsewhere
   public:
     Node() = delete;
 
-    Node(Interval i);
+    explicit Node(Interval i);
 
     ~Node();
 
-    friend std::ostream& operator<<(std::ostream& os, const Node& node);
+    Node* left() const
+    { return mLeftChild; }
 
-    bool isActive()
-    { return mCardinality > 0 || mPotent; }
+    Node* right() const
+    { return mRightChild; }
+
+    int cardinality() const
+    { return mCardinality; }
+
+    Node& cardinality(int c)
+    {
+      mCardinality += c;
+      return *this;
+    }
+
+    bool isPotent() const
+    { return mIsPotent; }
+
+    Node& potent(bool v)
+    {
+      mIsPotent = v;
+      return *this;
+    }
+
+    Interval interval() const
+    { return mInterval; }
 
     void insertInterval(Interval i);
 
     void deleteInterval(Interval i);
+
+    Node& setLeft(Node* left)
+    {
+      mLeftChild = left;
+      return *this;
+    }
+
+    Node& setRight(Node* right)
+    {
+      mRightChild = right;
+      return *this;
+    }
 
     //void contribution(Interval i, std::vector<Interval>& edgeStack);
 
@@ -92,13 +111,13 @@ class Node
 
     void demote();
 
+  private:
     Node* mLeftChild;
     Node* mRightChild;
 
     Interval mInterval;
     int mCardinality; // cardinality
-    bool mPotent; // potent state
-
+    bool mIsPotent; // potent state
 };
 
 class SegmentTree
@@ -109,9 +128,8 @@ class SegmentTree
 
     SegmentTree(const std::vector<double>& values);
 
-    Node* build(Interval i);
-
-    friend std::ostream& operator<<(std::ostream& os, const SegmentTree& tree);
+    Node* root() const
+    { return mRoot; }
 
     void insertInterval(Interval i)
     { mRoot->insertInterval(i); }
@@ -120,10 +138,28 @@ class SegmentTree
     { mRoot->deleteInterval(i); }
 
   private:
+    Node* build(Interval i);
+
     std::vector<double> mValues; // sorted values
     Node* mRoot; // top node
     std::vector<Node> mStack; // stack of nodes
 };
+
+// helper functions for Interval, Node, and SegmentTree
+
+std::ostream& operator<<(std::ostream& os, const SegmentTree& tree);
+
+std::ostream& operator<<(std::ostream& os, const Node& node);
+
+std::ostream& operator<<(std::ostream& os, const Interval& i);
+
+Interval leftPart(Interval i);
+
+Interval rightPart(Interval i);
+
+bool isElementary(Interval i);
+
+bool isActive(const Node& node);
 
 }
 }

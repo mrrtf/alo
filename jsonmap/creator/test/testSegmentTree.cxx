@@ -41,11 +41,13 @@ struct YPOS
     YPOS()
     {
 
-      testNode.mLeftChild = new Node{Interval{0, 4}};
-      testNode.mRightChild = new Node{Interval{4, 8}};
+      Node* left = new Node{Interval{0,4}};
+      Node* right = new Node{Interval{4,8}};
 
-      testNode.mLeftChild->mCardinality = dummyCardinality;
-      testNode.mRightChild->mCardinality = dummyCardinality;
+      testNode.setLeft(left).setRight(right);
+
+      left->cardinality(dummyCardinality);
+      right->cardinality(dummyCardinality);
 
     }
 
@@ -60,9 +62,14 @@ BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
 
 BOOST_FIXTURE_TEST_SUITE(segment_tree, YPOS)
 
-BOOST_AUTO_TEST_CASE(IntervalCtorThrowsIfBottomEndPointOfIntervalIsAboveEndPoint)
+BOOST_AUTO_TEST_CASE(IntervalCtorThrowsIfBeginIsAfterEnd)
 {
   BOOST_CHECK_THROW(Interval a(24, 3), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(IntervalCtorThrowsIfBeginEqualsEnd)
+{
+  BOOST_CHECK_THROW(Interval a(24, 24), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(NeedAtLeastTwoValuesToBuildASegmentTree)
@@ -72,7 +79,7 @@ BOOST_AUTO_TEST_CASE(NeedAtLeastTwoValuesToBuildASegmentTree)
 
 BOOST_AUTO_TEST_CASE(IntervalIsFullyContainedInInterval)
 {
-  Interval i{1,5};
+  Interval i{1, 5};
   BOOST_CHECK_EQUAL(Interval(0, 4).isFullyContainedIn(i), false);
   BOOST_CHECK_EQUAL(Interval(1, 2).isFullyContainedIn(i), true);
 }
@@ -93,31 +100,31 @@ BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
 
 BOOST_AUTO_TEST_CASE(JustCreatedNodeIsNotPotent)
 {
-  BOOST_CHECK_EQUAL(node.mPotent, false);
+  BOOST_CHECK_EQUAL(node.isPotent(), false);
 }
 
 BOOST_AUTO_TEST_CASE(JustCreatedNodeHasCardinalityEqualsZero)
 {
-  BOOST_CHECK_EQUAL(node.mCardinality, 0);
+  BOOST_CHECK_EQUAL(node.cardinality(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(PromoteNode)
 {
   testNode.promote();
 
-  BOOST_CHECK_EQUAL(testNode.mCardinality, 1);
-  BOOST_CHECK_EQUAL(testNode.mLeftChild->mCardinality, dummyCardinality - 1);
-  BOOST_CHECK_EQUAL(testNode.mRightChild->mCardinality, dummyCardinality - 1);
+  BOOST_CHECK_EQUAL(testNode.cardinality(), 1);
+  BOOST_CHECK_EQUAL(testNode.left()->cardinality(), dummyCardinality - 1);
+  BOOST_CHECK_EQUAL(testNode.right()->cardinality(), dummyCardinality - 1);
 }
 
 BOOST_AUTO_TEST_CASE(DemoteNode)
 {
   testNode.promote();
   testNode.demote();
-  BOOST_CHECK_EQUAL(testNode.mCardinality, 0);
-  BOOST_CHECK_EQUAL(testNode.mLeftChild->mCardinality, dummyCardinality);
-  BOOST_CHECK_EQUAL(testNode.mRightChild->mCardinality, dummyCardinality);
-  BOOST_CHECK_EQUAL(testNode.mPotent, true);
+  BOOST_CHECK_EQUAL(testNode.cardinality(), 0);
+  BOOST_CHECK_EQUAL(testNode.left()->cardinality(), dummyCardinality);
+  BOOST_CHECK_EQUAL(testNode.right()->cardinality(), dummyCardinality);
+  BOOST_CHECK_EQUAL(testNode.isPotent(), true);
 }
 
 //BOOST_AUTO_TEST_CASE(BuildSegmentTree)
