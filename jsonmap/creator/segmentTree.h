@@ -44,7 +44,7 @@ class Interval
     int midpoint() const
     { return (mBegin + mEnd) / 2; }
 
-    //void merge(int b, int e )
+    bool extend(const Interval& i);
 
   private:
     int mBegin;
@@ -103,7 +103,7 @@ class Node
       return *this;
     }
 
-    //void contribution(Interval i, std::vector<Interval>& edgeStack);
+    void contribution(Interval i, std::vector<Interval>& edgeStack);
 
     void update();
 
@@ -142,7 +142,7 @@ class SegmentTree
 
     std::vector<double> mValues; // sorted values
     Node* mRoot; // top node
-    std::vector<Node> mStack; // stack of nodes
+    std::vector<Interval> mStack; // stack of merged vertical edges
 };
 
 // helper functions for Interval, Node, and SegmentTree

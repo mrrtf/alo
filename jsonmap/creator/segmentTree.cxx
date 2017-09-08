@@ -58,46 +58,31 @@ bool Interval::isFullyContainedIn(Interval i) const
   return i.begin() <= mBegin && mEnd <= i.end();
 }
 
-//void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
-//{
-//  /// Contribution of an edge (b,e) to the final contour
-//  if ( mCardinality == 0 )
-//  {
-//    if ( isFullyContainedInInterval(b,e) && !mPotent )
-//    {
-//      if ( edgeStack.empty() ) {
-//        edgeStack.push_back(std::make_pair<int,int>{mBegin,mEnd});
-//      }
-//      else
-//      {
-//
-//      }
-//      if ( back.second.y() == b )
-//      {
-//        // merge to existing segment
-//        back.first.y()
-//        Double_t y(back->StartY());
-//        back->Set(0.0,y,0.0,fMax);
-//      }
-//      else
-//      {
-//        // add a new segment
-//        stack.Add(new AliMUONSegment(0.0,fMin,0.0,fMax));
-//      }
-//    }
-//    else
-//    {
-//      if ( b < fMidPoint )
-//      {
-//        fLeftNode->Contribution(b,e,stack);
-//      }
-//      if ( fMidPoint < e )
-//      {
-//        fRightNode->Contribution(b,e,stack);
-//      }
-//    }
-//  }
-//}
+void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
+{
+  /// Contribution of an edge (b,e) to the final contour
+  if (cardinality()) {
+    return;
+  }
+  if (mInterval.isFullyContainedIn(i) && !isPotent()) {
+    if (edgeStack.empty()) {
+      edgeStack.push_back(mInterval);
+    } else {
+      Interval& back = edgeStack.back();
+      if (!back.extend(mInterval)) {
+        // add a new segment if it can not be merged with current one
+        edgeStack.push_back(mInterval);
+      }
+    }
+  } else {
+    if (i.begin() < mInterval.midpoint()) {
+      left()->contribution(i, edgeStack);
+    }
+    if (mInterval.midpoint() < i.end()) {
+      right()->contribution(i, edgeStack);
+    }
+  }
+}
 
 void Node::insertInterval(Interval i)
 {
@@ -184,6 +169,19 @@ Node* SegmentTree::build(Interval i)
   if (isElementary(i)) { return node; }
   node->setLeft(build(leftPart(i))).setRight(build(rightPart(i)));
   return node;
+}
+
+bool Interval::extend(const Interval& i)
+{
+  if (i.begin()==end())
+  {
+    mEnd = i.end();
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 Interval leftPart(Interval i)
