@@ -101,7 +101,6 @@ struct POLYGONS
     SimplePolygon polygon;
     SimplePolygon testPolygon{
       {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {2.0, 1.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 0.0}}};
-    Segment segment;
 };
 
 SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
@@ -124,7 +123,7 @@ MultiPolygon convertToGGL(const TObjArray& polygons)
   contourGGL.resize(polygons.GetSize());
   int i{0};
   while ((polygon = static_cast<AliMUONPolygon*>(next()))) {
-    if (polygon->NumberOfVertices()>2) {
+    if (polygon->NumberOfVertices() > 2) {
       contourGGL[i] = convertToGGL(*polygon);
     };
     ++i;
@@ -198,6 +197,24 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_FIXTURE_TEST_SUITE(contoursFromO2, POLYGONS)
+
+BOOST_AUTO_TEST_CASE(GetYPositions)
+{
+  double dummyX1{-12};
+  double dummyX2{42};
+
+  std::vector<VerticalEdge> polygonVerticalEdges{
+    {dummyX1, 2, 3},
+    {dummyX2, 2, 3},
+    {dummyX2, 2, 4},
+    {dummyX1, 2, 4},
+    {dummyX2, 6, 5}};
+
+  std::vector<double> ypos{getUniqueVerticalPositions(polygonVerticalEdges)};
+
+  const std::vector<double> expected{2, 3, 4, 5, 6};
+  BOOST_TEST(ypos == expected);
+}
 
 BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
 {
@@ -274,14 +291,10 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
   auto edges = getVerticalEdges(testPolygon);
 
   BOOST_REQUIRE(edges.size() == 4);
-  BOOST_CHECK(bg::equals(edges[0], Segment{{1.0, 0.0},
-                                           {1.0, 1.0}}));
-  BOOST_CHECK(bg::equals(edges[1], Segment{{2.0, 1.0},
-                                           {2.0, 3.0}}));
-  BOOST_CHECK(bg::equals(edges[2], Segment{{1.0, 3.0},
-                                           {1.0, 2.0}}));
-  BOOST_CHECK(bg::equals(edges[3], Segment{{0.0, 2.0},
-                                           {0.0, 0.0}}));
+  BOOST_CHECK(areEqual(edges[0], VerticalEdge{1.0, 0.0, 1.0}));
+  BOOST_CHECK(areEqual(edges[1], VerticalEdge{2.0, 1.0, 3.0}));
+  BOOST_CHECK(areEqual(edges[2], VerticalEdge{1.0, 3.0, 2.0}));
+  BOOST_CHECK(areEqual(edges[3], VerticalEdge{0.0, 2.0, 0.0}));
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
@@ -294,74 +307,42 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
   auto edges = getVerticalEdges(group);
 
   BOOST_REQUIRE(edges.size() == 5);
-  BOOST_CHECK(bg::equals(edges[0], Segment{{1.0, 0.0},
-                                           {1.0, 1.0}}));
-  BOOST_CHECK(bg::equals(edges[1], Segment{{2.0, 1.0},
-                                           {2.0, 3.0}}));
-  BOOST_CHECK(bg::equals(edges[2], Segment{{1.0, 3.0},
-                                           {1.0, 2.0}}));
-  BOOST_CHECK(bg::equals(edges[3], Segment{{0.0, 2.0},
-                                           {0.0, 0.0}}));
-  BOOST_CHECK(bg::equals(edges[4], Segment{{0.0, 1.0},
-                                           {0.0, 0.0}}));
-}
-
-BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsTrueForAVerticalSegment)
-{
-  bg::read_wkt("LINESTRING(1.2 0.0, 1.2 10.0)", segment);
-  BOOST_CHECK(isVertical(segment));
-}
-
-BOOST_AUTO_TEST_CASE(IsVerticalSegmentReturnsFalseForANonVerticalSegment)
-{
-  bg::read_wkt("LINESTRING(1.201 0.0, 1.2 10.0)", segment);
-  BOOST_CHECK_EQUAL(isVertical(segment), false);
+  BOOST_CHECK(areEqual(edges[0], VerticalEdge{1.0, 0.0, 1.0}));
+  BOOST_CHECK(areEqual(edges[1], VerticalEdge{2.0, 1.0, 3.0}));
+  BOOST_CHECK(areEqual(edges[2], VerticalEdge{1.0, 3.0, 2.0}));
+  BOOST_CHECK(areEqual(edges[3], VerticalEdge{0.0, 2.0, 0.0}));
+  BOOST_CHECK(areEqual(edges[4], VerticalEdge{0.0, 1.0, 0.0}));
 }
 
 BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdge)
 {
-  bg::read_wkt("LINESTRING(2 0, 4 0)", segment);
-  BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // not vertical
-  bg::read_wkt("LINESTRING(0 2, 0 4)", segment);
+  VerticalEdge segment{0, 2, 4};
   BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // first point below
-  bg::read_wkt("LINESTRING(0 4, 0 2)", segment);
+  segment = {1, 4, 2};
   BOOST_CHECK_EQUAL(isLeftEdge(segment), true);
 }
 
 BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointBelowTheSecondPointIsARightEdge)
 {
-  bg::read_wkt("LINESTRING(2 0, 4 0)", segment);
-  BOOST_CHECK_EQUAL(isRightEdge(segment), false); // not vertical
-  bg::read_wkt("LINESTRING(0 4, 0 2)", segment);
+  VerticalEdge segment{0, 4, 2};
   BOOST_CHECK_EQUAL(isRightEdge(segment), false); // first point above
-  bg::read_wkt("LINESTRING(0 2, 0 4)", segment);
+  segment = {1, 2, 4};
   BOOST_CHECK_EQUAL(isRightEdge(segment), true);
 }
 
 BOOST_AUTO_TEST_CASE(ASegmentHasASmallestY)
 {
-  bg::read_wkt("LINESTRING(2 -10, 4 -12)", segment);
+  VerticalEdge segment{2, -10, -12};
   BOOST_CHECK_EQUAL(smallestY(segment), -12);
-}
-
-BOOST_AUTO_TEST_CASE(VerticalEdgeSortingThrowsIfPresentedWithNonVerticalEdges)
-{
-  std::vector<Segment> edges;
-  edges.push_back(Segment{{0.0,  0.0},
-                          {0.01, 1000.0}});
-  BOOST_CHECK_THROW(sortVerticalEdges(edges), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
-  std::vector<Segment> edges;
+  std::vector<VerticalEdge> edges;
   constexpr double sameX{42.42};
-  Segment leftEdgeBottom{{sameX, 2.0},
-                         {sameX, 0.0}};
-  Segment leftEdgeTop{{sameX, 10.0},
-                      {sameX, 5.0}};
-  Segment rightEdge{{sameX, 0.0},
-                    {sameX, 2.0}};
+  VerticalEdge leftEdgeBottom{sameX, 2.0, 0.0};
+  VerticalEdge leftEdgeTop{sameX, 10.0, 5.0};
+  VerticalEdge rightEdge{sameX, 0.0, 2.0};
 
   edges.push_back(rightEdge);
   edges.push_back(leftEdgeTop);
@@ -369,9 +350,9 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
   sortVerticalEdges(edges);
 
-  BOOST_CHECK(bg::equals(edges[0], leftEdgeBottom));
-  BOOST_CHECK(bg::equals(edges[1], leftEdgeTop));
-  BOOST_CHECK(bg::equals(edges[2], rightEdge));
+  BOOST_CHECK(areEqual(edges[0], leftEdgeBottom));
+  BOOST_CHECK(areEqual(edges[1], leftEdgeTop));
+  BOOST_CHECK(areEqual(edges[2], rightEdge));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

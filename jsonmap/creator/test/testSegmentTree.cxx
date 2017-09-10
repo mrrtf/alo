@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(IntervalCtorThrowsIfBeginEqualsEnd)
 
 BOOST_AUTO_TEST_CASE(NeedAtLeastTwoValuesToBuildASegmentTree)
 {
-  BOOST_CHECK_THROW(SegmentTree t({1}), std::invalid_argument);
+  BOOST_CHECK_THROW(createSegmentTree({1}), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(IntervalIsFullyContainedInInterval)
@@ -86,16 +86,16 @@ BOOST_AUTO_TEST_CASE(IntervalIsFullyContainedInInterval)
 
 BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
 {
-  SegmentTree t(ypos);
+  std::unique_ptr<Node> t{createSegmentTree(ypos)};
 
-  t.insertInterval(Interval{1, 5});
-  t.insertInterval(Interval{5, 8});
+  t->insertInterval(Interval{1, 5});
+  t->insertInterval(Interval{5, 8});
 
-  std::cout << t << '\n';
+  std::cout << (*t) << '\n';
 
-  t.deleteInterval(Interval{6, 7});
+  t->deleteInterval(Interval{6, 7});
 
-  std::cout << t << '\n';
+  std::cout << (*t) << '\n';
 }
 
 BOOST_AUTO_TEST_CASE(JustCreatedNodeIsNotPotent)

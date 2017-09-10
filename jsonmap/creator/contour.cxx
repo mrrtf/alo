@@ -25,44 +25,35 @@ namespace o2 {
 namespace mch {
 namespace geometry {
 
-bool isVertical(const Segment& segment)
+bool isLeftEdge(const VerticalEdge& ve)
 {
-  // a vertical segment has both points with the same x
-  return areEqual(bg::get<0, 0>(segment), bg::get<1, 0>(segment));
+  // a vertical ve with first point above the second one is a left edge
+  return ve.yBegin > ve.yEnd;
 }
 
-bool isLeftEdge(const Segment& segment)
+bool isRightEdge(const VerticalEdge& ve)
 {
-  // a vertical segment with first point above the second one is a left edge
-  return isVertical(segment) && bg::get<0, 1>(segment) > bg::get<1, 1>(segment);
+  // a vertical ve with first point below the second one is a right edge
+  return ve.yBegin < ve.yEnd;
 }
 
-bool isRightEdge(const Segment& segment)
+double smallestY(const VerticalEdge& ve)
 {
-  // a vertical segment with first point below the second one is a right edge
-  return isVertical(segment) && bg::get<0, 1>(segment) < bg::get<1, 1>(segment);
+
+  return std::min(ve.yBegin, ve.yEnd);
 }
 
-double smallestY(const Segment& segment)
-{
-  return std::min(bg::get<0, 1>(segment), bg::get<1, 1>(segment));
-}
-
-void sortVerticalEdges(std::vector<Segment>& verticalEdges)
+void sortVerticalEdges(std::vector<VerticalEdge>& verticalEdges)
 {
 // sort vertical edges in ascending x order
 // if same x, insure that left edges are before right edges
 // within same x, order by increasing bottommost y
 // Mind your steps ! This sorting is critical to the contour merging algorithm !
 
-  for (auto&& e: verticalEdges) {
-    if (!isVertical(e)) { throw std::invalid_argument("can only sort vertical edges"); }
-  }
+  std::sort(verticalEdges.begin(), verticalEdges.end(), [](const VerticalEdge& s1, const VerticalEdge& s2) {
 
-  std::sort(verticalEdges.begin(), verticalEdges.end(), [](const Segment& s1, const Segment& s2) {
-
-    auto x1 = bg::get<0, 0>(s1);
-    auto x2 = bg::get<1, 0>(s2);
+    auto x1 = s1.x;
+    auto x2 = s1.x;
 
     auto y1 = smallestY(s1);
     auto y2 = smallestY(s2);
@@ -79,7 +70,11 @@ void sortVerticalEdges(std::vector<Segment>& verticalEdges)
   });
 }
 
-void sweep(std::vector<Segment> polygonVerticalEdges, std::vector<Segment> contourVerticalEdges);
+std::vector<VerticalEdge> sweep(const std::vector<VerticalEdge>& polygonVerticalEdges)
+{
+
+  return {};
+}
 
 MultiPolygon createContour(MultiPolygon& polygons)
 {
@@ -98,11 +93,11 @@ MultiPolygon createContour(MultiPolygon& polygons)
     return polygons;
   }
 
-  std::vector<Segment> polygonVerticalEdges{getVerticalEdges(polygons)};
+  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(polygons)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
-  std::vector<Segment> contourVerticalEdges{sweep(polygonVerticalEdges)};
+  std::vector<VerticalEdge> contourVerticalEdges{sweep(polygonVerticalEdges)};
 
 //  // Find the vertical edges of the merged contour. This is the meat of the algorithm...
 //  TObjArray contourVerticalEdges;
@@ -117,11 +112,6 @@ MultiPolygon createContour(MultiPolygon& polygons)
 //
 //  if ( contour && name ) contour->SetName(name);
   return c;
-}
-
-std::vector<Segment> sweep(const std::vector<Segment>& polygonVerticalEdges)
-{
-   return {};
 }
 
 double signedArea(const SimplePolygon& polygon)
@@ -143,16 +133,16 @@ bool isCounterClockwiseOriented(const SimplePolygon& polygon)
   return signedArea(polygon) > 0.0;
 }
 
-std::vector<Segment> getVerticalEdges(const SimplePolygon& polygon)
+std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon)
 {
   /// Return the vertical edges of the input polygon
-  std::vector<Segment> verticals;
+  std::vector<VerticalEdge> verticals;
   for (auto i = 0; i < polygon.outer().size() - 1; ++i) {
     const Point& current = polygon.outer()[i];
     const Point& next = polygon.outer()[i + 1];
-    if (areEqual(current.x(), next.x()))// segment is vertical
+    if (areEqual(current.x(), next.x()))// ve is vertical
     {
-      verticals.push_back({current, next});
+      verticals.push_back({current.x(), current.y(), next.y()});
     }
   }
   return verticals;
@@ -163,86 +153,38 @@ bool areEqual(double a, double b)
   return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
 }
 
-std::vector<Segment> getVerticalEdges(const MultiPolygon& polygons)
+std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons)
 {
   /// From an array of polygons, extract the list of vertical edges.
-  std::vector<Segment> verticals;
+  std::vector<VerticalEdge> verticals;
   for (auto&& p : polygons) {
-    std::vector<Segment> v = getVerticalEdges(p);
+    std::vector<VerticalEdge> v = getVerticalEdges(p);
     verticals.insert(verticals.end(), v.begin(), v.end());
   }
   return verticals;
 }
 
+std::vector<double> getUniqueVerticalPositions(const std::vector<VerticalEdge>& ves)
+{
+  std::vector<double> ypos;
+
+  for (auto&& v: ves) {
+    ypos.push_back(v.yBegin);
+    ypos.push_back(v.yEnd);
+  }
+
+  std::sort(ypos.begin(),ypos.end());
+  auto last = std::unique(ypos.begin(),ypos.end(),[](const double& a, const double& b) { return areEqual(a,b); });
+  ypos.erase(last,ypos.end());
+  return ypos;
+}
+
+bool areEqual(const VerticalEdge& a, const VerticalEdge& b)
+{
+  return areEqual(a.x, b.x) && areEqual(a.yBegin, b.yBegin) && areEqual(a.yEnd, b.yEnd);
+}
+
 }
 }
 }
 
-////_____________________________________________________________________________
-//AliMUONContour*
-//AliMUONContourMaker::CreateContour(const TObjArray& polygons, const char* name) const
-//{
-//  /// Create the contour of the polygon array
-//  /// and get back the intermediate verticals and horizontal segments
-//  /// both arrays are arrays of AliMUONSegment objects.
-//
-//  AliCodeTimerAuto("",0);
-//
-//  if ( polygons.IsEmpty() ) return 0x0; // protection against user error...
-//
-//  // Sanity check : insure that all polygons are oriented counter-clockwise
-//  TIter next(&polygons);
-//  AliMUONPolygon* pol;
-//  while ( ( pol = static_cast<AliMUONPolygon*>(next()) ) )
-//  {
-//    if ( !pol->IsCounterClockwiseOriented() )
-//    {
-//      AliError(Form("Got a clockwise oriented polygon in CreateContour(%s). That's not OK !",name));
-//      StdoutToAliError(polygons.Print());
-//      return 0x0;
-//    }
-//  }
-//
-//  AliMUONContour* contour(0x0);
-//
-//  if ( polygons.GetLast() == 0 )
-//  {
-//    AliCodeTimerAuto("Trivial case",1);
-//    contour = new AliMUONContour(name);
-//    pol = static_cast<AliMUONPolygon*>(polygons.First());
-//    contour->Add(*pol);
-//    contour->AssertOrientation();
-//    return contour;
-//  }
-//
-//  TObjArray polygonVerticalEdges; // arrray of AliMUONSegment objects
-//  polygonVerticalEdges.SetOwner(kTRUE);
-//  // get vertical edges of input polygons
-//  GetVerticalEdges(polygons,polygonVerticalEdges);
-//
-//  // sort them in ascending x order
-//  // if same x, insure that left edges are before right edges
-//  // within same x, order by increasing bottommost y (see AliMUONSegment::Compare method)
-//  polygonVerticalEdges.Sort();
-//
-//  if ( polygonVerticalEdges.GetLast()+1 < 2 )
-//  {
-//    polygons.Print();
-//    AliFatal(Form("Got too few edges here for createContour %s",name));
-//  }
-//
-//  // Find the vertical edges of the merged contour. This is the meat of the algorithm...
-//  TObjArray contourVerticalEdges;
-//  contourVerticalEdges.SetOwner(kTRUE);
-//  Sweep(polygonVerticalEdges,contourVerticalEdges);
-//
-//  TObjArray horizontals;
-//  horizontals.SetOwner(kTRUE);
-//  VerticalToHorizontal(contourVerticalEdges,horizontals);
-//
-//  contour = FinalizeContour(contourVerticalEdges,horizontals);
-//
-//  if ( contour && name ) contour->SetName(name);
-//
-//  return contour;
-//}

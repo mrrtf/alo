@@ -31,7 +31,14 @@ namespace mch {
 namespace geometry {
 
 typedef boost::geometry::model::d2::point_xy<double> Point;
-typedef boost::geometry::model::segment<Point> Segment;
+
+struct VerticalEdge
+{
+    double x;
+    double yBegin;
+    double yEnd;
+};
+
 typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
 typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
 
@@ -41,23 +48,25 @@ double signedArea(const SimplePolygon& polygon);
 
 bool isCounterClockwiseOriented(const SimplePolygon& polygon);
 
-std::vector<Segment> getVerticalEdges(const SimplePolygon& polygon);
+std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon);
 
-std::vector<Segment> getVerticalEdges(const MultiPolygon& polygons);
+std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons);
 
-void sortVerticalEdges(std::vector<Segment>& verticalEdges);
+void sortVerticalEdges(std::vector<VerticalEdge>& verticalEdges);
 
-std::vector<Segment> sweep(const std::vector<Segment>& polygonVerticalEdges);
+std::vector<double> getUniqueVerticalPositions(const std::vector<VerticalEdge>& verticalEdges);
+
+std::vector<VerticalEdge> sweep(const std::vector<VerticalEdge>& polygonVerticalEdges);
 
 bool areEqual(double a, double b);
 
-bool isVertical(const Segment& segment);
+bool areEqual(const VerticalEdge& a, const VerticalEdge& b);
 
-bool isLeftEdge(const Segment& segment);
+bool isLeftEdge(const VerticalEdge& segment);
 
-bool isRightEdge(const Segment& segment);
+bool isRightEdge(const VerticalEdge& segment);
 
-double smallestY(const Segment& segment);
+double smallestY(const VerticalEdge& segment);
 
 }
 }

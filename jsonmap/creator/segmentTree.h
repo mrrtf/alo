@@ -120,34 +120,9 @@ class Node
     bool mIsPotent; // potent state
 };
 
-class SegmentTree
-{
+Node* createSegmentTree(std::vector<double> values);
 
-  public:
-    SegmentTree() = delete;
-
-    SegmentTree(const std::vector<double>& values);
-
-    Node* root() const
-    { return mRoot; }
-
-    void insertInterval(Interval i)
-    { mRoot->insertInterval(i); }
-
-    void deleteInterval(Interval i)
-    { mRoot->deleteInterval(i); }
-
-  private:
-    Node* build(Interval i);
-
-    std::vector<double> mValues; // sorted values
-    Node* mRoot; // top node
-    std::vector<Interval> mStack; // stack of merged vertical edges
-};
-
-// helper functions for Interval, Node, and SegmentTree
-
-std::ostream& operator<<(std::ostream& os, const SegmentTree& tree);
+Node* buildNode(Interval i);
 
 std::ostream& operator<<(std::ostream& os, const Node& node);
 

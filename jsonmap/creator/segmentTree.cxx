@@ -150,24 +150,24 @@ void Node::demote()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SegmentTree::SegmentTree(const std::vector<double>& values) : mValues(values), mRoot(nullptr)
-{
+Node* createSegmentTree(std::vector<double> values) {
+
   if (values.size() < 2) { throw std::invalid_argument("must get at least two values"); }
 
-  std::sort(mValues.begin(), mValues.end());
+  std::sort(values.begin(), values.end());
 
-  if (!CanTypeFitValue<int>(mValues.size() - 1)) {
+  if (!CanTypeFitValue<int>(values.size() - 1)) {
     throw std::runtime_error("too many values");
   }
 
-  mRoot = build(Interval{0, static_cast<int>(mValues.size() - 1)});
+  return buildNode(Interval{0, static_cast<int>(values.size() - 1)});
 }
 
-Node* SegmentTree::build(Interval i)
+Node* buildNode(Interval i)
 {
   Node* node = new Node(i);
   if (isElementary(i)) { return node; }
-  node->setLeft(build(leftPart(i))).setRight(build(rightPart(i)));
+  node->setLeft(buildNode(leftPart(i))).setRight(buildNode(rightPart(i)));
   return node;
 }
 
@@ -219,17 +219,6 @@ std::ostream& operator<<(std::ostream& os, const Node& node)
   os.width(w);
   return os;
 }
-
-std::ostream& operator<<(std::ostream& os, const SegmentTree& tree)
-{
-  if (tree.root()) {
-    os << (*tree.root());
-  } else {
-    os << "Empty segment tree";
-  }
-  return os;
-}
-
 
 }
 }
