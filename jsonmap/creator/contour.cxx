@@ -77,11 +77,6 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
 
     const auto& edge = polygonVerticalEdges[i];
 
-    std::cout << "i=" << i << '\n';
-    std::cout << edge << (edge.isLeftEdge() ? 'L' : 'R') << '\n';
-    std::cout << "segmentTree=\n";
-    std::cout << (*segmentTree) << '\n';
-
     if (edge.isLeftEdge()) {
       segmentTree->contribution(edge.interval(), edgeStack);
       segmentTree->insertInterval(edge.interval());
@@ -100,7 +95,8 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
         (!areEqual(edge.abscissa(), e1.abscissa())) ||
         (i == polygonVerticalEdges.size() - 1)) {
       for (auto&& interval : edgeStack) {
-        contourVerticalEdges.push_back(edge);
+        contourVerticalEdges.push_back(edge.isRightEdge() ? VerticalEdge{edge.abscissa(), interval.begin(), interval.end()} :
+                                       VerticalEdge{edge.abscissa(), interval.end(), interval.begin()});
       }
       edgeStack.clear();
     }

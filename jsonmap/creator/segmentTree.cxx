@@ -17,8 +17,7 @@
 #include <algorithm>
 #include "segmentTree.h"
 #include "contour.h"
-#include <limits>
-#include <stdint.h>
+#include <iostream>
 
 namespace o2 {
 namespace mch {
@@ -91,7 +90,7 @@ void Node::deleteInterval(Interval i)
   if (mInterval.isFullyContainedIn(i)) {
     --mCardinality;
   } else {
-    if (mCardinality > 0) {
+    if (cardinality() > 0) {
       demote();
     }
     if (i.begin() < mInterval.midpoint()) {
@@ -109,14 +108,10 @@ void Node::update()
   if (mLeftChild == nullptr) {
     potent(false);
   } else {
-    if (mLeftChild->cardinality() > 0 && mRightChild > 0) {
+    if (mLeftChild->cardinality() > 0 && mRightChild->cardinality() > 0) {
       promote();
     }
-    if (!isActive(*mLeftChild) && !isActive(*mRightChild)) {
-      potent(false);
-    } else {
-      potent(true);
-    }
+    potent(!(!isActive(*mLeftChild) && !isActive(*mRightChild)));
   }
 }
 
@@ -152,7 +147,7 @@ Node* createSegmentTree(std::vector<double> values) {
 
 Node* buildNode(Interval i)
 {
-  Node* node = new Node(i);
+  auto* node = new Node(i);
   if (isElementary(i)) { return node; }
   node->setLeft(buildNode(leftPart(i))).setRight(buildNode(rightPart(i)));
   return node;

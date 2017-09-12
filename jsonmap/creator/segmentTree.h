@@ -133,6 +133,7 @@ class Node
     void demote();
 
   private:
+
     Node* mLeftChild;
     Node* mRightChild;
 

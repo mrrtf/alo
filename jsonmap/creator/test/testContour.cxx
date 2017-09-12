@@ -194,16 +194,15 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 
   MultiPolygon p = convertToGGL(pads);
 
-  std::cout << bg::wkt(p) << '\n';
-
   AliMUONContourMaker maker;
 
   AliMUONContour* contour = maker.CreateContour(pads);
 
   MultiPolygon c = convertToGGL(*(contour->Polygons()));
 
-  std::cout << bg::wkt(c) << '\n';
-  basicSVG("toto.svg", {c, p});
+  MultiPolygon expected;
+  bg::read_wkt("MULTIPOLYGON(((0 2,0 0,2 0,2 4,1 4,1 2,0 2)))", expected);
+  BOOST_CHECK(bg::equals(c, expected));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -368,9 +367,6 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
 BOOST_AUTO_TEST_CASE(SweepCreateContour)
 {
-
-  basicSVG("titi.svg", {testPads});
-
   std::vector<double> yPositions = getUniqueVerticalPositions(testPads);
   BOOST_REQUIRE(yPositions.size() == 5);
 
@@ -382,11 +378,10 @@ BOOST_AUTO_TEST_CASE(SweepCreateContour)
 
   std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
-  BOOST_CHECK_EQUAL(contourVerticalEdges.size(), 3);
-
-  for (auto& edge: contourVerticalEdges) {
-    std::cout << edge << '\n';
-  }
+  BOOST_REQUIRE(contourVerticalEdges.size() == 3);
+  BOOST_CHECK_EQUAL(contourVerticalEdges[0], VerticalEdge(0.0, 2, 0));
+  BOOST_CHECK_EQUAL(contourVerticalEdges[1], VerticalEdge(1.0, 4, 2));
+  BOOST_CHECK_EQUAL(contourVerticalEdges[2], VerticalEdge(2.0, 0, 4));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
