@@ -19,12 +19,14 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/geometries/multi_polygon.hpp>
-#include <boost/geometry/geometries/segment.hpp>
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
+#include "segmentTree.h"
+
 #include <vector>
+#include <ostream>
 
 namespace o2 {
 namespace mch {
@@ -38,6 +40,40 @@ struct VerticalEdge
     double yBegin;
     double yEnd;
 };
+
+class VerticalInterval
+{
+  public:
+    VerticalInterval(double x, int b, int e) : mAbscissa(x), mInterval{b > e ? e : b, b > e ? b : e}, mIsLeft(b > e)
+    {}
+
+    double abscissa() const
+    { return mAbscissa; }
+
+    Interval interval() const
+    { return mInterval; }
+
+    bool isLeftEdge() const
+    { return mIsLeft; }
+
+    bool isRightEdge() const
+    { return !mIsLeft; }
+
+  private:
+    double mAbscissa;
+    Interval mInterval;
+    bool mIsLeft;
+};
+
+std::ostream& operator<<(std::ostream& os, const VerticalInterval& interval);
+
+double top(const VerticalEdge& ve);
+
+double bottom(const VerticalEdge& ve);
+
+int top(const VerticalInterval& vi);
+
+int bottom(const VerticalInterval& vi);
 
 typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
 typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
@@ -62,11 +98,15 @@ bool areEqual(double a, double b);
 
 bool areEqual(const VerticalEdge& a, const VerticalEdge& b);
 
-bool isLeftEdge(const VerticalEdge& segment);
+bool isLeftEdge(const VerticalEdge& edge);
 
-bool isRightEdge(const VerticalEdge& segment);
+bool isRightEdge(const VerticalEdge& edge);
 
-double smallestY(const VerticalEdge& segment);
+double smallestY(const VerticalEdge& edge);
+
+std::vector<VerticalInterval> edge2interval(const std::vector<VerticalEdge>& edges,
+                                            const std::vector<double>& allowedValues);
+
 
 }
 }

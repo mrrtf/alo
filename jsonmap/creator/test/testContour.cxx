@@ -98,6 +98,17 @@ struct CONTOURS
 
 struct POLYGONS
 {
+    POLYGONS()
+    {
+      testPads.push_back({{{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}}});
+      testPads.push_back({{{1.0, 3.0}, {2.0, 3.0}, {2.0, 4.0}, {1.0, 4.0}, {1.0, 3.0}}});
+      testPads.push_back({{{1.0, 0.0}, {2.0, 0.0}, {2.0, 1.0}, {1.0, 1.0}, {1.0, 0.0}}});
+      testPads.push_back({{{0.0, 1.0}, {1.0, 1.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 1.0}}});
+      testPads.push_back({{{1.0, 1.0}, {2.0, 1.0}, {2.0, 2.0}, {1.0, 2.0}, {1.0, 1.0}}});
+      testPads.push_back({{{1.0, 2.0}, {2.0, 2.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}}});
+    }
+
+    MultiPolygon testPads;
     SimplePolygon polygon;
     SimplePolygon testPolygon{
       {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {2.0, 1.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 0.0}}};
@@ -192,6 +203,7 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
   MultiPolygon c = convertToGGL(*(contour->Polygons()));
 
   std::cout << bg::wkt(c) << '\n';
+  basicSVG("toto.svg", {c, p});
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -314,7 +326,21 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
   BOOST_CHECK(areEqual(edges[4], VerticalEdge{0.0, 1.0, 0.0}));
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdge)
+BOOST_AUTO_TEST_CASE(AVerticalIntervalWithBeginAboveEndIsALefty)
+{
+  VerticalInterval vi{0.0, 12, 10};
+  BOOST_CHECK_EQUAL(vi.isLeftEdge(), true);
+  BOOST_CHECK_EQUAL(vi.isRightEdge(), false);
+}
+
+BOOST_AUTO_TEST_CASE(AVerticalIntervalWithBeginAboveEndIsARighty)
+{
+  VerticalInterval vi{0.0, 10, 12};
+  BOOST_CHECK_EQUAL(vi.isRightEdge(), true);
+  BOOST_CHECK_EQUAL(vi.isLeftEdge(), false);
+}
+
+BOOST_AUTO_TEST_CASE(AVerticalEdgeWithFirstPointAboveTheSecondPointIsALeftEdge)
 {
   VerticalEdge segment{0, 2, 4};
   BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // first point below
@@ -322,7 +348,7 @@ BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointAboveTheSecondPointIsALeftEdg
   BOOST_CHECK_EQUAL(isLeftEdge(segment), true);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalSegmentWithFirstPointBelowTheSecondPointIsARightEdge)
+BOOST_AUTO_TEST_CASE(AVerticalEdgeWithFirstPointBelowTheSecondPointIsARightEdge)
 {
   VerticalEdge segment{0, 4, 2};
   BOOST_CHECK_EQUAL(isRightEdge(segment), false); // first point above
@@ -340,10 +366,12 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
   std::vector<VerticalEdge> edges;
   constexpr double sameX{42.42};
+  VerticalEdge lastEdge{sameX + 1, 2.0, 0.0};
   VerticalEdge leftEdgeBottom{sameX, 2.0, 0.0};
   VerticalEdge leftEdgeTop{sameX, 10.0, 5.0};
   VerticalEdge rightEdge{sameX, 0.0, 2.0};
 
+  edges.push_back(lastEdge);
   edges.push_back(rightEdge);
   edges.push_back(leftEdgeTop);
   edges.push_back(leftEdgeBottom);
@@ -353,31 +381,70 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
   BOOST_CHECK(areEqual(edges[0], leftEdgeBottom));
   BOOST_CHECK(areEqual(edges[1], leftEdgeTop));
   BOOST_CHECK(areEqual(edges[2], rightEdge));
+  BOOST_CHECK(areEqual(edges[3], lastEdge));
+}
+
+BOOST_AUTO_TEST_CASE(Edge2IntervalMustThrowIfSomeEdgeOrdinateIsNotInArrayOfPossibleOrdinates)
+{
+  std::vector<VerticalEdge> edges{{0.0, 1.11, 2.22},
+                                  {0.0, 2.24, 3.33}};
+  std::vector<double> ypos{1.11, 3.33, 2.24};
+
+  BOOST_CHECK_THROW(edge2interval(edges, ypos), std::out_of_range);
+}
+
+BOOST_AUTO_TEST_CASE(Edge2Interval)
+{
+  std::vector<VerticalEdge> edges{{0.0, 1.11, 2.24},
+                                  {0.0, 3.33, 2.24},
+                                  {1.0, 2.24, 3.33},
+                                  {2.0, 1.11, 3.33}};
+  std::vector<double> ypos{1.11, 3.33, 2.24};
+
+  std::vector<VerticalInterval> intervals{edge2interval(edges, ypos)};
+
+  BOOST_CHECK_EQUAL(intervals.size(), edges.size());
+  BOOST_CHECK_EQUAL(intervals[0].interval(), Interval(0, 2));
+  BOOST_CHECK_EQUAL(intervals[1].isLeftEdge(), true);
+  BOOST_CHECK_EQUAL(intervals[1].interval(), Interval(1, 2));
+  BOOST_CHECK_EQUAL(intervals[2].interval(), Interval(1, 2));
+  BOOST_CHECK_EQUAL(intervals[3].interval(), Interval(0, 1));
+}
+
+BOOST_AUTO_TEST_CASE(SweepCreateContour)
+{
+
+  basicSVG("titi.svg", {testPads});
+
+  auto edges = getVerticalEdges(testPads);
+  sortVerticalEdges(edges);
+  auto contourVerticalEdges = sweep(edges);
+  BOOST_CHECK_EQUAL(contourVerticalEdges.size(), 4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-BOOST_AUTO_TEST_CASE(TimeAliRootContourCreation)
-{
-  std::chrono::high_resolution_clock timer;
-
-  auto start = timer.now();
-
-  for (int i = 0; i < NLOOP; ++i) {
-    AliMpManuIterator it;
-    int deId, manuId;
-    while (it.Next(deId, manuId)) {
-      if (deId < 500) { continue; }
-      AliMUONManuContourMaker contourMaker(nullptr);
-      std::unique_ptr<AliMUONContour> contour(contourMaker.CreateManuContour(deId, manuId));
-    }
-  }
-  std::cout << "TimeAliRootContourCreation"
-            << std::chrono::duration_cast<std::chrono::milliseconds>(timer.now() - start).count() << " ms"
-            << '\n';
-
-  BOOST_CHECK(true);
-}
+//
+//BOOST_AUTO_TEST_CASE(TimeAliRootContourCreation)
+//{
+//  std::chrono::high_resolution_clock timer;
+//
+//  auto start = timer.now();
+//
+//  for (int i = 0; i < NLOOP; ++i) {
+//    AliMpManuIterator it;
+//    int deId, manuId;
+//    while (it.Next(deId, manuId)) {
+//      if (deId < 500) { continue; }
+//      AliMUONManuContourMaker contourMaker(nullptr);
+//      std::unique_ptr<AliMUONContour> contour(contourMaker.CreateManuContour(deId, manuId));
+//    }
+//  }
+//  std::cout << "TimeAliRootContourCreation"
+//            << std::chrono::duration_cast<std::chrono::milliseconds>(timer.now() - start).count() << " ms"
+//            << '\n';
+//
+//  BOOST_CHECK(true);
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 

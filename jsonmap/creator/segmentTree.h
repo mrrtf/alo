@@ -24,6 +24,16 @@ namespace o2 {
 namespace mch {
 namespace geometry {
 
+template<typename T, typename U>
+bool CanTypeFitValue(const U value)
+{
+  const intmax_t botT = intmax_t(std::numeric_limits<T>::min());
+  const intmax_t botU = intmax_t(std::numeric_limits<U>::min());
+  const uintmax_t topT = uintmax_t(std::numeric_limits<T>::max());
+  const uintmax_t topU = uintmax_t(std::numeric_limits<U>::max());
+  return !((botT > botU && value < static_cast<U> (botT)) || (topT < topU && value > static_cast<U> (topT)));
+}
+
 class Interval
 {
   public:
@@ -45,6 +55,17 @@ class Interval
     { return (mBegin + mEnd) / 2; }
 
     bool extend(const Interval& i);
+
+    bool operator==(const Interval& rhs) const
+    {
+      return mBegin == rhs.mBegin &&
+             mEnd == rhs.mEnd;
+    }
+
+    bool operator!=(const Interval& rhs) const
+    {
+      return !(rhs == *this);
+    }
 
   private:
     int mBegin;

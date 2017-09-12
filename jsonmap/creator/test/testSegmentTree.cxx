@@ -84,19 +84,20 @@ BOOST_AUTO_TEST_CASE(IntervalIsFullyContainedInInterval)
   BOOST_CHECK_EQUAL(Interval(1, 2).isFullyContainedIn(i), true);
 }
 
-BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
-{
-  std::unique_ptr<Node> t{createSegmentTree(ypos)};
 
-  t->insertInterval(Interval{1, 5});
-  t->insertInterval(Interval{5, 8});
-
-  std::cout << (*t) << '\n';
-
-  t->deleteInterval(Interval{6, 7});
-
-  std::cout << (*t) << '\n';
-}
+//BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
+//{
+//  std::unique_ptr<Node> t{createSegmentTree(ypos)};
+//
+//  t->insertInterval(Interval{1, 5});
+//  t->insertInterval(Interval{5, 8});
+//
+//  std::cout << (*t) << '\n';
+//
+//  t->deleteInterval(Interval{6, 7});
+//
+//  std::cout << (*t) << '\n';
+//}
 
 BOOST_AUTO_TEST_CASE(JustCreatedNodeIsNotPotent)
 {
