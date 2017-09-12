@@ -212,19 +212,9 @@ BOOST_FIXTURE_TEST_SUITE(contoursFromO2, POLYGONS)
 
 BOOST_AUTO_TEST_CASE(GetYPositions)
 {
-  double dummyX1{-12};
-  double dummyX2{42};
+  std::vector<double> ypos{getUniqueVerticalPositions(testPads)};
 
-  std::vector<VerticalEdge> polygonVerticalEdges{
-    {dummyX1, 2, 3},
-    {dummyX2, 2, 3},
-    {dummyX2, 2, 4},
-    {dummyX1, 2, 4},
-    {dummyX2, 6, 5}};
-
-  std::vector<double> ypos{getUniqueVerticalPositions(polygonVerticalEdges)};
-
-  const std::vector<double> expected{2, 3, 4, 5, 6};
+  const std::vector<double> expected{0, 1, 2, 3, 4};
   BOOST_TEST(ypos == expected);
 }
 
@@ -300,13 +290,14 @@ BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
 {
-  auto edges = getVerticalEdges(testPolygon);
+  auto ypos = getUniqueVerticalPositions(testPolygon);
+  auto edges = getVerticalEdges(testPolygon, ypos);
 
   BOOST_REQUIRE(edges.size() == 4);
-  BOOST_CHECK(areEqual(edges[0], VerticalEdge{1.0, 0.0, 1.0}));
-  BOOST_CHECK(areEqual(edges[1], VerticalEdge{2.0, 1.0, 3.0}));
-  BOOST_CHECK(areEqual(edges[2], VerticalEdge{1.0, 3.0, 2.0}));
-  BOOST_CHECK(areEqual(edges[3], VerticalEdge{0.0, 2.0, 0.0}));
+  BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
+  BOOST_CHECK_EQUAL(edges[1], VerticalEdge(2.0, 1, 3));
+  BOOST_CHECK_EQUAL(edges[2], VerticalEdge(1.0, 3, 2));
+  BOOST_CHECK_EQUAL(edges[3], VerticalEdge(0.0, 2, 0));
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
@@ -316,60 +307,51 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
   group.push_back(testPolygon);
   group.push_back(triangle);
 
-  auto edges = getVerticalEdges(group);
+  auto ypos = getUniqueVerticalPositions(group);
+  auto edges = getVerticalEdges(group, ypos);
 
   BOOST_REQUIRE(edges.size() == 5);
-  BOOST_CHECK(areEqual(edges[0], VerticalEdge{1.0, 0.0, 1.0}));
-  BOOST_CHECK(areEqual(edges[1], VerticalEdge{2.0, 1.0, 3.0}));
-  BOOST_CHECK(areEqual(edges[2], VerticalEdge{1.0, 3.0, 2.0}));
-  BOOST_CHECK(areEqual(edges[3], VerticalEdge{0.0, 2.0, 0.0}));
-  BOOST_CHECK(areEqual(edges[4], VerticalEdge{0.0, 1.0, 0.0}));
+  BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
+  BOOST_CHECK_EQUAL(edges[1], VerticalEdge(2.0, 1, 3));
+  BOOST_CHECK_EQUAL(edges[2], VerticalEdge(1.0, 3, 2));
+  BOOST_CHECK_EQUAL(edges[3], VerticalEdge(0.0, 2, 0));
+  BOOST_CHECK_EQUAL(edges[4], VerticalEdge(0.0, 1, 0));
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalIntervalWithBeginAboveEndIsALefty)
+BOOST_AUTO_TEST_CASE(AVerticalEdgeWithBeginAboveEndIsALefty)
 {
-  VerticalInterval vi{0.0, 12, 10};
+  VerticalEdge vi{0.0, 12, 10};
   BOOST_CHECK_EQUAL(vi.isLeftEdge(), true);
   BOOST_CHECK_EQUAL(vi.isRightEdge(), false);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalIntervalWithBeginAboveEndIsARighty)
+BOOST_AUTO_TEST_CASE(AVerticalEdgeWithBeginAboveEndIsARighty)
 {
-  VerticalInterval vi{0.0, 10, 12};
+  VerticalEdge vi{0.0, 10, 12};
   BOOST_CHECK_EQUAL(vi.isRightEdge(), true);
   BOOST_CHECK_EQUAL(vi.isLeftEdge(), false);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalEdgeWithFirstPointAboveTheSecondPointIsALeftEdge)
+BOOST_AUTO_TEST_CASE(AVerticalEdgeIntervalIsAnIntervalOfPositiveIndices)
 {
-  VerticalEdge segment{0, 2, 4};
-  BOOST_CHECK_EQUAL(isLeftEdge(segment), false); // first point below
-  segment = {1, 4, 2};
-  BOOST_CHECK_EQUAL(isLeftEdge(segment), true);
+  BOOST_CHECK_THROW(VerticalEdge(0, -1, 0), std::out_of_range);
 }
 
-BOOST_AUTO_TEST_CASE(AVerticalEdgeWithFirstPointBelowTheSecondPointIsARightEdge)
+BOOST_AUTO_TEST_CASE(AVerticalEdgeHasATopAndBottom)
 {
-  VerticalEdge segment{0, 4, 2};
-  BOOST_CHECK_EQUAL(isRightEdge(segment), false); // first point above
-  segment = {1, 2, 4};
-  BOOST_CHECK_EQUAL(isRightEdge(segment), true);
-}
-
-BOOST_AUTO_TEST_CASE(ASegmentHasASmallestY)
-{
-  VerticalEdge segment{2, -10, -12};
-  BOOST_CHECK_EQUAL(smallestY(segment), -12);
+  VerticalEdge edge{2, 10, 12};
+  BOOST_CHECK_EQUAL(bottom(edge), 10);
+  BOOST_CHECK_EQUAL(top(edge), 12);
 }
 
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
   std::vector<VerticalEdge> edges;
   constexpr double sameX{42.42};
-  VerticalEdge lastEdge{sameX + 1, 2.0, 0.0};
-  VerticalEdge leftEdgeBottom{sameX, 2.0, 0.0};
-  VerticalEdge leftEdgeTop{sameX, 10.0, 5.0};
-  VerticalEdge rightEdge{sameX, 0.0, 2.0};
+  VerticalEdge lastEdge{sameX + 1, 2, 0};
+  VerticalEdge leftEdgeBottom{sameX, 2, 0};
+  VerticalEdge leftEdgeTop{sameX, 10, 5};
+  VerticalEdge rightEdge{sameX, 0, 2};
 
   edges.push_back(lastEdge);
   edges.push_back(rightEdge);
@@ -378,37 +360,10 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
   sortVerticalEdges(edges);
 
-  BOOST_CHECK(areEqual(edges[0], leftEdgeBottom));
-  BOOST_CHECK(areEqual(edges[1], leftEdgeTop));
-  BOOST_CHECK(areEqual(edges[2], rightEdge));
-  BOOST_CHECK(areEqual(edges[3], lastEdge));
-}
-
-BOOST_AUTO_TEST_CASE(Edge2IntervalMustThrowIfSomeEdgeOrdinateIsNotInArrayOfPossibleOrdinates)
-{
-  std::vector<VerticalEdge> edges{{0.0, 1.11, 2.22},
-                                  {0.0, 2.24, 3.33}};
-  std::vector<double> ypos{1.11, 3.33, 2.24};
-
-  BOOST_CHECK_THROW(edge2interval(edges, ypos), std::out_of_range);
-}
-
-BOOST_AUTO_TEST_CASE(Edge2Interval)
-{
-  std::vector<VerticalEdge> edges{{0.0, 1.11, 2.24},
-                                  {0.0, 3.33, 2.24},
-                                  {1.0, 2.24, 3.33},
-                                  {2.0, 1.11, 3.33}};
-  std::vector<double> ypos{1.11, 3.33, 2.24};
-
-  std::vector<VerticalInterval> intervals{edge2interval(edges, ypos)};
-
-  BOOST_CHECK_EQUAL(intervals.size(), edges.size());
-  BOOST_CHECK_EQUAL(intervals[0].interval(), Interval(0, 2));
-  BOOST_CHECK_EQUAL(intervals[1].isLeftEdge(), true);
-  BOOST_CHECK_EQUAL(intervals[1].interval(), Interval(1, 2));
-  BOOST_CHECK_EQUAL(intervals[2].interval(), Interval(1, 2));
-  BOOST_CHECK_EQUAL(intervals[3].interval(), Interval(0, 1));
+  BOOST_CHECK_EQUAL(edges[0], leftEdgeBottom);
+  BOOST_CHECK_EQUAL(edges[1], leftEdgeTop);
+  BOOST_CHECK_EQUAL(edges[2], rightEdge);
+  BOOST_CHECK_EQUAL(edges[3], lastEdge);
 }
 
 BOOST_AUTO_TEST_CASE(SweepCreateContour)
@@ -416,10 +371,22 @@ BOOST_AUTO_TEST_CASE(SweepCreateContour)
 
   basicSVG("titi.svg", {testPads});
 
-  auto edges = getVerticalEdges(testPads);
-  sortVerticalEdges(edges);
-  auto contourVerticalEdges = sweep(edges);
-  BOOST_CHECK_EQUAL(contourVerticalEdges.size(), 4);
+  std::vector<double> yPositions = getUniqueVerticalPositions(testPads);
+  BOOST_REQUIRE(yPositions.size() == 5);
+
+  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(testPads, yPositions)};
+
+  sortVerticalEdges(polygonVerticalEdges);
+
+  std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
+
+  std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
+
+  BOOST_CHECK_EQUAL(contourVerticalEdges.size(), 3);
+
+  for (auto& edge: contourVerticalEdges) {
+    std::cout << edge << '\n';
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

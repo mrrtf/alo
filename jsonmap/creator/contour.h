@@ -33,19 +33,16 @@ namespace mch {
 namespace geometry {
 
 typedef boost::geometry::model::d2::point_xy<double> Point;
+typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
+typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
 
-struct VerticalEdge
-{
-    double x;
-    double yBegin;
-    double yEnd;
-};
-
-class VerticalInterval
+class VerticalEdge
 {
   public:
-    VerticalInterval(double x, int b, int e) : mAbscissa(x), mInterval{b > e ? e : b, b > e ? b : e}, mIsLeft(b > e)
-    {}
+    VerticalEdge(double x, int b, int e) : mAbscissa(x), mInterval{b > e ? e : b, b > e ? b : e}, mIsLeft(b > e)
+    {
+        if (b<0 || e<0) throw std::out_of_range("b,e are supposed to be indices, i.e. >=0");
+    }
 
     double abscissa() const
     { return mAbscissa; }
@@ -65,18 +62,11 @@ class VerticalInterval
     bool mIsLeft;
 };
 
-std::ostream& operator<<(std::ostream& os, const VerticalInterval& interval);
+std::ostream& operator<<(std::ostream& os, const VerticalEdge& interval);
 
-double top(const VerticalEdge& ve);
+int top(const VerticalEdge& vi);
 
-double bottom(const VerticalEdge& ve);
-
-int top(const VerticalInterval& vi);
-
-int bottom(const VerticalInterval& vi);
-
-typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
-typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
+int bottom(const VerticalEdge& vi);
 
 MultiPolygon createContour(MultiPolygon& polygons);
 
@@ -84,30 +74,23 @@ double signedArea(const SimplePolygon& polygon);
 
 bool isCounterClockwiseOriented(const SimplePolygon& polygon);
 
-std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon);
-
-std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons);
-
-void sortVerticalEdges(std::vector<VerticalEdge>& verticalEdges);
-
-std::vector<double> getUniqueVerticalPositions(const std::vector<VerticalEdge>& verticalEdges);
-
-std::vector<VerticalEdge> sweep(const std::vector<VerticalEdge>& polygonVerticalEdges);
-
 bool areEqual(double a, double b);
 
-bool areEqual(const VerticalEdge& a, const VerticalEdge& b);
+void sortVerticalEdges(std::vector<VerticalEdge>& edges);
 
-bool isLeftEdge(const VerticalEdge& edge);
+std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges);
 
-bool isRightEdge(const VerticalEdge& edge);
+std::vector<double> getUniqueVerticalPositions(const MultiPolygon& polygons);
 
-double smallestY(const VerticalEdge& edge);
+std::vector<double> getUniqueVerticalPositions(const SimplePolygon& polygon);
 
-std::vector<VerticalInterval> edge2interval(const std::vector<VerticalEdge>& edges,
-                                            const std::vector<double>& allowedValues);
+std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons, const std::vector<double>& yPositions);
 
+std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon, const std::vector<double>& yPositions);
 
+bool operator==(const VerticalEdge& lhs, const VerticalEdge& rhs);
+
+bool operator!=(const VerticalEdge& lhs, const VerticalEdge& rhs);
 }
 }
 }

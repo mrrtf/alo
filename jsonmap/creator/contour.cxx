@@ -27,41 +27,24 @@ namespace o2 {
 namespace mch {
 namespace geometry {
 
-bool isLeftEdge(const VerticalEdge& ve)
-{
-  // a vertical ve with first point above the second one is a left edge
-  return ve.yBegin > ve.yEnd;
-}
-
-bool isRightEdge(const VerticalEdge& ve)
-{
-  return !isLeftEdge(ve);
-}
-
-double smallestY(const VerticalEdge& ve)
-{
-
-  return std::min(ve.yBegin, ve.yEnd);
-}
-
-void sortVerticalEdges(std::vector<VerticalEdge>& verticalEdges)
+void sortVerticalEdges(std::vector<VerticalEdge>& edges)
 {
 // sort vertical edges in ascending x order
 // if same x, insure that left edges are before right edges
 // within same x, order by increasing bottommost y
 // Mind your steps ! This sorting is critical to the contour merging algorithm !
 
-  std::sort(verticalEdges.begin(), verticalEdges.end(), [](const VerticalEdge& s1, const VerticalEdge& s2) {
+  std::sort(edges.begin(), edges.end(), [](const VerticalEdge& e1, const VerticalEdge& e2) {
 
-    auto x1 = s1.x;
-    auto x2 = s2.x;
+    auto x1 = e1.abscissa();
+    auto x2 = e2.abscissa();
 
-    auto y1 = smallestY(s1);
-    auto y2 = smallestY(s2);
+    auto y1 = bottom(e1);
+    auto y2 = bottom(e2);
 
     if (areEqual(x1, x2)) {
-      if (isLeftEdge(s1) && isRightEdge(s2)) { return true; }
-      if (isRightEdge(s1) && isLeftEdge(s2)) { return false; }
+      if (e1.isLeftEdge() && e2.isRightEdge()) { return true; }
+      if (e1.isRightEdge() && e2.isLeftEdge()) { return false; }
       return y1 < y2;
     } else if (x1 < x2) {
       return true;
@@ -81,54 +64,18 @@ int findIndex(const std::vector<double>& vect, double y)
   if (CanTypeFitValue<int>(i)) {
     return static_cast<int>(i);
   }
-  throw std::range_error("Hum. Got a index not fitting in an int. That's highly suspicious for that algorithm !");
+  throw std::range_error("Hum. Got an index not fitting in an int. That's highly suspicious for that algorithm !");
 }
 
-std::vector<VerticalInterval>
-edge2interval(const std::vector<VerticalEdge>& edges, const std::vector<double>& allowedValues)
-{
-  // converts an array of vertical edges (with floating point ordinates) into
-  // an array of intervals (with integer bounds)
-  // if one of the edge's ordinate is not within the allowedValues array,
-  // an exception is thrown
-
-  std::vector<VerticalInterval> intervals;
-
-  for (auto& edge : edges) {
-    int b = findIndex(allowedValues, edge.yBegin);
-    int e = findIndex(allowedValues, edge.yEnd);
-    intervals.push_back({edge.x, b, e});
-  }
-
-  return intervals;
-}
-
-
-VerticalEdge toEdge(const VerticalInterval& vi, const std::vector<double>& yPositions)
-{
-  return {vi.abscissa(), (yPositions[vi.interval().begin()]), (yPositions[vi.interval().end()])};
-}
-
-std::vector<VerticalEdge> sweep(const std::vector<VerticalEdge>& polygonVerticalEdges)
+std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges)
 {
   std::vector<VerticalEdge> contourVerticalEdges;
 
-  auto yPositions = getUniqueVerticalPositions(polygonVerticalEdges);
-
-  for (auto y: yPositions) {
-    std::cout << y << " ";
-  }
-  std::cout << '\n';
-
-  std::vector<VerticalInterval> verticalIntervals = edge2interval(polygonVerticalEdges, yPositions);
-
-  Node* segmentTree = createSegmentTree(yPositions);
-
   std::vector<Interval> edgeStack;
 
-  for (auto i = 0; i < verticalIntervals.size(); ++i) {
+  for (auto i = 0; i < polygonVerticalEdges.size(); ++i) {
 
-    const auto& edge = verticalIntervals[i];
+    const auto& edge = polygonVerticalEdges[i];
 
     std::cout << "i=" << i << '\n';
     std::cout << edge << (edge.isLeftEdge() ? 'L' : 'R') << '\n';
@@ -145,15 +92,15 @@ std::vector<VerticalEdge> sweep(const std::vector<VerticalEdge>& polygonVertical
 
     auto e1{edge};
 
-    if (i < verticalIntervals.size() - 1) {
-      e1 = verticalIntervals[i + 1];
+    if (i < polygonVerticalEdges.size() - 1) {
+      e1 = polygonVerticalEdges[i + 1];
     }
 
     if ((edge.isLeftEdge() != e1.isLeftEdge()) ||
         (!areEqual(edge.abscissa(), e1.abscissa())) ||
-        (i == verticalIntervals.size() - 1)) {
+        (i == polygonVerticalEdges.size() - 1)) {
       for (auto&& interval : edgeStack) {
-        contourVerticalEdges.push_back(toEdge(edge, yPositions));
+        contourVerticalEdges.push_back(edge);
       }
       edgeStack.clear();
     }
@@ -243,11 +190,15 @@ MultiPolygon createContour(MultiPolygon& polygons)
     return polygons;
   }
 
-  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(polygons)};
+  std::vector<double> yPositions = getUniqueVerticalPositions(polygons);
+
+  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(polygons, yPositions)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
-  std::vector<VerticalEdge> contourVerticalEdges{sweep(polygonVerticalEdges)};
+  std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
+
+  std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
 //  // Find the vertical edges of the merged contour. This is the meat of the algorithm...
 //  TObjArray contourVerticalEdges;
@@ -283,7 +234,7 @@ bool isCounterClockwiseOriented(const SimplePolygon& polygon)
   return signedArea(polygon) > 0.0;
 }
 
-std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon)
+std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon, const std::vector<double>& yPositions)
 {
   /// Return the vertical edges of the input polygon
   std::vector<VerticalEdge> verticals;
@@ -292,7 +243,9 @@ std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon)
     const Point& next = polygon.outer()[i + 1];
     if (areEqual(current.x(), next.x()))// ve is vertical
     {
-      verticals.push_back({current.x(), current.y(), next.y()});
+      int b = findIndex(yPositions, current.y());
+      int e = findIndex(yPositions, next.y());
+      verticals.push_back({current.x(), b, e});
     }
   }
   return verticals;
@@ -303,38 +256,58 @@ bool areEqual(double a, double b)
   return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
 }
 
-std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons)
+std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons, const std::vector<double>& yPositions)
 {
   /// From an array of polygons, extract the list of vertical edges.
   std::vector<VerticalEdge> verticals;
   for (auto&& p : polygons) {
-    std::vector<VerticalEdge> v = getVerticalEdges(p);
+    std::vector<VerticalEdge> v = getVerticalEdges(p, yPositions);
     verticals.insert(verticals.end(), v.begin(), v.end());
   }
   return verticals;
 }
 
-std::vector<double> getUniqueVerticalPositions(const std::vector<VerticalEdge>& ves)
+std::vector<double> getUniqueVerticalPositions(const SimplePolygon& polygon)
 {
-  std::vector<double> ypos;
-
-  for (auto&& v: ves) {
-    ypos.push_back(v.yBegin);
-    ypos.push_back(v.yEnd);
+  std::vector<double> yPositions;
+  for (auto i = 0; i < polygon.outer().size() - 1; ++i) {
+    const Point& current = polygon.outer()[i];
+    const Point& next = polygon.outer()[i + 1];
+    if (areEqual(current.x(), next.x()))// ve is vertical
+    {
+      yPositions.push_back(current.y());
+      yPositions.push_back(next.y());
+    }
   }
 
-  std::sort(ypos.begin(), ypos.end());
-  auto last = std::unique(ypos.begin(), ypos.end(), [](const double& a, const double& b) { return areEqual(a, b); });
-  ypos.erase(last, ypos.end());
-  return ypos;
+  std::sort(yPositions.begin(), yPositions.end());
+  auto last = std::unique(yPositions.begin(), yPositions.end(),
+                          [](const double& a, const double& b) { return areEqual(a, b); });
+  yPositions.erase(last, yPositions.end());
+  return yPositions;
+}
+
+std::vector<double> getUniqueVerticalPositions(const MultiPolygon& polygons)
+{
+  std::vector<double> yPositions;
+
+  for (auto&& p : polygons) {
+    auto ypos = getUniqueVerticalPositions(p);
+    yPositions.insert(yPositions.end(), ypos.begin(), ypos.end());
+  }
+  std::sort(yPositions.begin(), yPositions.end());
+  auto last = std::unique(yPositions.begin(), yPositions.end(),
+                          [](const double& a, const double& b) { return areEqual(a, b); });
+  yPositions.erase(last, yPositions.end());
+  return yPositions;
 }
 
 bool areEqual(const VerticalEdge& a, const VerticalEdge& b)
 {
-  return areEqual(a.x, b.x) && areEqual(a.yBegin, b.yBegin) && areEqual(a.yEnd, b.yEnd);
+  return areEqual(a.abscissa(), b.abscissa()) && a.interval() == b.interval();
 }
 
-std::ostream& operator<<(std::ostream& os, const VerticalInterval& interval)
+std::ostream& operator<<(std::ostream& os, const VerticalEdge& interval)
 {
   os << "abscissa: " << interval.abscissa() << " interval: [";
   auto b = interval.interval().begin();
@@ -348,18 +321,23 @@ std::ostream& operator<<(std::ostream& os, const VerticalInterval& interval)
   return os;
 }
 
-double top(const VerticalEdge& ve)
-{ return std::max(ve.yBegin, ve.yEnd); }
-
-double bottom(const VerticalEdge& ve)
-{ return std::min(ve.yBegin, ve.yEnd); }
-
-int top(const VerticalInterval& vi)
+int top(const VerticalEdge& vi)
 { return vi.isLeftEdge() ? vi.interval().begin() : vi.interval().end(); }
 
-int bottom(const VerticalInterval& vi)
+int bottom(const VerticalEdge& vi)
 { return vi.isLeftEdge() ? vi.interval().end() : vi.interval().begin(); }
 
+bool operator==(const VerticalEdge& lhs, const VerticalEdge& rhs)
+{
+  return areEqual(lhs.abscissa(), rhs.abscissa()) &&
+         lhs.interval() == rhs.interval() &&
+         lhs.isLeftEdge() == rhs.isLeftEdge();
+}
+
+bool operator!=(const VerticalEdge& lhs, const VerticalEdge& rhs)
+{
+  return !(rhs == lhs);
+}
 }
 }
 }
