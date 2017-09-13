@@ -16,7 +16,6 @@
 #include <stdexcept>
 #include <algorithm>
 #include "segmentTree.h"
-#include "contour.h"
 #include <iostream>
 
 namespace o2 {

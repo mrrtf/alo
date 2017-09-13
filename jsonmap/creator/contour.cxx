@@ -36,15 +36,15 @@ void sortVerticalEdges(std::vector<VerticalEdge>& edges)
 
   std::sort(edges.begin(), edges.end(), [](const VerticalEdge& e1, const VerticalEdge& e2) {
 
-    auto x1 = e1.abscissa();
-    auto x2 = e2.abscissa();
+    auto x1 = e1.coordinate();
+    auto x2 = e2.coordinate();
 
     auto y1 = bottom(e1);
     auto y2 = bottom(e2);
 
     if (areEqual(x1, x2)) {
-      if (e1.isLeftEdge() && e2.isRightEdge()) { return true; }
-      if (e1.isRightEdge() && e2.isLeftEdge()) { return false; }
+      if (isLeftEdge(e1) && isRightEdge(e2)) { return true; }
+      if (isRightEdge(e1) && isLeftEdge(e2)) { return false; }
       return y1 < y2;
     } else if (x1 < x2) {
       return true;
@@ -77,7 +77,7 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
 
     const auto& edge = polygonVerticalEdges[i];
 
-    if (edge.isLeftEdge()) {
+    if (isLeftEdge(edge)) {
       segmentTree->contribution(edge.interval(), edgeStack);
       segmentTree->insertInterval(edge.interval());
     } else {
@@ -91,12 +91,13 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
       e1 = polygonVerticalEdges[i + 1];
     }
 
-    if ((edge.isLeftEdge() != e1.isLeftEdge()) ||
-        (!areEqual(edge.abscissa(), e1.abscissa())) ||
+    if ((isLeftEdge(edge) != isLeftEdge(e1)) ||
+        (!areEqual(edge.coordinate(), e1.coordinate())) ||
         (i == polygonVerticalEdges.size() - 1)) {
       for (auto&& interval : edgeStack) {
-        contourVerticalEdges.push_back(edge.isRightEdge() ? VerticalEdge{edge.abscissa(), interval.begin(), interval.end()} :
-                                       VerticalEdge{edge.abscissa(), interval.end(), interval.begin()});
+        contourVerticalEdges.push_back(
+          isRightEdge(edge) ? VerticalEdge{edge.coordinate(), interval.begin(), interval.end()} :
+          VerticalEdge{edge.coordinate(), interval.end(), interval.begin()});
       }
       edgeStack.clear();
     }
@@ -105,74 +106,16 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
   return contourVerticalEdges;
 }
 
-//void
-//AliMUONContourMaker::Sweep(const TObjArray& polygonVerticalEdges,
-//                           TObjArray& contourVerticalEdges) const
-//{
-//  TArrayD yPositions;
-//  GetYPositions(polygonVerticalEdges,yPositions);
-//
-//  AliMUONSegmentTree segmentTree(yPositions);
-//
-//  for ( Int_t i = 0; i <= polygonVerticalEdges.GetLast(); ++i )
-//  {
-//    const AliMUONSegment* edge = static_cast<const AliMUONSegment*>(polygonVerticalEdges.UncheckedAt(i));
-//
-//    assert(edge!=0x0);
-//
-//    if ( edge->IsLeftEdge() )
-//    {
-//      segmentTree.Contribution(edge->Bottom(),edge->Top());
-//      segmentTree.InsertInterval(edge->Bottom(),edge->Top());
-//    }
-//    else
-//    {
-//      segmentTree.DeleteInterval(edge->Bottom(),edge->Top());
-//      segmentTree.Contribution(edge->Bottom(),edge->Top());
-//    }
-//
-//    AliMUONSegment e1(*edge);
-//
-//    if ( i < polygonVerticalEdges.GetLast() )
-//    {
-//      const AliMUONSegment* next = static_cast<const AliMUONSegment*>(polygonVerticalEdges.UncheckedAt(i+1));
-//      e1 = *next;
-//    }
-//
-//    if ( ( edge->IsLeftEdge() != e1.IsLeftEdge() ) ||
-//         ( !AliMUONSegment::AreEqual(edge->StartX(),e1.StartX() ) ) ||
-//         ( i == polygonVerticalEdges.GetLast() ) )
-//    {
-//      const TObjArray& stack = segmentTree.Stack();
-//
-//      double x = edge->StartX();
-//
-//      for ( Int_t j = 0; j <= stack.GetLast(); ++j )
-//      {
-//        AliMUONSegment* sj = static_cast<AliMUONSegment*>(stack.UncheckedAt(j));
-//        AliMUONSegment* s = new AliMUONSegment(x,sj->StartY(),x,sj->EndY());
-//
-//        if  (s->IsAPoint())
-//        {
-//          delete s;
-//          continue;
-//        }
-//
-//        if ( edge->IsLeftEdge() != s->IsLeftEdge() )
-//        {
-//          s->Set(x,sj->EndY(),x,sj->StartY());
-//        }
-//        contourVerticalEdges.Add(s);
-//      }
-//      segmentTree.ResetStack();
-//    }
-//  }
-//}
-
-MultiPolygon createContour(MultiPolygon& polygons)
+std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
 {
-  MultiPolygon c;
-  if (bg::is_empty(polygons)) {
+  // TODO : implement me
+  return {};
+}
+
+PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
+{
+  PolygonCollection<double> c;
+  if (polygons.empty()) {
     return c;
   }
   for (auto i = 0; i < polygons.size(); ++i) {
@@ -186,154 +129,122 @@ MultiPolygon createContour(MultiPolygon& polygons)
     return polygons;
   }
 
-  std::vector<double> yPositions = getUniqueVerticalPositions(polygons);
+  std::vector<double> xPositions;
+  std::vector<double> yPositions;
 
-  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(polygons, yPositions)};
+  PolygonCollection<int> ipolygons = integralPolygon(polygons, xPositions, yPositions);
+
+  std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(ipolygons)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
   std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
 
+  // Find the vertical edges of the merged contour. This is the meat of the algorithm...
   std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
-//  // Find the vertical edges of the merged contour. This is the meat of the algorithm...
-//  TObjArray contourVerticalEdges;
-//  contourVerticalEdges.SetOwner(kTRUE);
-//  Sweep(polygonVerticalEdges,contourVerticalEdges);
-//
-//  TObjArray horizontals;
-//  horizontals.SetOwner(kTRUE);
-//  VerticalToHorizontal(contourVerticalEdges,horizontals);
-//
+  std::vector<HorizontalEdge> contourHorizontalEdges{verticalsToHorizontals(contourVerticalEdges)};
+
 //  contour = FinalizeContour(contourVerticalEdges,horizontals);
 //
-//  if ( contour && name ) contour->SetName(name);
+  // return fpPolygon(ipolygons,xPositions,yPositions);
+
   return c;
 }
 
-double signedArea(const SimplePolygon& polygon)
-{
-  /// Compute the signed area of this polygon
-  /// Algorithm from F. Feito, J.C. Torres and A. Urena,
-  /// Comput. & Graphics, Vol. 19, pp. 595-600, 1995
-  double area{0.0};
-  for (auto i = 0; i < polygon.outer().size() - 1; ++i) {
-    const Point& current = polygon.outer()[i];
-    const Point& next = polygon.outer()[i + 1];
-    area += current.x() * next.y() - next.x() * current.y();
-  }
-  return area * 0.5;
-}
-
-bool isCounterClockwiseOriented(const SimplePolygon& polygon)
-{
-  return signedArea(polygon) > 0.0;
-}
-
-std::vector<VerticalEdge> getVerticalEdges(const SimplePolygon& polygon, const std::vector<double>& yPositions)
-{
-  /// Return the vertical edges of the input polygon
-  std::vector<VerticalEdge> verticals;
-  for (auto i = 0; i < polygon.outer().size() - 1; ++i) {
-    const Point& current = polygon.outer()[i];
-    const Point& next = polygon.outer()[i + 1];
-    if (areEqual(current.x(), next.x()))// ve is vertical
-    {
-      int b = findIndex(yPositions, current.y());
-      int e = findIndex(yPositions, next.y());
-      verticals.push_back({current.x(), b, e});
-    }
-  }
-  return verticals;
-}
 
 bool areEqual(double a, double b)
 {
   return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
 }
 
-std::vector<VerticalEdge> getVerticalEdges(const MultiPolygon& polygons, const std::vector<double>& yPositions)
+void unique(std::vector<double>& v)
 {
-  /// From an array of polygons, extract the list of vertical edges.
-  std::vector<VerticalEdge> verticals;
-  for (auto&& p : polygons) {
-    std::vector<VerticalEdge> v = getVerticalEdges(p, yPositions);
-    verticals.insert(verticals.end(), v.begin(), v.end());
-  }
-  return verticals;
-}
-
-std::vector<double> getUniqueVerticalPositions(const SimplePolygon& polygon)
-{
-  std::vector<double> yPositions;
-  for (auto i = 0; i < polygon.outer().size() - 1; ++i) {
-    const Point& current = polygon.outer()[i];
-    const Point& next = polygon.outer()[i + 1];
-    if (areEqual(current.x(), next.x()))// ve is vertical
-    {
-      yPositions.push_back(current.y());
-      yPositions.push_back(next.y());
-    }
-  }
-
-  std::sort(yPositions.begin(), yPositions.end());
-  auto last = std::unique(yPositions.begin(), yPositions.end(),
+  // remove non-unique values from v
+  std::sort(v.begin(), v.end());
+  auto last = std::unique(v.begin(), v.end(),
                           [](const double& a, const double& b) { return areEqual(a, b); });
-  yPositions.erase(last, yPositions.end());
-  return yPositions;
-}
-
-std::vector<double> getUniqueVerticalPositions(const MultiPolygon& polygons)
-{
-  std::vector<double> yPositions;
-
-  for (auto&& p : polygons) {
-    auto ypos = getUniqueVerticalPositions(p);
-    yPositions.insert(yPositions.end(), ypos.begin(), ypos.end());
-  }
-  std::sort(yPositions.begin(), yPositions.end());
-  auto last = std::unique(yPositions.begin(), yPositions.end(),
-                          [](const double& a, const double& b) { return areEqual(a, b); });
-  yPositions.erase(last, yPositions.end());
-  return yPositions;
-}
-
-bool areEqual(const VerticalEdge& a, const VerticalEdge& b)
-{
-  return areEqual(a.abscissa(), b.abscissa()) && a.interval() == b.interval();
-}
-
-std::ostream& operator<<(std::ostream& os, const VerticalEdge& interval)
-{
-  os << "abscissa: " << interval.abscissa() << " interval: [";
-  auto b = interval.interval().begin();
-  auto e = interval.interval().end();
-  if (interval.isLeftEdge()) {
-    os << e << "," << b;
-  } else {
-    os << b << "," << e;
-  }
-  os << "]";
-  return os;
+  v.erase(last, v.end());
 }
 
 int top(const VerticalEdge& vi)
-{ return vi.isLeftEdge() ? vi.interval().begin() : vi.interval().end(); }
+{ return isLeftEdge(vi) ? vi.interval().begin() : vi.interval().end(); }
 
 int bottom(const VerticalEdge& vi)
-{ return vi.isLeftEdge() ? vi.interval().end() : vi.interval().begin(); }
+{ return isLeftEdge(vi) ? vi.interval().end() : vi.interval().begin(); }
 
-bool operator==(const VerticalEdge& lhs, const VerticalEdge& rhs)
+bool operator<(const Vertex<int>& v1, const Vertex<int>& v2)
 {
-  return areEqual(lhs.abscissa(), rhs.abscissa()) &&
-         lhs.interval() == rhs.interval() &&
-         lhs.isLeftEdge() == rhs.isLeftEdge();
+  if (v1.y < v2.y) { return true; }
+  if (v1.y > v2.y) { return false; }
+  if (v1.x < v2.y) { return true; }
+  return false;
 }
 
-bool operator!=(const VerticalEdge& lhs, const VerticalEdge& rhs)
+bool operator==(const Polygon<int>& lhs, const Polygon<int>& rhs)
+{
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+
+  if (isCounterClockwiseOriented(lhs) != isCounterClockwiseOriented(rhs)) {
+    return false;
+  }
+
+  auto l = lhs;
+  auto r = rhs;
+
+  std::sort(l.begin(), l.end());
+  std::sort(r.begin(), r.end());
+  return l == r;
+}
+
+bool operator!=(const Polygon<int>& lhs, const Polygon<int>& rhs)
 {
   return !(rhs == lhs);
+
 }
+
+bool operator==(const Vertex<double>& lhs, const Vertex<double>& rhs)
+{
+  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
+}
+
+Polygon<int>
+integralPolygon(const Polygon<double>& polygon, std::vector<double>& xPositions, std::vector<double>& yPositions)
+{
+  PolygonCollection<double> c{polygon};
+  return integralPolygon(c, xPositions, yPositions)[0];
+}
+
+PolygonCollection<int>
+integralPolygon(const PolygonCollection<double>& polygons, std::vector<double>& xPositions,
+                std::vector<double>& yPositions)
+{
+  PolygonCollection<int> intPolygons;
+
+  for (const auto& p: polygons) {
+    for (const auto& v: p) {
+      xPositions.push_back(v.x);
+      yPositions.push_back(v.y);
+    }
+  }
+
+  unique(xPositions);
+  unique(yPositions);
+
+  for (const auto& p: polygons) {
+    Polygon<int> intPol;
+    for (auto& v: p) {
+      int x = findIndex(xPositions, v.x);
+      int y = findIndex(yPositions, v.y);
+      intPol.push_back({x, y});
+    }
+    intPolygons.push_back(intPol);
+  }
+  return intPolygons;
+}
+
 }
 }
 }

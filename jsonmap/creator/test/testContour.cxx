@@ -73,6 +73,9 @@ constexpr int NLOOP = 1;
 
 using namespace o2::mch::geometry;
 namespace bg = boost::geometry;
+typedef boost::geometry::model::d2::point_xy<double> Point;
+typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
+typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
 
 struct CONTOURS
 {
@@ -108,11 +111,26 @@ struct POLYGONS
       testPads.push_back({{{1.0, 2.0}, {2.0, 2.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}}});
     }
 
-    MultiPolygon testPads;
-    SimplePolygon polygon;
-    SimplePolygon testPolygon{
+    PolygonCollection<double> testPads;
+    Polygon<double> polygon;
+    Polygon<double> testPolygon{
       {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {2.0, 1.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 0.0}}};
+    Polygon<int> counterClockwisePolygon{ {0,0 }, { 1,0 }, {1,1},{0,1},{ 0,0} };
+    Polygon<int> clockwisePolygon{ {0,0 }, { 0,1 }, {1,1},{1,0},{ 0,0} };
+    Polygon<double> clockwisePolygonDouble{ {0,0 }, { 0,1 }, {1,1},{1,0},{ 0,0} };
 };
+
+template<typename T>
+SimplePolygon convertToGGL(const Polygon<T>& polygon) {
+
+  SimplePolygon p;
+
+  for (auto&& v: polygon) {
+    bg::append(p.outer(), Point{v.x,v.y});
+  }
+
+  return p;
+}
 
 SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
 {
@@ -211,26 +229,12 @@ BOOST_FIXTURE_TEST_SUITE(contoursFromO2, POLYGONS)
 
 BOOST_AUTO_TEST_CASE(GetYPositions)
 {
-  std::vector<double> ypos{getUniqueVerticalPositions(testPads)};
+  std::vector<double> xpos,ypos;
+
+  auto p = integralPolygon(testPads,xpos,ypos);
 
   const std::vector<double> expected{0, 1, 2, 3, 4};
   BOOST_TEST(ypos == expected);
-}
-
-BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
-{
-  SimplePolygon a, b;
-
-  bg::read_wkt("POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))", a);
-  bg::read_wkt("POLYGON((0.0 1.0, 1.0 1.0, 1.0 2.0, 0.0 2.0, 0.0 1.0))", b);
-  bg::correct(a);
-  bg::correct(b);
-  MultiPolygon c;
-  bg::union_(a, b, c);
-  bg::correct(c);
-  MultiPolygon expected;
-  bg::read_wkt("MULTIPOLYGON(((0 1,0 0,1 0,1 1,1 2,0 2,0 1)))", expected);
-  BOOST_CHECK(bg::equals(c, expected));
 }
 
 //BOOST_AUTO_TEST_CASE(CompareWithAliRootContour)
@@ -244,15 +248,12 @@ BOOST_AUTO_TEST_CASE(GGLUnionGivesTooManyPoints)
 
 BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 {
-  bg::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
-  BOOST_CHECK(isCounterClockwiseOriented(polygon));
-
+  BOOST_CHECK(isCounterClockwiseOriented(counterClockwisePolygon));
 }
 
 BOOST_AUTO_TEST_CASE(CreateClockwiseOrientedPolygon)
 {
-  bg::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
-  BOOST_CHECK(!isCounterClockwiseOriented(polygon));
+  BOOST_CHECK(!isCounterClockwiseOriented(clockwisePolygon));
 }
 
 BOOST_AUTO_TEST_CASE(SignedArea)
@@ -262,35 +263,34 @@ BOOST_AUTO_TEST_CASE(SignedArea)
 
 BOOST_AUTO_TEST_CASE(ContourCreationGeneratesEmptyContourForEmptyInput)
 {
-  MultiPolygon list;
-  MultiPolygon contour = createContour(list);
-  BOOST_CHECK(bg::is_empty(contour));
+  PolygonCollection<double> list;
+  PolygonCollection<double> contour = createContour(list);
+  BOOST_CHECK(contour.empty());
 }
 
 BOOST_AUTO_TEST_CASE(ContourCreationThrowsIfInputPolygonsAreNotCounterClockwiseOriented)
 {
-  MultiPolygon list;
-  bg::read_wkt("POLYGON((0 0, 0 1, 1 1, 1 0, 0 0))", polygon);
-  BOOST_CHECK(!isCounterClockwiseOriented(polygon));
-  list.push_back(polygon);
+  PolygonCollection<double> list;
+  list.push_back(clockwisePolygonDouble);
   BOOST_CHECK_THROW(createContour(list), std::invalid_argument);
 }
 
 
 BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
 {
-  MultiPolygon list;
-  bg::read_wkt("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))", polygon);
+  PolygonCollection<double> list;
+  Polygon<double> polygon { { 0,0},{1,0},{1,1},{0,1},{0,0}};
   list.push_back(polygon);
-  MultiPolygon contour = createContour(list);
+  auto contour = createContour(list);
   BOOST_REQUIRE(contour.size() == 1);
-  BOOST_CHECK(bg::equals(contour[0], polygon));
+  BOOST_CHECK_EQUAL(contour[0], polygon);
 }
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
 {
-  auto ypos = getUniqueVerticalPositions(testPolygon);
-  auto edges = getVerticalEdges(testPolygon, ypos);
+  std::vector<double> xpos,ypos;
+  auto p = integralPolygon(testPolygon,xpos,ypos);
+  auto edges = getEdges<true>(p);
 
   BOOST_REQUIRE(edges.size() == 4);
   BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
@@ -301,13 +301,14 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
 {
-  MultiPolygon group;
-  SimplePolygon triangle{{{0.0, 0}, {1.0, 0.0}, {0.0, 1.0}, {0.0, 0.0}}};
-  group.push_back(testPolygon);
+  PolygonCollection<int> group;
+  Polygon<int> triangle{{{0, 0}, {1, 0}, {0, 1}, {0, 0}}};
+  std::vector<double> xpos,ypos;
+  auto p = integralPolygon(testPolygon,xpos,ypos);
+  group.push_back(p);
   group.push_back(triangle);
 
-  auto ypos = getUniqueVerticalPositions(group);
-  auto edges = getVerticalEdges(group, ypos);
+  auto edges = getEdges<true>(group);
 
   BOOST_REQUIRE(edges.size() == 5);
   BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
@@ -319,16 +320,16 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
 
 BOOST_AUTO_TEST_CASE(AVerticalEdgeWithBeginAboveEndIsALefty)
 {
-  VerticalEdge vi{0.0, 12, 10};
-  BOOST_CHECK_EQUAL(vi.isLeftEdge(), true);
-  BOOST_CHECK_EQUAL(vi.isRightEdge(), false);
+  VerticalEdge vi{0, 12, 10};
+  BOOST_CHECK_EQUAL(isLeftEdge(vi), true);
+  BOOST_CHECK_EQUAL(isRightEdge(vi), false);
 }
 
 BOOST_AUTO_TEST_CASE(AVerticalEdgeWithBeginAboveEndIsARighty)
 {
-  VerticalEdge vi{0.0, 10, 12};
-  BOOST_CHECK_EQUAL(vi.isRightEdge(), true);
-  BOOST_CHECK_EQUAL(vi.isLeftEdge(), false);
+  VerticalEdge vi{0, 10, 12};
+  BOOST_CHECK_EQUAL(isRightEdge(vi), true);
+  BOOST_CHECK_EQUAL(isLeftEdge(vi), false);
 }
 
 BOOST_AUTO_TEST_CASE(AVerticalEdgeIntervalIsAnIntervalOfPositiveIndices)
@@ -346,7 +347,7 @@ BOOST_AUTO_TEST_CASE(AVerticalEdgeHasATopAndBottom)
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
   std::vector<VerticalEdge> edges;
-  constexpr double sameX{42.42};
+  constexpr int sameX{42};
   VerticalEdge lastEdge{sameX + 1, 2, 0};
   VerticalEdge leftEdgeBottom{sameX, 2, 0};
   VerticalEdge leftEdgeTop{sameX, 10, 5};
@@ -367,10 +368,12 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
 BOOST_AUTO_TEST_CASE(SweepCreateContour)
 {
-  std::vector<double> yPositions = getUniqueVerticalPositions(testPads);
+  std::vector<double> xPositions,yPositions;
+
+  auto p = integralPolygon(testPads,xPositions,yPositions);
   BOOST_REQUIRE(yPositions.size() == 5);
 
-  std::vector<VerticalEdge> polygonVerticalEdges{getVerticalEdges(testPads, yPositions)};
+  std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(p)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
@@ -379,9 +382,23 @@ BOOST_AUTO_TEST_CASE(SweepCreateContour)
   std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
   BOOST_REQUIRE(contourVerticalEdges.size() == 3);
-  BOOST_CHECK_EQUAL(contourVerticalEdges[0], VerticalEdge(0.0, 2, 0));
-  BOOST_CHECK_EQUAL(contourVerticalEdges[1], VerticalEdge(1.0, 4, 2));
-  BOOST_CHECK_EQUAL(contourVerticalEdges[2], VerticalEdge(2.0, 0, 4));
+  BOOST_CHECK_EQUAL(contourVerticalEdges[0], VerticalEdge(0, 2, 0));
+  BOOST_CHECK_EQUAL(contourVerticalEdges[1], VerticalEdge(1, 4, 2));
+  BOOST_CHECK_EQUAL(contourVerticalEdges[2], VerticalEdge(2, 0, 4));
+}
+
+BOOST_AUTO_TEST_CASE(VerticalsToHorizontals)
+{
+  std::vector<VerticalEdge> ve{{0, 7, 0},
+                               {1, 1, 0},
+                               {3, 0, 1},
+                               {5, 0, 1},
+                               {6, 0, 7},
+                               {2, 5, 3},
+                               {4, 3, 5}};
+
+  //std::vector<HorizontalEdge> he{verticalsToHorizontals(ve)};
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

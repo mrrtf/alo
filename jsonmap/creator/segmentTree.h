@@ -18,7 +18,6 @@
 
 #include <vector>
 #include <ostream>
-#include <boost/format.hpp>
 
 namespace o2 {
 namespace mch {
