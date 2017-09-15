@@ -60,7 +60,15 @@ bool operator==(const Polygon<int>& lhs, const Polygon<int>& rhs)
 
   std::sort(l.begin(), l.end());
   std::sort(r.begin(), r.end());
-  return l == r;
+
+  for ( auto i = 0; i < l.size(); ++i )
+  {
+    if (l[i]!=r[i])
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool operator!=(const Polygon<int>& lhs, const Polygon<int>& rhs)
