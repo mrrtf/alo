@@ -5,14 +5,10 @@ set(SOURCE_FILES
         bp2json.h
         ch.cxx
         ch2json.h
-        contour.cxx
-        contour.h
         ddl.cxx
         ddl2json.h
         de.cxx
         de2json.h
-        edge.h
-        interval.h
         json.h
         legacyseg2json.h
         motif.cxx
@@ -29,17 +25,12 @@ set(SOURCE_FILES
         pcb.h
         pcb2json.h
         pcbnumbers.cxx
-        polygon.cxx
-        polygon.h
         readmapping.cxx
         readmapping.h
         sector2json.h
         seg.cxx
         seg2json.h
-        segmentTree.cxx
-        segmentTree.h
         slat2json.h
-        vertex.h
         )
 add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 

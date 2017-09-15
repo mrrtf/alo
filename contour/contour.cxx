@@ -186,8 +186,6 @@ finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<Ho
       throw std::runtime_error("got an empty polygon");
     }
 
-    std::cout << polygon << '\n';
-
     contour.push_back(close(polygon));
   }
 

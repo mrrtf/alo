@@ -35,6 +35,7 @@ if(ROOT_FOUND AND AliRoot_FOUND)
 add_subdirectory(dhlt)
 add_subdirectory(r23)
 add_subdirectory(binmap)
+add_subdirectory(contour) # depends on AliRoot just for the tests : FIXME
 endif()
 
 add_subdirectory(genmap)
