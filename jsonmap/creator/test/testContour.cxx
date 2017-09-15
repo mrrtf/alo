@@ -114,19 +114,40 @@ struct POLYGONS
     PolygonCollection<double> testPads;
     Polygon<double> polygon;
     Polygon<double> testPolygon{
-      {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {2.0, 1.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 0.0}}};
-    Polygon<int> counterClockwisePolygon{ {0,0 }, { 1,0 }, {1,1},{0,1},{ 0,0} };
-    Polygon<int> clockwisePolygon{ {0,0 }, { 0,1 }, {1,1},{1,0},{ 0,0} };
-    Polygon<double> clockwisePolygonDouble{ {0,0 }, { 0,1 }, {1,1},{1,0},{ 0,0} };
+      {{0.1, 0.1}, {1.1, 0.1}, {1.1, 1.1}, {2.1, 1.1}, {2.1, 3.1}, {1.1, 3.1}, {1.1, 2.1}, {0.1, 2.1}, {0.1, 0.1}}};
+    Polygon<int> counterClockwisePolygon{{0, 0},
+                                         {1, 0},
+                                         {1, 1},
+                                         {0, 1},
+                                         {0, 0}};
+    Polygon<int> clockwisePolygon{{0, 0},
+                                  {0, 1},
+                                  {1, 1},
+                                  {1, 0},
+                                  {0, 0}};
+    Polygon<double> clockwisePolygonDouble{{0, 0},
+                                           {0, 1},
+                                           {1, 1},
+                                           {1, 0},
+                                           {0, 0}};
+    std::vector<VerticalEdge> testVerticals{{0, 7, 1},
+                                            {1, 1, 0},
+                                            {3, 0, 1},
+                                            {5, 1, 0},
+                                            {6, 0, 7},
+                                            {2, 5, 3},
+                                            {4, 3, 5}};
+
 };
 
 template<typename T>
-SimplePolygon convertToGGL(const Polygon<T>& polygon) {
+SimplePolygon convertToGGL(const Polygon<T>& polygon)
+{
 
   SimplePolygon p;
 
   for (auto&& v: polygon) {
-    bg::append(p.outer(), Point{v.x,v.y});
+    bg::append(p.outer(), Point{v.x, v.y});
   }
 
   return p;
@@ -170,9 +191,59 @@ MultiPolygon createManuContour(int detElemId, int manuId)
   return convertToGGL(*(contour->Polygons()));
 }
 
+PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId, int manuId)
+{
+  const AliMpVSegmentation* seg = mseg->GetMpSegmentationByElectronics(detElemId, manuId);
+  const AliMpSlat* slat = slat_from_seg(*seg);
+  assert(slat);
+  AliMpMotifPosition* pos = slat->FindMotifPosition(manuId);
+  AliMpVMotif* motif = pos->GetMotif();
+  AliMpMotifType* motifType = motif->GetMotifType();
+
+  PolygonCollection<double> pads;
+
+  for (Int_t i = 0; i <= 64; ++i) {
+    AliMpConnection* connection = motifType->FindConnectionByGassiNum(i);
+
+    if (connection) {
+      Int_t ix = connection->GetLocalIx();
+      Int_t iy = connection->GetLocalIy();
+
+      Double_t x, y, dx, dy;
+
+      motif->GetPadDimensionsByIndices(ix, iy, dx, dy);
+      motif->PadPositionLocal(ix, iy, x, y);
+
+//      x += pos->GetPositionX() - seg->GetPositionX();
+//      y += pos->GetPositionY() - seg->GetPositionY();
+
+      Polygon<double> pad{{
+                            {x - dx, y - dy},
+                            {x + dx, y - dy},
+                            {x + dx, y + dy},
+                            {x - dx, y + dy},
+                            {x - dx, y - dy}
+                          }};
+
+      pads.push_back(pad);
+    }
+  }
+  return pads;
+}
+
 BOOST_AUTO_TEST_SUITE(mch_aliroot_mapping)
 
 BOOST_FIXTURE_TEST_SUITE(contoursFromAliRoot, CONTOURS)
+
+
+//BOOST_AUTO_TEST_CASE(MotifE15HasADisjointContour)
+//{
+//  PolygonCollection<double> pads = createManuPads(m.mseg(), 1001, 408);
+//  auto contour = createContour(pads);
+//  for (const auto& p: contour) {
+//    std::cout << p << '\n';
+//  }
+//}
 
 BOOST_AUTO_TEST_CASE(NumberOfMotifPositionsIs2265)
 {
@@ -218,6 +289,7 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 
   MultiPolygon c = convertToGGL(*(contour->Polygons()));
 
+
   MultiPolygon expected;
   bg::read_wkt("MULTIPOLYGON(((0 2,0 0,2 0,2 4,1 4,1 2,0 2)))", expected);
   BOOST_CHECK(bg::equals(c, expected));
@@ -227,15 +299,46 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_FIXTURE_TEST_SUITE(contoursFromO2, POLYGONS)
 
+BOOST_AUTO_TEST_CASE(AVerticalLeftEdgeIsTopToBottom)
+{
+  int dummy{0};
+  VerticalEdge edge{dummy, 12, 1};
+  BOOST_CHECK(isLeftEdge(edge));
+  BOOST_CHECK(isTopToBottom(edge));
+}
+
+BOOST_AUTO_TEST_CASE(AVerticalRightEdgeIsBottomToTop)
+{
+  int dummy{0};
+  VerticalEdge edge{dummy, 1, 12};
+  BOOST_CHECK(isRightEdge(edge));
+  BOOST_CHECK(isBottomToTop(edge));
+}
+
+BOOST_AUTO_TEST_CASE(ALeftToRightHorizontalEdgeHasEndPointGreaterThanStartPoint)
+{
+  int dummy{0};
+  HorizontalEdge edge{dummy, 1, 12};
+  BOOST_CHECK(isLeftToRight(edge));
+}
+
+BOOST_AUTO_TEST_CASE(ARightToLeftHorizontalEdgeHasEndPointSmallerThanStartPoint)
+{
+  int dummy{0};
+  HorizontalEdge edge{dummy, 12, 1};
+  BOOST_CHECK(isRightToLeft(edge));
+}
+
 BOOST_AUTO_TEST_CASE(GetYPositions)
 {
-  std::vector<double> xpos,ypos;
+  std::vector<double> xpos, ypos;
 
-  auto p = integralPolygon(testPads,xpos,ypos);
+  auto p = integralPolygon(testPads, xpos, ypos);
 
   const std::vector<double> expected{0, 1, 2, 3, 4};
   BOOST_TEST(ypos == expected);
 }
+
 
 //BOOST_AUTO_TEST_CASE(CompareWithAliRootContour)
 //{
@@ -254,6 +357,14 @@ BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 BOOST_AUTO_TEST_CASE(CreateClockwiseOrientedPolygon)
 {
   BOOST_CHECK(!isCounterClockwiseOriented(clockwisePolygon));
+}
+
+BOOST_AUTO_TEST_CASE(CircularTestIntegralToDoublePolygon)
+{
+  std::vector<double> xPositions, yPositions;
+  Polygon<int> ipolygons = integralPolygon(testPolygon, xPositions, yPositions);
+  Polygon<double> test = fpPolygon(ipolygons, xPositions, yPositions);
+  BOOST_CHECK(test == testPolygon);
 }
 
 BOOST_AUTO_TEST_CASE(SignedArea)
@@ -279,7 +390,11 @@ BOOST_AUTO_TEST_CASE(ContourCreationThrowsIfInputPolygonsAreNotCounterClockwiseO
 BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
 {
   PolygonCollection<double> list;
-  Polygon<double> polygon { { 0,0},{1,0},{1,1},{0,1},{0,0}};
+  Polygon<double> polygon{{0, 0},
+                          {1, 0},
+                          {1, 1},
+                          {0, 1},
+                          {0, 0}};
   list.push_back(polygon);
   auto contour = createContour(list);
   BOOST_REQUIRE(contour.size() == 1);
@@ -288,8 +403,8 @@ BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
 
 BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
 {
-  std::vector<double> xpos,ypos;
-  auto p = integralPolygon(testPolygon,xpos,ypos);
+  std::vector<double> xpos, ypos;
+  auto p = integralPolygon(testPolygon, xpos, ypos);
   auto edges = getEdges<true>(p);
 
   BOOST_REQUIRE(edges.size() == 4);
@@ -303,8 +418,8 @@ BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
 {
   PolygonCollection<int> group;
   Polygon<int> triangle{{{0, 0}, {1, 0}, {0, 1}, {0, 0}}};
-  std::vector<double> xpos,ypos;
-  auto p = integralPolygon(testPolygon,xpos,ypos);
+  std::vector<double> xpos, ypos;
+  auto p = integralPolygon(testPolygon, xpos, ypos);
   group.push_back(p);
   group.push_back(triangle);
 
@@ -368,9 +483,9 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
 BOOST_AUTO_TEST_CASE(SweepCreateContour)
 {
-  std::vector<double> xPositions,yPositions;
+  std::vector<double> xPositions, yPositions;
 
-  auto p = integralPolygon(testPads,xPositions,yPositions);
+  auto p = integralPolygon(testPads, xPositions, yPositions);
   BOOST_REQUIRE(yPositions.size() == 5);
 
   std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(p)};
@@ -389,16 +504,121 @@ BOOST_AUTO_TEST_CASE(SweepCreateContour)
 
 BOOST_AUTO_TEST_CASE(VerticalsToHorizontals)
 {
-  std::vector<VerticalEdge> ve{{0, 7, 0},
-                               {1, 1, 0},
-                               {3, 0, 1},
-                               {5, 0, 1},
-                               {6, 0, 7},
-                               {2, 5, 3},
-                               {4, 3, 5}};
+  std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};
 
-  //std::vector<HorizontalEdge> he{verticalsToHorizontals(ve)};
+  std::vector<HorizontalEdge> expected{
+    {1, 0, 1},
+    {0, 1, 3},
+    {1, 3, 5},
+    {0, 5, 6},
+    {7, 6, 0},
+    {3, 2, 4},
+    {5, 4, 2}
+  };
 
+  BOOST_CHECK(he == expected);
+}
+
+BOOST_AUTO_TEST_CASE(BeginAndEndForALeftEdgeVertical)
+{
+  VerticalEdge e{0, 7, 1};
+
+  BOOST_CHECK_EQUAL(begin(e), 7);
+  BOOST_CHECK_EQUAL(end(e), 1);
+}
+
+BOOST_AUTO_TEST_CASE(BeginAndEndForARightEdgeVertical)
+{
+  VerticalEdge e{0, 1, 7};
+
+  BOOST_CHECK_EQUAL(begin(e), 1);
+  BOOST_CHECK_EQUAL(end(e), 7);
+}
+
+BOOST_AUTO_TEST_CASE(BeginAndEndForALeftToRightHorizontal)
+{
+  HorizontalEdge e{0, 1, 7};
+  BOOST_CHECK_EQUAL(begin(e), 1);
+  BOOST_CHECK_EQUAL(end(e), 7);
+}
+
+BOOST_AUTO_TEST_CASE(BeginAndEndForARightToLeftHorizontal)
+{
+  HorizontalEdge e{0, 7, 1};
+  BOOST_CHECK_EQUAL(begin(e), 7);
+  BOOST_CHECK_EQUAL(end(e), 1);
+}
+
+BOOST_AUTO_TEST_CASE(GetVertexFromVertical)
+{
+  VerticalEdge e{12, 20, 100};
+
+  BOOST_CHECK_EQUAL(beginVertex(e), Vertex<int>(12, 20));
+  BOOST_CHECK_EQUAL(endVertex(e), Vertex<int>(12, 100));
+}
+
+BOOST_AUTO_TEST_CASE(GetVertexFromHorizontal)
+{
+  HorizontalEdge e{12, 20, 100};
+
+  BOOST_CHECK_EQUAL(beginVertex(e), Vertex<int>(20, 12));
+  BOOST_CHECK_EQUAL(endVertex(e), Vertex<int>(100, 12));
+}
+
+BOOST_AUTO_TEST_CASE(ClosingAClosedPolygonIsANop)
+{
+  BOOST_CHECK(testPolygon == close(testPolygon));
+}
+
+BOOST_AUTO_TEST_CASE(ClosePolygon)
+{
+  Polygon<int> opened{{0, 0},
+                      {1, 0},
+                      {1, 1},
+                      {0, 1}};
+  Polygon<int> expected{{0, 0},
+                        {1, 0},
+                        {1, 1},
+                        {0, 1},
+                        {0, 0}};
+  auto closed = close(opened);
+  BOOST_TEST(expected==closed);
+}
+
+BOOST_AUTO_TEST_CASE(ThrowIfClosingAPolygonResultInANonManhattanPolygon)
+{
+  Polygon<int> triangle{{0, 0},
+                        {1, 0},
+                        {1, 1}};
+
+  BOOST_CHECK_THROW(close(triangle), std::logic_error);
+}
+
+BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfNumberOfVerticalsDifferFromNumberOfHorizontals)
+{
+  std::vector<VerticalEdge> v{{0, 1, 0},
+                              {1, 0, 1}};
+  std::vector<HorizontalEdge> h{{0, 0, 1}};
+  BOOST_CHECK_THROW(finalizeContour(v, h), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfEndOfVerticalsDoNotMatchBeginOfHorizontals)
+{
+  std::vector<VerticalEdge> v{{0, 7, 1}};
+  std::vector<HorizontalEdge> wrong{{1, 2, 3}};
+
+  BOOST_CHECK_THROW(finalizeContour(v, wrong), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(FinalizeContour)
+{
+  std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};
+
+  auto contour = finalizeContour(testVerticals, he);
+
+  PolygonCollection<int> expected{{{-1, -1}}};
+
+  BOOST_TEST(contour == expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -427,48 +647,6 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()
 
-
-//Contour createContour(AliMpSegmentation* mseg, int detElemId, int manuId)
-//{
-//  const AliMpVSegmentation* seg = mseg->GetMpSegmentationByElectronics(detElemId, manuId);
-//  const AliMpSlat* slat = slat_from_seg(*seg);
-//  assert(slat);
-//  AliMpMotifPosition* pos = slat->FindMotifPosition(manuId);
-//  AliMpVMotif* motif = pos->GetMotif();
-//  AliMpMotifType* motifType = motif->GetMotifType();
-//
-//  Contour contour;
-//  Contour polygon;
-//
-//  for (Int_t i = 0; i <= 64; ++i) {
-//    AliMpConnection* connection = motifType->FindConnectionByGassiNum(i);
-//
-//    if (connection) {
-//      Int_t ix = connection->GetLocalIx();
-//      Int_t iy = connection->GetLocalIy();
-//
-//      Double_t x, y, dx, dy;
-//
-//      motif->GetPadDimensionsByIndices(ix, iy, dx, dy);
-//      motif->PadPositionLocal(ix, iy, x, y);
-//
-////      x += pos->GetPositionX() - seg->GetPositionX();
-////      y += pos->GetPositionY() - seg->GetPositionY();
-//
-//      SimplePolygon pad{{
-//                          {x - dx, y - dy},
-//                          {x - dx, y + dy},
-//                          {x + dx, y + dy},
-//                          {x + dx, y - dy},
-//                          {x - dx, y - dy}
-//                        }};
-//
-//      union_(pad, polygon, contour);
-//      polygon = contour;
-//    }
-//  }
-//  return contour;
-//}
 
 
 //BOOST_AUTO_TEST_CASE(IsGGLUnionMethodActuallyWorking)

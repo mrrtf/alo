@@ -26,16 +26,107 @@ namespace o2 {
 namespace mch {
 namespace geometry {
 
+bool areEqual(double a, double b);
+
+inline bool areEqual(int a, int b)
+{ return a == b; }
+
 template<typename T>
 struct Vertex
 {
+    Vertex(T abscissa, T ordinate) : x(abscissa), y(ordinate)
+    {}
 
     T x;
     T y;
 };
 
 template<typename T>
+std::ostream& operator<<(std::ostream& os, const Vertex<T>& vertex)
+{
+  os << '(' << vertex.x << ' ' << vertex.y << ')';
+  return os;
+}
+
+template<typename T>
+bool operator<(const Vertex<T>& lhs, const Vertex<T>& rhs)
+{
+  if (lhs.y < rhs.y) {
+    return true;
+  }
+  if (rhs.y < lhs.y) {
+    return false;
+  }
+  return lhs.x < rhs.x;
+}
+
+template<typename T>
+bool operator>(const Vertex<T>& lhs, const Vertex<T>& rhs)
+{
+  return rhs < lhs;
+}
+
+template<typename T>
+bool operator<=(const Vertex<T>& lhs, const Vertex<T>& rhs)
+{
+  return !(rhs < lhs);
+}
+
+template<typename T>
+bool operator>=(const Vertex<T>& lhs, const Vertex<T>& rhs)
+{
+  return !(lhs < rhs);
+}
+
+template<typename T>
 using Polygon = std::vector<Vertex<T>>;
+
+inline std::ostream& operator<<(std::ostream& os, const Polygon<int>& polygon)
+{
+  os << "POLYGON(";
+
+  for (auto i = 0; i < polygon.size(); ++i) {
+    os << polygon[i];
+    if (i < polygon.size() - 1) {
+      os << ',';
+    }
+  }
+  os << ')';
+  return os;
+}
+
+template<typename T>
+bool isVertical(const Vertex<T>& a, const Vertex<T>& b)
+{
+  return areEqual(a.x, b.x);
+}
+
+template<typename T>
+bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
+{
+  return areEqual(a.y, b.y);
+}
+
+template<typename T>
+bool isManhattan(const Polygon<T>& polygon)
+{
+  for (auto i = 0; i < polygon.size() - 1; ++i) {
+    if (!isVertical(polygon[i], polygon[i + 1]) && !isHorizontal(polygon[i], polygon[i + 1])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template<typename T>
+Polygon<T> close(Polygon<T> polygon)
+{
+  if (polygon.back() != polygon.front()) { // not already closed
+    polygon.push_back(polygon.front());
+  }
+  if (!isManhattan(polygon)) { throw std::logic_error("closing resulted in non Manhattan polygon"); }
+  return polygon;
+}
 
 template<typename T>
 using PolygonCollection = std::vector<Polygon<T>>;
@@ -44,9 +135,10 @@ template<bool vertical>
 class ManhattanEdge
 {
   public:
-    ManhattanEdge(int coordinate, int b, int e) : mCoordinate(coordinate),
-                                                  mInterval{b > e ? e : b, b > e ? b : e},
-                                                  mIsDirect(b > e)
+
+    ManhattanEdge(int coordinate = {}, int b = {}, int e = 1) : mCoordinate(coordinate),
+                                                                mInterval{b > e ? e : b, b > e ? b : e},
+                                                                mIsDirect(b > e)
     {
       if (b < 0 || e < 0) { throw std::out_of_range("b,e are supposed to be indices, i.e. >=0"); }
     }
@@ -70,10 +162,11 @@ class ManhattanEdge
     int mCoordinate;
     Interval mInterval;
     bool mIsDirect;
+
 };
 
-typedef ManhattanEdge<true> VerticalEdge;
-typedef ManhattanEdge<false> HorizontalEdge;
+using VerticalEdge= ManhattanEdge<true>;
+using HorizontalEdge = ManhattanEdge<false>;
 
 inline bool isLeftEdge(const VerticalEdge& edge)
 { return edge.isDirect(); }
@@ -81,18 +174,49 @@ inline bool isLeftEdge(const VerticalEdge& edge)
 inline bool isRightEdge(const VerticalEdge& edge)
 { return !isLeftEdge(edge); }
 
+inline bool isTopToBottom(const VerticalEdge& edge)
+{
+  return isLeftEdge(edge);
+}
+
+inline bool isBottomToTop(const VerticalEdge& edge)
+{
+  return !isTopToBottom(edge);
+}
+
 inline bool isLeftToRight(const HorizontalEdge& edge)
-{ return edge.isDirect(); }
+{ return !edge.isDirect(); }
 
 inline bool isRightToLeft(const HorizontalEdge& edge)
 { return !isLeftToRight(edge); }
 
+template<bool vertical>
+int begin(const ManhattanEdge<vertical>& edge)
+{
+  return edge.isDirect() ? edge.interval().end() : edge.interval().begin();
+}
+
+template<bool vertical>
+int end(const ManhattanEdge<vertical>& edge)
+{
+  return edge.isDirect() ? edge.interval().begin() : edge.interval().end();
+}
+//inline int begin(const VerticalEdge& v) {
+//  return isLeftEdge(v) ? v.interval().end() : v.interval().begin();
+//}
+//
+//inline int end(const VerticalEdge& v) {
+//  return isLeftEdge(v) ? v.interval().begin() : v.interval().end();
+//}
+
+inline int top(const VerticalEdge& vi)
+{ return std::max(vi.interval().begin(), vi.interval().end()); }
+
+inline int bottom(const VerticalEdge& vi)
+{ return std::min(vi.interval().begin(), vi.interval().end()); }
+
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Polygon<T>& polygon);
-
-int top(const VerticalEdge& vi);
-
-int bottom(const VerticalEdge& vi);
 
 PolygonCollection<double> createContour(PolygonCollection<double>& polygons);
 
@@ -101,8 +225,6 @@ double signedArea(const Polygon<T>& polygon);
 
 template<typename T>
 bool isCounterClockwiseOriented(const Polygon<T>& polygon);
-
-bool areEqual(double a, double b);
 
 void sortVerticalEdges(std::vector<VerticalEdge>& edges);
 
@@ -147,11 +269,13 @@ bool isCounterClockwiseOriented(const Polygon<T>& polygon)
 {
   return signedArea(polygon) > 0.0;
 }
+
 template<bool vertical>
 std::vector<ManhattanEdge<vertical>> getEdges(const Polygon<int>& polygon)
 {
   /// Return the vertical edges of the input polygon
-  std::vector<ManhattanEdge<vertical>> edges;
+  std::vector<ManhattanEdge<vertical>>
+    edges;
   for (auto i = 0; i < polygon.size() - 1; ++i) {
     auto& current = polygon[i];
     auto& next = polygon[i + 1];
@@ -168,27 +292,29 @@ std::vector<ManhattanEdge<vertical>> getEdges(const Polygon<int>& polygon)
 template<bool vertical>
 std::vector<ManhattanEdge<vertical>> getEdges(const PolygonCollection<int>& polygons)
 {
-  std::vector<ManhattanEdge<vertical>> edges;
+  std::vector<ManhattanEdge<vertical>>
+    edges;
   for (const auto& p: polygons) {
     auto e = getEdges<vertical>(p);
-    edges.insert(edges.end(),e.begin(),e.end());
+    edges.insert(edges.end(), e.begin(), e.end());
   }
   return edges;
 }
 
-
 template<bool vertical>
-std::ostream& operator<<(std::ostream& os, const ManhattanEdge<vertical>& interval)
+std::ostream& operator<<(std::ostream& os, const ManhattanEdge<vertical>& edge)
 {
-  os << "abscissa: " << interval.coordinate() << " interval: [";
-  auto b = interval.interval().begin();
-  auto e = interval.interval().end();
-  if (interval.isDirect()) {
+  os << (vertical ? "abscissa: " : "ordinate: ");
+  os << edge.coordinate() << " interval: [";
+  auto b = edge.interval().begin();
+  auto e = edge.interval().end();
+  if (edge.isDirect()) {
     os << e << "," << b;
   } else {
     os << b << "," << e;
   }
   os << "]";
+  return os;
   return os;
 }
 
@@ -232,6 +358,27 @@ bool operator!=(const Vertex<T>& lhs, const Vertex<T>& rhs)
   return !(lhs == rhs);
 }
 
+PolygonCollection<double> fpPolygon(const PolygonCollection<int>& ipolygons, const std::vector<double>& xPositions,
+                                    const std::vector<double>& yPositions);
+
+Polygon<double> fpPolygon(const Polygon<int>& ipolygons, const std::vector<double>& xPositions,
+                          const std::vector<double>& yPositions);
+
+PolygonCollection<int>
+finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals);
+
+template<bool vertical>
+Vertex<int> beginVertex(const ManhattanEdge<vertical>& edge)
+{
+  return vertical ? Vertex<int> {edge.coordinate(), begin(edge)} : Vertex<int> {begin(edge), edge.coordinate()};
+
+}
+
+template<bool vertical>
+Vertex<int> endVertex(const ManhattanEdge<vertical>& edge)
+{
+  return vertical ? Vertex<int> {edge.coordinate(), end(edge)} : Vertex<int> {end(edge), edge.coordinate()};
+}
 
 }
 }

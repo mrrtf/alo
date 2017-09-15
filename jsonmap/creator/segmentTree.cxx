@@ -129,8 +129,6 @@ void Node::demote()
   potent(true);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 Node* createSegmentTree(std::vector<double> values) {
 
   if (values.size() < 2) { throw std::invalid_argument("must get at least two values"); }

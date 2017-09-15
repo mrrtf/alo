@@ -106,17 +106,138 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
   return contourVerticalEdges;
 }
 
+/**
+ * Generates horizontal edges from the vertical ones
+ * The horizontals are ordered relative to the verticals, i.e. the first horizontal
+ * should be the edge __following__ the first vertical, etc...
+ *
+ * @param verticals
+ * @return the horizontals, in the relevant order
+ */
 std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
 {
-  // TODO : implement me
-  return {};
+  std::vector<HorizontalEdge> horizontals(verticals.size());
+  typedef std::pair<Vertex<int>, int> VertexWithRef;
+  std::vector<VertexWithRef> vertices;
+
+  for (auto i = 0; i < verticals.size(); ++i) {
+    const VerticalEdge& edge = verticals[i];
+    vertices.push_back({{edge.coordinate(), edge.interval().end()}, i});
+    vertices.push_back({{edge.coordinate(), edge.interval().begin()}, i});
+  }
+
+  std::sort(vertices.begin(), vertices.end(), [](const VertexWithRef& v1, const VertexWithRef& v2) {
+    return v1.first < v2.first;
+  });
+
+  for (auto i = 0; i < vertices.size() / 2; ++i) {
+    auto& p1 = vertices[2 * i];
+    auto& p2 = vertices[2 * i + 1];
+    const VerticalEdge& refEdge = verticals[p1.second];
+    int e = p1.first.x;
+    int b = p2.first.x;
+    if ((p1.first.y == bottom(refEdge) && isLeftEdge(refEdge)) ||
+        (p1.first.y == top(refEdge) && isRightEdge(refEdge))) {
+      std::swap(b, e);
+    }
+    HorizontalEdge h{p1.first.y, b, e};
+    // which vertical edge is preceding this horizontal ?
+    int preceding = p1.second;
+    if (b > e) {
+      preceding = p2.second;
+    }
+    horizontals[preceding] = h;
+    //std::cout << std::setw(2) << horizontals.size() << " H=" << horizontals.back() << " after " << std::setw(2) << preceding << " V=" << verticals[preceding] << '\n';
+  }
+  return horizontals;
+}
+
+Polygon<double> fpPolygon(const Polygon<int>& ipolygon, const std::vector<double>& xPositions,
+                          const std::vector<double>& yPositions)
+{
+  PolygonCollection<int> c{ipolygon};
+  return fpPolygon(c, xPositions, yPositions)[0];
+}
+
+PolygonCollection<double> fpPolygon(const PolygonCollection<int>& ipolygons, const std::vector<double>& xPositions,
+                                    const std::vector<double>& yPositions)
+{
+  PolygonCollection<double> polygons;
+
+  for (const auto& ip: ipolygons) {
+    Polygon<double> p;
+    for (const auto& v: ip) {
+      p.push_back({xPositions[v.x], yPositions[v.y]});
+    }
+    polygons.push_back(p);
+  }
+  return polygons;
+}
+
+PolygonCollection<int>
+finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals)
+{
+  if (verticals.size() != horizontals.size()) {
+    throw std::invalid_argument("should get the same number of verticals and horizontals");
+  }
+
+  for (auto i = 0; i < verticals.size(); ++i) {
+    if (beginVertex(horizontals[i]) != endVertex(verticals[i])) {
+      throw std::invalid_argument("got an horizontal edge not connected to its (supposedly) preceding vertical edge");
+    }
+  }
+
+  PolygonCollection<int> contour;
+
+  for (auto i = 0; i < verticals.size(); ++i) {
+    std::cout << verticals[i] << " | " << horizontals[i] << '\n';
+  }
+
+  int ifirst{0};
+  int count{0};
+
+  while (ifirst < verticals.size()) {
+
+    ++count;
+
+    if ( count > 1000 ) {
+      throw std::runtime_error("too many iterations, most probably an infinite loop ?");
+    }
+
+    Polygon<int> polygon;
+
+    const Vertex<int>& first{beginVertex(verticals[ifirst])};
+
+    for (auto i = ifirst; i < verticals.size(); ++i) {
+
+      const VerticalEdge& v = verticals[i];
+      const HorizontalEdge& h = horizontals[i];
+
+      polygon.push_back(beginVertex(v));
+      polygon.push_back(endVertex(v));
+
+      if (endVertex(h)==first) {
+        ifirst = i+1;
+        break;
+      }
+    }
+
+    if (polygon.empty()) {
+      throw std::runtime_error("got an empty polygon");
+    }
+
+    std::cout << polygon << '\n';
+
+    contour.push_back(close(polygon));
+  }
+
+  return contour;
 }
 
 PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
 {
-  PolygonCollection<double> c;
   if (polygons.empty()) {
-    return c;
+    return {};
   }
   for (auto i = 0; i < polygons.size(); ++i) {
     if (!isCounterClockwiseOriented(polygons[i])) {
@@ -132,26 +253,25 @@ PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
   std::vector<double> xPositions;
   std::vector<double> yPositions;
 
-  PolygonCollection<int> ipolygons = integralPolygon(polygons, xPositions, yPositions);
+  PolygonCollection<int> ipolygons{integralPolygon(polygons, xPositions, yPositions)};
 
   std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(ipolygons)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
+  // Initialize the segment tree that is used by the sweep() function
   std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
 
   // Find the vertical edges of the merged contour. This is the meat of the algorithm...
   std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
+  // Deduce the horizontal edges from the vertical ones
   std::vector<HorizontalEdge> contourHorizontalEdges{verticalsToHorizontals(contourVerticalEdges)};
 
-//  contour = FinalizeContour(contourVerticalEdges,horizontals);
-//
-  // return fpPolygon(ipolygons,xPositions,yPositions);
+  PolygonCollection<int> icontour{finalizeContour(contourVerticalEdges, contourHorizontalEdges)};
 
-  return c;
+  return fpPolygon(icontour, xPositions, yPositions);
 }
-
 
 bool areEqual(double a, double b)
 {
@@ -165,20 +285,6 @@ void unique(std::vector<double>& v)
   auto last = std::unique(v.begin(), v.end(),
                           [](const double& a, const double& b) { return areEqual(a, b); });
   v.erase(last, v.end());
-}
-
-int top(const VerticalEdge& vi)
-{ return isLeftEdge(vi) ? vi.interval().begin() : vi.interval().end(); }
-
-int bottom(const VerticalEdge& vi)
-{ return isLeftEdge(vi) ? vi.interval().end() : vi.interval().begin(); }
-
-bool operator<(const Vertex<int>& v1, const Vertex<int>& v2)
-{
-  if (v1.y < v2.y) { return true; }
-  if (v1.y > v2.y) { return false; }
-  if (v1.x < v2.y) { return true; }
-  return false;
 }
 
 bool operator==(const Polygon<int>& lhs, const Polygon<int>& rhs)
