@@ -36,7 +36,6 @@
 
 using namespace o2::mch::geometry;
 
-
 struct POLYGONS
 {
     POLYGONS()
@@ -249,7 +248,10 @@ BOOST_AUTO_TEST_CASE(FinalizeContour)
 
   auto contour = finalizeContour(testVerticals, he);
 
-  PolygonCollection<int> expected{{{-1, -1}}};
+  PolygonCollection<int> expected{
+    {{0, 7}, {0, 1}, {1, 1}, {1, 0}, {3, 0}, {3, 1}, {5, 1}, {5, 0}, {6, 0}, {6, 7}, {0, 7}},
+    {{2, 5}, {2, 3}, {4, 3}, {4, 5}, {2, 5}}
+  };
 
   BOOST_TEST(contour == expected);
 }

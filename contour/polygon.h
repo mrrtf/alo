@@ -103,10 +103,32 @@ std::ostream& operator<<(std::ostream& os, const Polygon<T>& polygon)
 {
   os << "POLYGON(";
 
-  for (auto& v : polygon) {
-    os << "(" << v.x << " " << v.y << "),";
+  for (auto i = 0; i < polygon.size(); ++i) {
+    os << polygon[i].x << " " << polygon[i].y;
+    if ( i < polygon.size() - 1 ) {
+      os << ',';
+    }
   }
 
+  os << ')';
+  return os;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const PolygonCollection<T>& polygons)
+{
+  os << "MULTIPOLYGON(";
+
+  for (const auto& p: polygons) {
+    os << '(';
+    for (auto i = 0; i < p.size(); ++i) {
+      os << p[i].x << " " << p[i].y;
+      if ( i < p.size() - 1 ) {
+        os << ',';
+      }
+    }
+    os << ')';
+  }
   os << ')';
   return os;
 }

@@ -149,20 +149,9 @@ finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<Ho
 
   PolygonCollection<int> contour;
 
-  for (auto i = 0; i < verticals.size(); ++i) {
-    std::cout << verticals[i] << " | " << horizontals[i] << '\n';
-  }
-
   int ifirst{0};
-  int count{0};
 
   while (ifirst < verticals.size()) {
-
-    ++count;
-
-    if ( count > 1000 ) {
-      throw std::runtime_error("too many iterations, most probably an infinite loop ?");
-    }
 
     Polygon<int> polygon;
 
