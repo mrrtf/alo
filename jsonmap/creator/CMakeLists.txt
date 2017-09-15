@@ -11,6 +11,8 @@ set(SOURCE_FILES
         ddl2json.h
         de.cxx
         de2json.h
+        edge.h
+        interval.h
         json.h
         legacyseg2json.h
         motif.cxx
@@ -27,6 +29,8 @@ set(SOURCE_FILES
         pcb.h
         pcb2json.h
         pcbnumbers.cxx
+        polygon.cxx
+        polygon.h
         readmapping.cxx
         readmapping.h
         sector2json.h
@@ -34,7 +38,9 @@ set(SOURCE_FILES
         seg2json.h
         segmentTree.cxx
         segmentTree.h
-        slat2json.h)
+        slat2json.h
+        vertex.h
+        )
 add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)

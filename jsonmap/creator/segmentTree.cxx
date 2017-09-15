@@ -12,11 +12,12 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-#include <stdexcept>
-#include <algorithm>
 #include "segmentTree.h"
+
+#include "cantypefitvalue.h"
+#include <algorithm>
 #include <iostream>
+#include <stdexcept>
 
 namespace o2 {
 namespace mch {
@@ -37,11 +38,6 @@ Node::~Node()
 
 }
 
-bool Interval::isFullyContainedIn(Interval i) const
-{
-  // returns true if this node's interval is fully contained within interval [b,e]
-  return i.begin() <= mBegin && mEnd <= i.end();
-}
 
 void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
 {
@@ -129,8 +125,8 @@ void Node::demote()
   potent(true);
 }
 
-Node* createSegmentTree(std::vector<double> values) {
-
+Node* createSegmentTree(std::vector<double> values)
+{
   if (values.size() < 2) { throw std::invalid_argument("must get at least two values"); }
 
   std::sort(values.begin(), values.end());
@@ -148,34 +144,6 @@ Node* buildNode(Interval i)
   if (isElementary(i)) { return node; }
   node->setLeft(buildNode(leftPart(i))).setRight(buildNode(rightPart(i)));
   return node;
-}
-
-bool Interval::extend(const Interval& i)
-{
-  if (i.begin()==end())
-  {
-    mEnd = i.end();
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
-Interval leftPart(Interval i)
-{ return {i.begin(), i.midpoint()}; }
-
-Interval rightPart(Interval i)
-{ return {i.midpoint(), i.end()}; }
-
-bool isElementary(Interval i)
-{ return i.end() - i.begin() == 1; }
-
-std::ostream& operator<<(std::ostream& os, const Interval& i)
-{
-  os << "[" << i.begin() << "," << i.end() << "]";
-  return os;
 }
 
 bool isActive(const Node& node)

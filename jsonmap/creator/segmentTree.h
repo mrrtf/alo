@@ -13,63 +13,18 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_NODE_H
-#define O2_MCH_GEOMETRY_NODE_H
+#ifndef O2_MCH_GEOMETRY_SEGMENTTREE_H
+#define O2_MCH_GEOMETRY_SEGMENTTREE_H
 
 #include <vector>
 #include <ostream>
+
+#include "interval.h"
 
 namespace o2 {
 namespace mch {
 namespace geometry {
 
-template<typename T, typename U>
-bool CanTypeFitValue(const U value)
-{
-  const intmax_t botT = intmax_t(std::numeric_limits<T>::min());
-  const intmax_t botU = intmax_t(std::numeric_limits<U>::min());
-  const uintmax_t topT = uintmax_t(std::numeric_limits<T>::max());
-  const uintmax_t topU = uintmax_t(std::numeric_limits<U>::max());
-  return !((botT > botU && value < static_cast<U> (botT)) || (topT < topU && value > static_cast<U> (topT)));
-}
-
-class Interval
-{
-  public:
-
-    Interval(int b = {}, int e = {}) : mBegin(b), mEnd(e)
-    {
-      if (b >= e) { throw std::invalid_argument("begin should be strictly < end"); }
-    }
-
-    bool isFullyContainedIn(Interval i) const;
-
-    int begin() const
-    { return mBegin; }
-
-    int end() const
-    { return mEnd; }
-
-    int midpoint() const
-    { return (mBegin + mEnd) / 2; }
-
-    bool extend(const Interval& i);
-
-    bool operator==(const Interval& rhs) const
-    {
-      return mBegin == rhs.mBegin &&
-             mEnd == rhs.mEnd;
-    }
-
-    bool operator!=(const Interval& rhs) const
-    {
-      return !(rhs == *this);
-    }
-
-  private:
-    int mBegin;
-    int mEnd;
-};
 
 class Node
 {
@@ -146,14 +101,6 @@ Node* createSegmentTree(std::vector<double> values);
 Node* buildNode(Interval i);
 
 std::ostream& operator<<(std::ostream& os, const Node& node);
-
-std::ostream& operator<<(std::ostream& os, const Interval& i);
-
-Interval leftPart(Interval i);
-
-Interval rightPart(Interval i);
-
-bool isElementary(Interval i);
 
 bool isActive(const Node& node);
 

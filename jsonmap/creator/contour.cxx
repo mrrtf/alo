@@ -16,12 +16,7 @@
 #include "contour.h"
 #include "segmentTree.h"
 #include <stdexcept>
-#include <boost/geometry.hpp>
-#include <boost/geometry/algorithms/is_empty.hpp>
-#include <cmath>
 #include <iostream>
-
-namespace bg = boost::geometry;
 
 namespace o2 {
 namespace mch {
@@ -52,19 +47,6 @@ void sortVerticalEdges(std::vector<VerticalEdge>& edges)
       return false;
     }
   });
-}
-
-int findIndex(const std::vector<double>& vect, double y)
-{
-  auto result = std::find(vect.begin(), vect.end(), y);
-  if (result == vect.end()) {
-    throw std::out_of_range("unknown ordinate");
-  }
-  auto i = std::distance(vect.begin(), result);
-  if (CanTypeFitValue<int>(i)) {
-    return static_cast<int>(i);
-  }
-  throw std::range_error("Hum. Got an index not fitting in an int. That's highly suspicious for that algorithm !");
 }
 
 std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges)
@@ -150,28 +132,6 @@ std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdg
     //std::cout << std::setw(2) << horizontals.size() << " H=" << horizontals.back() << " after " << std::setw(2) << preceding << " V=" << verticals[preceding] << '\n';
   }
   return horizontals;
-}
-
-Polygon<double> fpPolygon(const Polygon<int>& ipolygon, const std::vector<double>& xPositions,
-                          const std::vector<double>& yPositions)
-{
-  PolygonCollection<int> c{ipolygon};
-  return fpPolygon(c, xPositions, yPositions)[0];
-}
-
-PolygonCollection<double> fpPolygon(const PolygonCollection<int>& ipolygons, const std::vector<double>& xPositions,
-                                    const std::vector<double>& yPositions)
-{
-  PolygonCollection<double> polygons;
-
-  for (const auto& ip: ipolygons) {
-    Polygon<double> p;
-    for (const auto& v: ip) {
-      p.push_back({xPositions[v.x], yPositions[v.y]});
-    }
-    polygons.push_back(p);
-  }
-  return polygons;
 }
 
 PolygonCollection<int>
@@ -271,84 +231,6 @@ PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
   PolygonCollection<int> icontour{finalizeContour(contourVerticalEdges, contourHorizontalEdges)};
 
   return fpPolygon(icontour, xPositions, yPositions);
-}
-
-bool areEqual(double a, double b)
-{
-  return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
-}
-
-void unique(std::vector<double>& v)
-{
-  // remove non-unique values from v
-  std::sort(v.begin(), v.end());
-  auto last = std::unique(v.begin(), v.end(),
-                          [](const double& a, const double& b) { return areEqual(a, b); });
-  v.erase(last, v.end());
-}
-
-bool operator==(const Polygon<int>& lhs, const Polygon<int>& rhs)
-{
-  if (lhs.size() != rhs.size()) {
-    return false;
-  }
-
-  if (isCounterClockwiseOriented(lhs) != isCounterClockwiseOriented(rhs)) {
-    return false;
-  }
-
-  auto l = lhs;
-  auto r = rhs;
-
-  std::sort(l.begin(), l.end());
-  std::sort(r.begin(), r.end());
-  return l == r;
-}
-
-bool operator!=(const Polygon<int>& lhs, const Polygon<int>& rhs)
-{
-  return !(rhs == lhs);
-
-}
-
-bool operator==(const Vertex<double>& lhs, const Vertex<double>& rhs)
-{
-  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
-}
-
-Polygon<int>
-integralPolygon(const Polygon<double>& polygon, std::vector<double>& xPositions, std::vector<double>& yPositions)
-{
-  PolygonCollection<double> c{polygon};
-  return integralPolygon(c, xPositions, yPositions)[0];
-}
-
-PolygonCollection<int>
-integralPolygon(const PolygonCollection<double>& polygons, std::vector<double>& xPositions,
-                std::vector<double>& yPositions)
-{
-  PolygonCollection<int> intPolygons;
-
-  for (const auto& p: polygons) {
-    for (const auto& v: p) {
-      xPositions.push_back(v.x);
-      yPositions.push_back(v.y);
-    }
-  }
-
-  unique(xPositions);
-  unique(yPositions);
-
-  for (const auto& p: polygons) {
-    Polygon<int> intPol;
-    for (auto& v: p) {
-      int x = findIndex(xPositions, v.x);
-      int y = findIndex(yPositions, v.y);
-      intPol.push_back({x, y});
-    }
-    intPolygons.push_back(intPol);
-  }
-  return intPolygons;
 }
 
 }
