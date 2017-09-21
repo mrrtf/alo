@@ -29,7 +29,7 @@ namespace contour {
 
 class Node;
 
-PolygonCollection<double> createContour(PolygonCollection<double>& polygons);
+PolygonCollection<double> createContour(const PolygonCollection<double>& polygons);
 
 void sortVerticalEdges(std::vector<VerticalEdge>& edges);
 
@@ -69,7 +69,7 @@ std::vector<ManhattanEdge<vertical>> getEdges(const PolygonCollection<int>& poly
 }
 
 PolygonCollection<int>
-finalizeContour(std::vector<VerticalEdge>& verticals, std::vector<HorizontalEdge>& horizontals);
+finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals);
 
 }
 }

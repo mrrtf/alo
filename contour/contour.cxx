@@ -125,7 +125,6 @@ verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
     const VerticalEdge& refEdge = verticals[p1.second];
     int e = p1.first.x;
     int b = p2.first.x;
-    assert(p1.first.y == p2.first.y);
     if ((p1.first.y == bottom(refEdge) && isLeftEdge(refEdge)) ||
         (p1.first.y == top(refEdge) && isRightEdge(refEdge))) {
       std::swap(b, e);
@@ -143,7 +142,7 @@ verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
 }
 
 PolygonCollection<int>
-finalizeContour(std::vector<VerticalEdge>& verticals, std::vector<HorizontalEdge>& horizontals)
+finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals)
 {
   if (verticals.size() != horizontals.size()) {
     throw std::invalid_argument("should get the same number of verticals and horizontals");
@@ -206,7 +205,7 @@ finalizeContour(std::vector<VerticalEdge>& verticals, std::vector<HorizontalEdge
   return contour;
 }
 
-PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
+PolygonCollection<double> createContour(const PolygonCollection<double>& polygons)
 {
   if (polygons.empty()) {
     return {};

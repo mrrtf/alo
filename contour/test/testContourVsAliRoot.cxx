@@ -122,6 +122,21 @@ PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId,
 
   PolygonCollection<double> pads;
 
+  auto xoffset = pos->GetPositionX() - seg->GetPositionX();
+  auto yoffset = pos->GetPositionY() - seg->GetPositionY();
+
+  if (motifType->IsFull()) {
+    auto dx = motif->DimensionX();
+    auto dy = motif->DimensionY();
+    pads.push_back({{xoffset - dx, yoffset - dy},
+                    {xoffset + dx, yoffset - dy},
+                    {xoffset + dx, yoffset + dy},
+                    {xoffset - dx, yoffset + dy},
+                    {xoffset - dx, yoffset - dy}});
+
+    return pads;
+  }
+
   for (Int_t i = 0; i <= 64; ++i) {
     AliMpConnection* connection = motifType->FindConnectionByGassiNum(i);
 
@@ -134,8 +149,8 @@ PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId,
       motif->GetPadDimensionsByIndices(ix, iy, dx, dy);
       motif->PadPositionLocal(ix, iy, x, y);
 
-      x += pos->GetPositionX() - seg->GetPositionX();
-      y += pos->GetPositionY() - seg->GetPositionY();
+      x += xoffset;
+      y += yoffset;
 
       Polygon<double> pad{
         {x - dx, y - dy},
@@ -173,72 +188,6 @@ BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
   BOOST_TEST(ypos == expected);
 }
 
-BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespectiveOfOrder)
-{
-  Polygon<double> a{
-    {0, 2},
-    {0, 0},
-    {2, 0},
-    {2, 4},
-    {1, 4},
-    {1, 2},
-    {0, 2}
-  };
-
-  Polygon<double> b{
-    {2, 4},
-    {2, 0},
-    {1, 4},
-    {1, 2},
-    {0, 2},
-    {0, 2},
-    {0, 0}
-  };
-
-  Polygon<double> c{
-    {2, 4},
-    {2, 0},
-    {1, 4},
-    {1, 2},
-    {0, 2},
-    {0, 2},
-    {1, 1}
-  };
-
-  BOOST_CHECK(a == b);
-  BOOST_CHECK(a != c);
-}
-
-BOOST_AUTO_TEST_CASE(PolygonCollectionAreEqualAsLongAsTheyContainTheSameSetOfVertices)
-{
-  PolygonCollection<double> aCollectionWithOnePolygon{
-    {
-      {0, 2},
-      {0, 0},
-      {2, 0},
-      {2, 4},
-      {1, 4},
-      {1, 2},
-      {0, 2}
-    }
-  };
-
-  PolygonCollection<double> anotherCollectionWithTwoPolygonsButSameVertices{
-    {
-      {2, 4},
-      {2, 0}
-    },
-    {
-      {1, 4},
-      {1, 2},
-      {0, 2},
-      {0, 2},
-      {0, 0}}
-  };
-
-  BOOST_CHECK(aCollectionWithOnePolygon == anotherCollectionWithTwoPolygonsButSameVertices);
-
-}
 
 BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 {
@@ -336,16 +285,65 @@ BOOST_AUTO_TEST_CASE(TwoDifferentContours)
   BOOST_TEST(c1.second != c2.second);
 }
 
-BOOST_AUTO_TEST_CASE(CreateAllAliRootContours)
+BOOST_AUTO_TEST_CASE(TimeCreationOfAllAliRootContours)
 {
+  auto start = std::chrono::high_resolution_clock::now();
+
   AliMpManuIterator it;
 
   int detElemId, manuId;
 
+  std::vector<PolygonCollection<double>> contours(16828);
+  int i{0};
   while (it.Next(detElemId, manuId)) {
-    auto c = createAliRootContour(detElemId,manuId);
-    BOOST_TEST(c.size()>0);
+    contours[i++] = createAliRootContour(detElemId, manuId);
   }
+
+  auto stop = std::chrono::high_resolution_clock::now();
+
+  auto t = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+
+  std::cout << "AliRoot: " << t << " ms to build " << contours.size() << " manu contours\n";
+
+  BOOST_CHECK(t < 5200);
+}
+
+BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
+{
+  auto start = std::chrono::high_resolution_clock::now();
+
+  AliMpManuIterator it;
+
+  int detElemId, manuId;
+
+  std::vector<PolygonCollection<double>> pads;
+
+  while (it.Next(detElemId, manuId)) {
+    pads.push_back(createManuPads(mseg, detElemId, manuId));
+  }
+
+  std::cout << "O2: " << std::chrono::duration_cast<std::chrono::milliseconds>(
+    std::chrono::high_resolution_clock::now() - start).count()
+            << " ms to build pads\n";
+
+  std::vector<PolygonCollection<double>> contours(16828);
+
+  start = std::chrono::high_resolution_clock::now();
+
+  it.Reset();
+  int i{0};
+  while (it.Next(detElemId, manuId)) {
+    contours[i] = createContour(pads[i]);
+    ++i;
+  }
+
+  auto stop = std::chrono::high_resolution_clock::now();
+
+  auto t = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+
+  std::cout << "O2: " << t << " ms to build " << contours.size() << " manu contours\n";
+
+  BOOST_CHECK(t < 5200);
 }
 
 BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
