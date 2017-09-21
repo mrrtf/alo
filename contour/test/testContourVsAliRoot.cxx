@@ -27,176 +27,96 @@
 /// @author  Laurent Aphecetche
 
 #define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/data/test_case.hpp>
-#include <chrono>
-#include <iostream>
+
 #include "AliMUONContour.h"
+#include "AliMUONContourMaker.h"
 #include "AliMUONManuContourMaker.h"
-#include "AliMpMotifPosition.h"
-#include "AliMpSegmentation.h"
-#include "AliMpSlat.h"
-#include "AliMpSlatSegmentation.h"
-#include "mapping.h"
-#include "motifPosition.h"
-#include "seg.h"
-#include "segnumbers.h"
-#include "AliMpMotifType.h"
-#include "AliMpConnection.h"
-#include "AliMpManuIterator.h"
-#include <vector>
-#include <AliMpManuIterator.h>
-#include <boost/format.hpp>
-#include <AliMpMotif.h>
 #include "AliMUONPolygon.h"
+#include "AliMUONSegment.h"
+#include "AliMpConnection.h"
+#include "AliMpDDLStore.h"
+#include "AliMpDataProcessor.h"
+#include "AliMpDataStreams.h"
+#include "AliMpManuIterator.h"
+#include "AliMpManuIterator.h"
+#include "AliMpMotif.h"
+#include "AliMpMotifPosition.h"
+#include "AliMpMotifType.h"
+#include "AliMpSegmentation.h"
+#include "AliMpVSegmentation.h"
 #include "contour.h"
-#include <boost/geometry/geometries/point_xy.hpp>
-#include <boost/geometry/geometries/polygon.hpp>
-#include <boost/geometry/geometries/multi_polygon.hpp>
-#include <boost/geometry/geometries/geometries.hpp>
-#include <boost/geometry/io/wkt/write.hpp>
-#include <boost/geometry/io/wkt/read.hpp>
-#include <boost/geometry/io/svg/write.hpp>
-#include <boost/geometry/algorithms/union.hpp>
-#include <fstream>
-#include <boost/geometry.hpp>
-#include <boost/geometry/algorithms/envelope.hpp>
-#include <boost/geometry/geometries/box.hpp>
 #include "svg.h"
-#include <boost/geometry/geometries/linestring.hpp>
-#include <AliMUONContourMaker.h>
 #include <TArrayD.h>
-#include <AliMUONSegment.h>
+#include <boost/format.hpp>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 constexpr int NLOOP = 1;
 
-using namespace o2::mch::geometry;
-namespace bg = boost::geometry;
-typedef boost::geometry::model::d2::point_xy<double> Point;
-typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
-typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
+using namespace o2::mch::contour;
 
-struct CONTOURS
+struct MAPPING
 {
-
-    CONTOURS()
+    MAPPING()
     {
-      std::vector<std::string> segnames = get_all_segmentation_names(m.ddlStore(), m.mseg());
-      std::vector<std::pair<std::vector<AliMpMotifPosition*>, std::vector<AliMpMotifPosition*>>> mp = get_motifpositions(
-        m.ddlStore(), m.mseg(), segnames);
-      for (auto& p:mp) {
-        for (auto& pos: p.first) {
-          motifPositions.push_back(pos);
-        }
-        for (auto& pos: p.second) {
-          motifPositions.push_back(pos);
-        }
+      if (!ddlStore) {
+        AliMpDataProcessor mp;
+        AliMpDataMap* dataMap = mp.CreateDataMap("data");
+        AliMpDataStreams dataStreams(dataMap);
+        ddlStore = AliMpDDLStore::ReadData(dataStreams);
+        mseg = AliMpSegmentation::Instance();
       }
     }
 
-    Mapping m;
-    std::vector<AliMpMotifPosition*> motifPositions;
+    static AliMpDDLStore* ddlStore;
+    static AliMpSegmentation* mseg;
 };
 
-struct POLYGONS
+AliMpDDLStore* MAPPING::ddlStore{nullptr};
+AliMpSegmentation* MAPPING::mseg{nullptr};
+
+Polygon<double> convert(const AliMUONPolygon& polygon)
 {
-    POLYGONS()
-    {
-      testPads.push_back({{{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}}});
-      testPads.push_back({{{1.0, 3.0}, {2.0, 3.0}, {2.0, 4.0}, {1.0, 4.0}, {1.0, 3.0}}});
-      testPads.push_back({{{1.0, 0.0}, {2.0, 0.0}, {2.0, 1.0}, {1.0, 1.0}, {1.0, 0.0}}});
-      testPads.push_back({{{0.0, 1.0}, {1.0, 1.0}, {1.0, 2.0}, {0.0, 2.0}, {0.0, 1.0}}});
-      testPads.push_back({{{1.0, 1.0}, {2.0, 1.0}, {2.0, 2.0}, {1.0, 2.0}, {1.0, 1.0}}});
-      testPads.push_back({{{1.0, 2.0}, {2.0, 2.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}}});
-    }
-
-    PolygonCollection<double> testPads;
-    Polygon<double> polygon;
-    Polygon<double> testPolygon{
-      {{0.1, 0.1}, {1.1, 0.1}, {1.1, 1.1}, {2.1, 1.1}, {2.1, 3.1}, {1.1, 3.1}, {1.1, 2.1}, {0.1, 2.1}, {0.1, 0.1}}};
-    Polygon<int> counterClockwisePolygon{{0, 0},
-                                         {1, 0},
-                                         {1, 1},
-                                         {0, 1},
-                                         {0, 0}};
-    Polygon<int> clockwisePolygon{{0, 0},
-                                  {0, 1},
-                                  {1, 1},
-                                  {1, 0},
-                                  {0, 0}};
-    Polygon<double> clockwisePolygonDouble{{0, 0},
-                                           {0, 1},
-                                           {1, 1},
-                                           {1, 0},
-                                           {0, 0}};
-    std::vector<VerticalEdge> testVerticals{{0, 7, 1},
-                                            {1, 1, 0},
-                                            {3, 0, 1},
-                                            {5, 1, 0},
-                                            {6, 0, 7},
-                                            {2, 5, 3},
-                                            {4, 3, 5}};
-
-};
-
-template<typename T>
-SimplePolygon convertToGGL(const Polygon<T>& polygon)
-{
-
-  SimplePolygon p;
-
-  for (auto&& v: polygon) {
-    bg::append(p.outer(), Point{v.x, v.y});
-  }
-
-  return p;
-}
-
-SimplePolygon convertToGGL(const AliMUONPolygon& polygon)
-{
-  SimplePolygon p;
+  Polygon<double> p;
 
   for (int i = 0; i < polygon.NumberOfVertices(); ++i) {
-    bg::append(p.outer(), Point{polygon.X(i), polygon.Y(i)});
+    p.push_back({polygon.X(i), polygon.Y(i)});
   }
 
   return p;
 }
 
-MultiPolygon convertToGGL(const TObjArray& polygons)
+PolygonCollection<double> convert(const TObjArray& polygons)
 {
   TIter next(&polygons);
   AliMUONPolygon* polygon;
 
-  MultiPolygon contourGGL;
-  contourGGL.resize(polygons.GetSize());
-  int i{0};
+  PolygonCollection<double> pc;
+
   while ((polygon = static_cast<AliMUONPolygon*>(next()))) {
     if (polygon->NumberOfVertices() > 2) {
-      contourGGL[i] = convertToGGL(*polygon);
+      pc.push_back(convert(*polygon));
     };
-    ++i;
   }
-  contourGGL.resize(i);
-  return contourGGL;
+  return pc;
 }
 
-
-MultiPolygon createManuContour(int detElemId, int manuId)
+PolygonCollection<double> createAliRootContour(int detElemId, int manuId)
 {
   AliMUONManuContourMaker contourMaker(nullptr);
   std::unique_ptr<AliMUONContour> contour(contourMaker.CreateManuContour(detElemId, manuId));
-
-  return convertToGGL(*(contour->Polygons()));
+  return convert(*(contour->Polygons()));
 }
 
 PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId, int manuId)
 {
   const AliMpVSegmentation* seg = mseg->GetMpSegmentationByElectronics(detElemId, manuId);
-  const AliMpSlat* slat = slat_from_seg(*seg);
-  assert(slat);
-  AliMpMotifPosition* pos = slat->FindMotifPosition(manuId);
+  AliMpMotifPosition* pos = seg->MotifPosition(manuId);
   AliMpVMotif* motif = pos->GetMotif();
   AliMpMotifType* motifType = motif->GetMotifType();
 
@@ -214,16 +134,16 @@ PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId,
       motif->GetPadDimensionsByIndices(ix, iy, dx, dy);
       motif->PadPositionLocal(ix, iy, x, y);
 
-//      x += pos->GetPositionX() - seg->GetPositionX();
-//      y += pos->GetPositionY() - seg->GetPositionY();
+      x += pos->GetPositionX() - seg->GetPositionX();
+      y += pos->GetPositionY() - seg->GetPositionY();
 
-      Polygon<double> pad{{
-                            {x - dx, y - dy},
-                            {x + dx, y - dy},
-                            {x + dx, y + dy},
-                            {x - dx, y + dy},
-                            {x - dx, y - dy}
-                          }};
+      Polygon<double> pad{
+        {x - dx, y - dy},
+        {x + dx, y - dy},
+        {x + dx, y + dy},
+        {x - dx, y + dy},
+        {x - dx, y - dy}
+      };
 
       pads.push_back(pad);
     }
@@ -231,14 +151,7 @@ PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId,
   return pads;
 }
 
-BOOST_AUTO_TEST_SUITE(aliroot_mch_contour)
-
-BOOST_FIXTURE_TEST_SUITE(contoursFromAliRoot, CONTOURS)
-
-BOOST_AUTO_TEST_CASE(NumberOfMotifPositionsIs2265)
-{
-  BOOST_CHECK_EQUAL(motifPositions.size(), 2265);
-}
+BOOST_FIXTURE_TEST_SUITE(aliroot_mch_contour, MAPPING)
 
 BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
 {
@@ -260,6 +173,73 @@ BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
   BOOST_TEST(ypos == expected);
 }
 
+BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespectiveOfOrder)
+{
+  Polygon<double> a{
+    {0, 2},
+    {0, 0},
+    {2, 0},
+    {2, 4},
+    {1, 4},
+    {1, 2},
+    {0, 2}
+  };
+
+  Polygon<double> b{
+    {2, 4},
+    {2, 0},
+    {1, 4},
+    {1, 2},
+    {0, 2},
+    {0, 2},
+    {0, 0}
+  };
+
+  Polygon<double> c{
+    {2, 4},
+    {2, 0},
+    {1, 4},
+    {1, 2},
+    {0, 2},
+    {0, 2},
+    {1, 1}
+  };
+
+  BOOST_CHECK(a == b);
+  BOOST_CHECK(a != c);
+}
+
+BOOST_AUTO_TEST_CASE(PolygonCollectionAreEqualAsLongAsTheyContainTheSameSetOfVertices)
+{
+  PolygonCollection<double> aCollectionWithOnePolygon{
+    {
+      {0, 2},
+      {0, 0},
+      {2, 0},
+      {2, 4},
+      {1, 4},
+      {1, 2},
+      {0, 2}
+    }
+  };
+
+  PolygonCollection<double> anotherCollectionWithTwoPolygonsButSameVertices{
+    {
+      {2, 4},
+      {2, 0}
+    },
+    {
+      {1, 4},
+      {1, 2},
+      {0, 2},
+      {0, 2},
+      {0, 0}}
+  };
+
+  BOOST_CHECK(aCollectionWithOnePolygon == anotherCollectionWithTwoPolygonsButSameVertices);
+
+}
+
 BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 {
   TObjArray pads(kTRUE);
@@ -271,21 +251,162 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
   pads.AddLast(new AliMUONPolygon(1.5, 2.5, 0.5, 0.5));
   pads.AddLast(new AliMUONPolygon(1.5, 3.5, 0.5, 0.5));
 
-  MultiPolygon p = convertToGGL(pads);
+  AliMUONContourMaker maker;
+
+  AliMUONContour* contour = maker.CreateContour(pads);
+
+  auto c = convert(*(contour->Polygons()));
+
+  PolygonCollection<double> expected{
+    {
+      {0, 2},
+      {0, 0},
+      {2, 0},
+      {2, 4},
+      {1, 4},
+      {1, 2},
+      {0, 2}
+    }
+  };
+  BOOST_CHECK(c == expected);
+}
+
+PolygonCollection<double> createO2Contour(AliMpSegmentation* mseg, int detElemId, int manuId)
+{
+  auto pads = createManuPads(mseg, detElemId, manuId);
+  return createContour(pads);
+}
+
+std::pair<PolygonCollection<double>, PolygonCollection<double>>
+createContours(AliMpSegmentation* mseg, int detElemId, int manuId)
+{
+  PolygonCollection<double> fromAliRoot = createAliRootContour(detElemId, manuId);
+  PolygonCollection<double> fromO2 = createO2Contour(mseg, detElemId, manuId);
+  return {fromAliRoot, fromO2};
+}
+
+bool areTheSame(const std::pair<PolygonCollection<double>, PolygonCollection<double>>& contours)
+{
+  if (contours.first == contours.second) {
+    return true;
+  } else {
+    std::cout << "FromAliRoot: " << contours.first.size() << "\n" << contours.first << '\n';
+    std::cout << "FromO2: " << contours.second.size() << "\n" << contours.second << '\n';
+    std::cout << '\n';
+    std::cout << getSortedVertices(contours.first).size() << " " << getSortedVertices(contours.first) << '\n';
+    std::cout << getSortedVertices(contours.second).size() << " " << getSortedVertices(contours.second) << '\n';
+    basicSVG("fromaliroot.svg", contours.first);
+    basicSVG("fromo2.svg", contours.second);
+    return false;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(ContourForMotifTypeE15IsDisjoint)
+{
+  BOOST_TEST(areTheSame(createContours(mseg, 1001, 408)));
+}
+
+BOOST_AUTO_TEST_CASE(SomeExamplesOfNormalContours)
+{
+  BOOST_TEST(areTheSame(createContours(mseg, 601, 7)));
+  BOOST_TEST(areTheSame(createContours(mseg, 505, 8)));
+  BOOST_TEST(areTheSame(createContours(mseg, 501, 407)));
+}
+
+BOOST_AUTO_TEST_CASE(DE716MANU1135)
+{
+  BOOST_TEST(areTheSame(createContours(mseg, 716, 1135)));
+}
+
+BOOST_AUTO_TEST_CASE(DE701MANU407VsAliRoot)
+{
+  BOOST_TEST(areTheSame(createContours(mseg, 701, 407)));
+}
+
+BOOST_AUTO_TEST_CASE(IsContourDE701MANU407CounterClockwiseOriented)
+{
+  auto contour = createO2Contour(mseg, 701, 407);
+  BOOST_TEST(isCounterClockwiseOriented(contour));
+}
+
+BOOST_AUTO_TEST_CASE(TwoDifferentContours)
+{
+  auto c1 = createContours(mseg, 601, 7);
+  auto c2 = createContours(mseg, 1001, 408);
+  BOOST_TEST(c1.second != c2.second);
+}
+
+BOOST_AUTO_TEST_CASE(CreateAllAliRootContours)
+{
+  AliMpManuIterator it;
+
+  int detElemId, manuId;
+
+  while (it.Next(detElemId, manuId)) {
+    auto c = createAliRootContour(detElemId,manuId);
+    BOOST_TEST(c.size()>0);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
+{
+  AliMpManuIterator it;
+  int detElemId, manuId;
+
+  try {
+    while (it.Next(detElemId, manuId)) {
+      BOOST_TEST_CHECK(areTheSame(createContours(mseg, detElemId, manuId)),
+                       " problem with de " << detElemId << " manu " << manuId);
+    }
+  }
+  catch (std::exception& err) {
+    std::cout << "problem with de " << detElemId << " manu " << manuId << '\n';
+    std::cout << err.what() << '\n';
+  }
+}
+
+BOOST_AUTO_TEST_CASE(CreateO2ContourWithOneCommonVertex)
+{
+  std::vector<Polygon<double>> input{
+    {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}},
+    {{0, 1}, {1, 1}, {1, 2}, {0, 2}, {0, 1}},
+    {{1, 2}, {2, 2}, {2, 3}, {1, 3}, {1, 2}},
+    {{1, 3}, {2, 3}, {2, 4}, {1, 4}, {1, 3}}
+  };
+
+  auto contour = createContour(input);
+
+  PolygonCollection<double> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
+
+  BOOST_CHECK(contour == expected);
+}
+
+BOOST_AUTO_TEST_CASE(CreateAliRootContourWithOneCommonVertex)
+{
+  TObjArray pads(kTRUE);
+
+  pads.AddLast(new AliMUONPolygon(0.5, 0.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(0.5, 1.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 2.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 3.5, 0.5, 0.5));
 
   AliMUONContourMaker maker;
 
   AliMUONContour* contour = maker.CreateContour(pads);
 
-  MultiPolygon c = convertToGGL(*(contour->Polygons()));
+  auto c = convert(*(contour->Polygons()));
 
+  PolygonCollection<double> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
 
-  MultiPolygon expected;
-  bg::read_wkt("MULTIPOLYGON(((0 2,0 0,2 0,2 4,1 4,1 2,0 2)))", expected);
-  BOOST_CHECK(bg::equals(c, expected));
+  BOOST_CHECK(c == expected);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 

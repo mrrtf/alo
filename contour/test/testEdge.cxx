@@ -33,7 +33,7 @@
 #include <iostream>
 #include "edge.h"
 
-using namespace o2::mch::geometry;
+using namespace o2::mch::contour;
 
 struct EDGES
 {

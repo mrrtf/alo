@@ -13,14 +13,14 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_CANTYPEFITVALUE_H
-#define O2_MCH_GEOMETRY_CANTYPEFITVALUE_H
+#ifndef O2_MCH_CONTOUR_CANTYPEFITVALUE_H
+#define O2_MCH_CONTOUR_CANTYPEFITVALUE_H
 
 #include <limits>
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 template<typename T, typename U>
 bool CanTypeFitValue(const U value)

@@ -13,8 +13,8 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_VERTEX_H
-#define O2_MCH_GEOMETRY_VERTEX_H
+#ifndef O2_MCH_CONTOUR_VERTEX_H
+#define O2_MCH_CONTOUR_VERTEX_H
 
 #include <utility>
 #include <vector>
@@ -23,7 +23,7 @@
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 inline bool areEqual(double a, double b)
 {

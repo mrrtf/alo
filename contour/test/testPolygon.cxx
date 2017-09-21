@@ -32,7 +32,7 @@
 #include <iostream>
 #include "polygon.h"
 
-using namespace o2::mch::geometry;
+using namespace o2::mch::contour;
 
 struct POLYGONS
 {
@@ -105,6 +105,16 @@ BOOST_AUTO_TEST_CASE(SignedArea)
   BOOST_CHECK_CLOSE(signedArea(testPolygon), 4.0, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE(AClosePolygonIsAPolygonWhereLastVertexIsTheSameAsFirstOne)
+{
+  Polygon<int> p{{0, 0},
+                 {0, 1},
+                 {1, 1},
+                 {1, 0},
+                 {0, 0}};
+  BOOST_CHECK(isClosed(p));
+}
+
 BOOST_AUTO_TEST_CASE(ClosingAClosedPolygonIsANop)
 {
   BOOST_CHECK(testPolygon == close(testPolygon));
@@ -122,7 +132,7 @@ BOOST_AUTO_TEST_CASE(ClosePolygon)
                         {0, 1},
                         {0, 0}};
   auto closed = close(opened);
-  BOOST_TEST(expected==closed);
+  BOOST_TEST(expected == closed);
 }
 
 BOOST_AUTO_TEST_CASE(ThrowIfClosingAPolygonResultInANonManhattanPolygon)

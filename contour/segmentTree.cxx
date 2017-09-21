@@ -21,7 +21,7 @@
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 Node::Node(Interval i) : mInterval(i),
                          mCardinality(0),

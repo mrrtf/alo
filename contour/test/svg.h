@@ -16,8 +16,48 @@
 #ifndef ALO_SVG_H
 #define ALO_SVG_H
 
+#include "polygon.h"
+#include <boost/format.hpp>
 #include <boost/geometry.hpp>
+#include <boost/geometry/algorithms/envelope.hpp>
+#include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
+#include <boost/geometry/geometries/linestring.hpp>
+#include <boost/geometry/geometries/multi_polygon.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/io/svg/write.hpp>
+#include <boost/geometry/io/wkt/read.hpp>
+#include <boost/geometry/io/wkt/write.hpp>
+#include <fstream>
+
+typedef boost::geometry::model::d2::point_xy<double> Point;
+typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
+typedef boost::geometry::model::multi_polygon<SimplePolygon> MultiPolygon;
+
+template<typename T>
+SimplePolygon convertToGGL(const o2::mch::contour::Polygon<T>& polygon)
+{
+  SimplePolygon p;
+
+  for (auto&& v: polygon) {
+    boost::geometry::append(p.outer(), Point{v.x, v.y});
+  }
+
+  return p;
+}
+
+template<typename T>
+MultiPolygon convertToGGL(const o2::mch::contour::PolygonCollection<T>& polygons)
+{
+  MultiPolygon contourGGL;
+  for ( const auto& p: polygons) {
+    if (p.size() > 2) {
+      contourGGL.push_back(convertToGGL(p));
+    };
+  }
+  return contourGGL;
+}
 
 template<typename T>
 void getBBOX(std::initializer_list<T> geom, double& xmin, double& ymin, double& xmax, double& ymax)
@@ -63,15 +103,22 @@ void outputToSVG(std::ostream& out, double strokeWidth, const char* strokeColor,
   }
 }
 
+
 template<typename T>
 void basicSVG(const char* filename, std::initializer_list<T> geom)
 {
   double xmin, ymin, xmax, ymax;
   getBBOX(geom, xmin, ymin, xmax, ymax);
-  double strokeWidth = 1E-2;
+  double strokeWidth = (xmax-xmin)/1E2;
   std::ofstream out = headerSVG(filename, geom);
   outputToSVG(out, strokeWidth, "blue", geom);
   out << "</svg>";
+}
+
+void basicSVG(const char* filename, const o2::mch::contour::PolygonCollection<double>& contour)
+{
+  auto c = convertToGGL(contour);
+  basicSVG(filename,{c});
 }
 
 #endif //ALO_SVG_H

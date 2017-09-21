@@ -13,15 +13,15 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_INTERVAL_H
-#define O2_MCH_GEOMETRY_INTERVAL_H
+#ifndef O2_MCH_CONTOUR_INTERVAL_H
+#define O2_MCH_CONTOUR_INTERVAL_H
 
 #include <vector>
 #include <ostream>
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 class Interval
 {
@@ -72,7 +72,6 @@ class Interval
     int mBegin;
     int mEnd;
 };
-
 
 inline Interval leftPart(Interval i)
 { return {i.begin(), i.midpoint()}; }

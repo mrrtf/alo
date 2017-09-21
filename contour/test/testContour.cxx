@@ -33,8 +33,11 @@
 #include <chrono>
 #include <iostream>
 #include "contour.h"
+#include "segmentTree.h"
+#include "segment.h"
+#include "svg.h"
 
-using namespace o2::mch::geometry;
+using namespace o2::mch::contour;
 
 struct POLYGONS
 {
@@ -231,6 +234,7 @@ BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfNumberOfVerticalsDifferFromNumberOfH
   std::vector<VerticalEdge> v{{0, 1, 0},
                               {1, 0, 1}};
   std::vector<HorizontalEdge> h{{0, 0, 1}};
+  std::vector<int> vorder{0, 1, 2};
   BOOST_CHECK_THROW(finalizeContour(v, h), std::invalid_argument);
 }
 
@@ -238,11 +242,12 @@ BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfEndOfVerticalsDoNotMatchBeginOfHoriz
 {
   std::vector<VerticalEdge> v{{0, 7, 1}};
   std::vector<HorizontalEdge> wrong{{1, 2, 3}};
+  std::vector<int> vorder{0, 1, 2};
 
   BOOST_CHECK_THROW(finalizeContour(v, wrong), std::invalid_argument);
 }
 
-BOOST_AUTO_TEST_CASE(FinalizeContour)
+BOOST_AUTO_TEST_CASE(FinalizeContourIEEEExample)
 {
   std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};
 
@@ -256,6 +261,90 @@ BOOST_AUTO_TEST_CASE(FinalizeContour)
   BOOST_TEST(contour == expected);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_CASE(FinalizeContourWithOneCommonVertex)
+{
+  std::vector<VerticalEdge> ve{
+    {0, 2, 0},
+    {1, 0, 2},
+    {1, 4, 2},
+    {2, 2, 4}
+  };
+
+  std::vector<HorizontalEdge> he{verticalsToHorizontals(ve)};
+
+  auto contour = finalizeContour(ve, he);
+
+  PolygonCollection<int> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
+
+  BOOST_TEST(contour == expected);
+}
+
+BOOST_AUTO_TEST_CASE(CreateContourWithOneCommonVertex)
+{
+  std::vector<Polygon<double>> input{
+    {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}},
+    {{0, 1}, {1, 1}, {1, 2}, {0, 2}, {0, 1}},
+    {{1, 2}, {2, 2}, {2, 3}, {1, 3}, {1, 2}},
+    {{1, 3}, {2, 3}, {2, 4}, {1, 4}, {1, 3}}
+  };
+
+  auto contour = createContour(input);
+
+  PolygonCollection<double> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
+
+  BOOST_CHECK(contour == expected);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
+BOOST_AUTO_TEST_SUITE_END()
+
+// TODO
+//
+//BOOST_AUTO_TEST_CASE(CreateContourWithTwoCommonVertices)
+//{
+//  PolygonCollection<double> pads{
+//    {{0, 4}, {1, 4}, {1, 5}, {0, 5}, {0, 4}},
+//    {{0, 5}, {1, 5}, {1, 6}, {0, 6}, {0, 5}},
+//    {{1, 2}, {2, 2}, {2, 3}, {1, 3}, {1, 2}},
+//    {{1, 3}, {2, 3}, {2, 4}, {1, 4}, {1, 3}},
+//    {{2, 0}, {3, 0}, {3, 1}, {2, 1}, {2, 0}},
+//    {{2, 1}, {3, 1}, {3, 2}, {2, 2}, {2, 1}}
+//  };
+//  auto contour = createContour(pads);
+//
+//  std::cout << contour << '\n';
+//
+//  basicSVG("pads.svg",pads);
+//  basicSVG("3.svg",contour);
+//}
+//
+//BOOST_AUTO_TEST_CASE(FinalizeContourWithTwoCommonVertices)
+//{
+//  std::vector<VerticalEdge> ve{{0, 3, 2},
+//                               {1, 2, 1},
+//                               {1, 2, 3},
+//                               {3, 1, 0},
+//                               {3, 1, 2},
+//                               {4, 0, 1}};
+//
+//  std::vector<HorizontalEdge> he{verticalsToHorizontals(ve)};
+//
+//  auto contour = finalizeContour(ve, he);
+//
+//  PolygonCollection<int> expected{
+//    {{0, 3}, {0, 2}, {1, 2}, {1, 3}, {0, 3}},
+//    {{3, 1}, {3, 2}, {1, 2}, {1, 1}, {3, 1}},
+//    {{3, 1}, {3, 0}, {4, 0}, {4, 1}, {3, 1}}
+//  };
+//
+//  std::cout << "contour=" << contour << '\n';
+//
+//  BOOST_TEST(contour == expected);
+//}

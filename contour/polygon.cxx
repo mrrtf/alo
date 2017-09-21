@@ -21,7 +21,7 @@
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 Polygon<double> fpPolygon(const Polygon<int>& ipolygon, const std::vector<double>& xPositions,
                           const std::vector<double>& yPositions)
@@ -45,38 +45,6 @@ PolygonCollection<double> fpPolygon(const PolygonCollection<int>& ipolygons, con
   return polygons;
 }
 
-bool operator==(const Polygon<int>& lhs, const Polygon<int>& rhs)
-{
-  if (lhs.size() != rhs.size()) {
-    return false;
-  }
-
-  if (isCounterClockwiseOriented(lhs) != isCounterClockwiseOriented(rhs)) {
-    return false;
-  }
-
-  auto l = lhs;
-  auto r = rhs;
-
-  std::sort(l.begin(), l.end());
-  std::sort(r.begin(), r.end());
-
-  for ( auto i = 0; i < l.size(); ++i )
-  {
-    if (l[i]!=r[i])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool operator!=(const Polygon<int>& lhs, const Polygon<int>& rhs)
-{
-  return !(rhs == lhs);
-
-}
-
 void unique(std::vector<double>& v)
 {
   // remove non-unique values from v
@@ -88,7 +56,9 @@ void unique(std::vector<double>& v)
 
 int findIndex(const std::vector<double>& vect, double y)
 {
-  auto result = std::find(vect.begin(), vect.end(), y);
+  auto result = std::find_if(vect.begin(), vect.end(), [y](double a) {
+    return areEqual(a, y);
+  });
   if (result == vect.end()) {
     throw std::out_of_range("unknown ordinate");
   }

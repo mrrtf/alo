@@ -13,8 +13,8 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_CONTOUR_H
-#define O2_MCH_GEOMETRY_CONTOUR_H
+#ifndef O2_MCH_CONTOUR_CONTOUR_H
+#define O2_MCH_CONTOUR_CONTOUR_H
 
 #include <utility>
 #include <vector>
@@ -22,12 +22,12 @@
 
 #include "edge.h"
 #include "polygon.h"
-#include "segmentTree.h"
-#include "vertex.h"
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
+
+class Node;
 
 PolygonCollection<double> createContour(PolygonCollection<double>& polygons);
 
@@ -69,22 +69,11 @@ std::vector<ManhattanEdge<vertical>> getEdges(const PolygonCollection<int>& poly
 }
 
 PolygonCollection<int>
-finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals);
-
-template<bool vertical>
-Vertex<int> beginVertex(const ManhattanEdge<vertical>& edge)
-{
-  return vertical ? Vertex<int> {edge.coordinate(), begin(edge)} : Vertex<int> {begin(edge), edge.coordinate()};
-}
-
-template<bool vertical>
-Vertex<int> endVertex(const ManhattanEdge<vertical>& edge)
-{
-  return vertical ? Vertex<int> {edge.coordinate(), end(edge)} : Vertex<int> {end(edge), edge.coordinate()};
-}
+finalizeContour(std::vector<VerticalEdge>& verticals, std::vector<HorizontalEdge>& horizontals);
 
 }
 }
 }
+
 
 #endif

@@ -14,13 +14,17 @@
 
 
 #include "contour.h"
+#include "edge.h"
+#include "segment.h"
 #include "segmentTree.h"
-#include <stdexcept>
+#include <cassert>
+#include <iomanip>
 #include <iostream>
+#include <stdexcept>
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 void sortVerticalEdges(std::vector<VerticalEdge>& edges)
 {
@@ -96,9 +100,12 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
  * @param verticals
  * @return the horizontals, in the relevant order
  */
-std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
+
+std::vector<HorizontalEdge>
+verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
 {
   std::vector<HorizontalEdge> horizontals(verticals.size());
+
   typedef std::pair<Vertex<int>, int> VertexWithRef;
   std::vector<VertexWithRef> vertices;
 
@@ -118,6 +125,7 @@ std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdg
     const VerticalEdge& refEdge = verticals[p1.second];
     int e = p1.first.x;
     int b = p2.first.x;
+    assert(p1.first.y == p2.first.y);
     if ((p1.first.y == bottom(refEdge) && isLeftEdge(refEdge)) ||
         (p1.first.y == top(refEdge) && isRightEdge(refEdge))) {
       std::swap(b, e);
@@ -125,17 +133,17 @@ std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdg
     HorizontalEdge h{p1.first.y, b, e};
     // which vertical edge is preceding this horizontal ?
     int preceding = p1.second;
+    int next = p2.second;
     if (b > e) {
-      preceding = p2.second;
+      std::swap(preceding, next);
     }
     horizontals[preceding] = h;
-    //std::cout << std::setw(2) << horizontals.size() << " H=" << horizontals.back() << " after " << std::setw(2) << preceding << " V=" << verticals[preceding] << '\n';
   }
   return horizontals;
 }
 
 PolygonCollection<int>
-finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals)
+finalizeContour(std::vector<VerticalEdge>& verticals, std::vector<HorizontalEdge>& horizontals)
 {
   if (verticals.size() != horizontals.size()) {
     throw std::invalid_argument("should get the same number of verticals and horizontals");
@@ -147,35 +155,52 @@ finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<Ho
     }
   }
 
+  std::vector<Segment> all;
+
+  for (auto i = 0; i < verticals.size(); ++i) {
+    all.push_back(Segment{verticals[i]});
+    all.push_back(Segment{horizontals[i]});
+  }
+
   PolygonCollection<int> contour;
 
-  int ifirst{0};
+  std::vector<bool> alreadyAdded(all.size(), false);
+  std::vector<int> inorder;
 
-  while (ifirst < verticals.size()) {
+  int nofUsed{0};
+  int iCurrent{0};
 
-    Polygon<int> polygon;
+  Segment startSegment{all[iCurrent]};
 
-    const Vertex<int>& first{beginVertex(verticals[ifirst])};
+  while (nofUsed < all.size()) {
 
-    for (auto i = ifirst; i < verticals.size(); ++i) {
+    const Segment& currentSegment{all[iCurrent]};
+    inorder.push_back(iCurrent);
+    alreadyAdded[iCurrent] = true;
+    ++nofUsed;
+    if (currentSegment.end() == startSegment.begin()) {
+      Polygon<int> polygon;
+      for (auto i: inorder) {
+        polygon.push_back(all[i].begin());
+      }
+      if (polygon.empty()) {
+        throw std::runtime_error("got an empty polygon");
+      }
+      contour.push_back(close(polygon));
+      iCurrent = std::distance(alreadyAdded.begin(), std::find_if(alreadyAdded.begin(), alreadyAdded.end(),
+                                                                  [](bool a) { return a == false; }));
+      startSegment = all[iCurrent];
+      inorder.clear();
+    }
 
-      const VerticalEdge& v = verticals[i];
-      const HorizontalEdge& h = horizontals[i];
-
-      polygon.push_back(beginVertex(v));
-      polygon.push_back(endVertex(v));
-
-      if (endVertex(h)==first) {
-        ifirst = i+1;
-        break;
+    for (auto i = 0; i < alreadyAdded.size(); ++i) {
+      if (i != iCurrent && alreadyAdded[i] == false) {
+        if (currentSegment.end() == all[i].begin()) {
+          iCurrent = i;
+          break;
+        }
       }
     }
-
-    if (polygon.empty()) {
-      throw std::runtime_error("got an empty polygon");
-    }
-
-    contour.push_back(close(polygon));
   }
 
   return contour;
@@ -186,10 +211,9 @@ PolygonCollection<double> createContour(PolygonCollection<double>& polygons)
   if (polygons.empty()) {
     return {};
   }
-  for (auto i = 0; i < polygons.size(); ++i) {
-    if (!isCounterClockwiseOriented(polygons[i])) {
-      throw std::invalid_argument("polygons should be oriented counterclockwise");
-    }
+
+  if (!isCounterClockwiseOriented(polygons)) {
+    throw std::invalid_argument("polygons should be oriented counterclockwise");
   }
 
   // trivial case : only one input polygon

@@ -30,30 +30,36 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
-#include "vertex.h"
+#include <iostream>
+#include "segment.h"
 
 using namespace o2::mch::contour;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
-BOOST_AUTO_TEST_SUITE(vertex)
 
-BOOST_AUTO_TEST_CASE(Vertical)
+BOOST_AUTO_TEST_SUITE(segment)
+
+BOOST_AUTO_TEST_CASE(ConstructSegmentFromVerticalEdge)
 {
-  Vertex<int> v1{12, 0};
-  Vertex<int> v2{12, 20};
-  BOOST_TEST(isVertical(v1, v2));
-  Vertex<int> v3{0, 0};
-  BOOST_TEST(isVertical(v1, v3) == false);
+  VerticalEdge edge{ 0, 1, 2 };
+
+  Segment s(edge);
+
+  BOOST_CHECK(s.begin()==Vertex<int>(0,1));
+  BOOST_CHECK(s.end()==Vertex<int>(0,2));
 }
 
-BOOST_AUTO_TEST_CASE(Horizontal)
+BOOST_AUTO_TEST_CASE(ConstructSegmentFromHorizontalEdge)
 {
-  Vertex<int> v1{0, 12};
-  Vertex<int> v2{20, 12};
-  BOOST_TEST(isHorizontal(v1, v2));
-  Vertex<int> v3{0, 0};
-  BOOST_TEST(isHorizontal(v1, v3) == false);
+  HorizontalEdge edge{ 0, 1, 2 };
+
+  Segment s(edge);
+
+  BOOST_CHECK(s.begin()==Vertex<int>(1,0));
+  BOOST_CHECK(s.end()==Vertex<int>(2,0));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
+
+

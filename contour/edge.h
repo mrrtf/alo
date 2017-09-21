@@ -13,18 +13,19 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_EDGE_H
-#define O2_MCH_GEOMETRY_EDGE_H
+#ifndef O2_MCH_CONTOUR_EDGE_H
+#define O2_MCH_CONTOUR_EDGE_H
 
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 #include "interval.h"
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 template<bool vertical>
 class ManhattanEdge
@@ -97,27 +98,32 @@ int end(const ManhattanEdge<vertical>& edge)
   return edge.isDirect() ? edge.interval().begin() : edge.interval().end();
 }
 
-inline int top(const VerticalEdge& vi)
-{ return std::max(vi.interval().begin(), vi.interval().end()); }
+inline int top(const VerticalEdge& edge)
+{ return std::max(edge.interval().begin(), edge.interval().end()); }
 
-inline int bottom(const VerticalEdge& vi)
-{ return std::min(vi.interval().begin(), vi.interval().end()); }
-
+inline int bottom(const VerticalEdge& edge)
+{ return std::min(edge.interval().begin(), edge.interval().end()); }
 
 template<bool vertical>
-std::ostream& operator<<(std::ostream& os, const ManhattanEdge<vertical>& edge)
+void outputXY(std::ostream& os, const ManhattanEdge<vertical>& edge) {
+  os << std::setw(3) << edge.coordinate() << " interval: [";
+  os << std::setw(3) << begin(edge) << "," << std::setw(3) << end(edge);
+  os << "] ";
+}
+
+inline std::ostream& operator<<(std::ostream& os, const VerticalEdge& edge)
 {
-  os << (vertical ? "abscissa: " : "ordinate: ");
-  os << edge.coordinate() << " interval: [";
-  auto b = edge.interval().begin();
-  auto e = edge.interval().end();
-  if (edge.isDirect()) {
-    os << e << "," << b;
-  } else {
-    os << b << "," << e;
-  }
-  os << "]";
+  os << "abscissa: ";
+  outputXY(os,edge);
+  os << (isTopToBottom(edge) ? 'v' : '^');
   return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const HorizontalEdge& edge)
+{
+  os << "ordinate: ";
+  outputXY(os,edge);
+  os << (isLeftToRight(edge) ? "->-" : "-<-");
   return os;
 }
 

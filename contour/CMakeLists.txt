@@ -1,5 +1,17 @@
 
-add_library(contour STATIC contour.h contour.cxx edge.h interval.h polygon.cxx polygon.h segmentTree.h segmentTree.cxx vertex.h)
+add_library(contour STATIC
+        cantypefitvalue.h
+        contour.cxx
+        contour.h
+        edge.h
+        interval.h
+        polygon.cxx
+        polygon.h
+        segment.h
+        segmentTree.cxx
+        segmentTree.h
+        vertex.h
+        )
 
 add_subdirectory(test)
 

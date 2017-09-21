@@ -13,8 +13,8 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_GEOMETRY_SEGMENTTREE_H
-#define O2_MCH_GEOMETRY_SEGMENTTREE_H
+#ifndef O2_MCH_CONTOUR_SEGMENTTREE_H
+#define O2_MCH_CONTOUR_SEGMENTTREE_H
 
 #include <vector>
 #include <ostream>
@@ -23,7 +23,7 @@
 
 namespace o2 {
 namespace mch {
-namespace geometry {
+namespace contour {
 
 
 class Node

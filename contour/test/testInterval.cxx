@@ -34,7 +34,7 @@
 #include <iostream>
 #include "interval.h"
 
-using namespace o2::mch::geometry;
+using namespace o2::mch::contour;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
 
