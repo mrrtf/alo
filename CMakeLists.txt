@@ -37,6 +37,7 @@ add_subdirectory(r23)
 add_subdirectory(binmap)
 endif()
 
+add_subdirectory(contour)
 add_subdirectory(genmap)
 
 find_package(Boost COMPONENTS REQUIRED unit_test_framework)

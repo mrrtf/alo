@@ -144,35 +144,34 @@ bool isPositionWithinPadArea(const AliMpPad& pad, float x, float y)
          && pad.GetPositionY() - pad.GetDimensionY() < y && pad.GetPositionY() + pad.GetDimensionY() > y;
 }
 
-BOOST_TEST_DECORATOR(*boost::unit_test::enabled())
-
-BOOST_AUTO_TEST_CASE(PrintAllPadPositions)
-{
-  for (int s = 0; s < 2; ++s) {
-    AliMpVSegmentation* segmentation = b_segs()[s];
-    TArrayI manuId;
-    segmentation->GetAllElectronicCardIDs(manuId);
-    for (int i = 0; i < manuId.GetSize(); ++i) {
-      //if (manuId[i] != 89 && manuId[i] != 115) { continue; }
-      AliMpMotifPosition* mp = segmentation->MotifPosition(manuId[i]);
-      std::unique_ptr<AliMpVPadIterator> it{mp->CreateIterator()};
-      it->First();
-      while (!it->IsDone()) {
-        AliMpPad pad = it->CurrentItem();
-        it->Next();
-        std::cout << boost::format("PAD MANU %4d CH %2d X %7.3f Y %7.3f DX %5.3f DY %5.3f") % pad.GetManuId()
-                     % pad.GetManuChannel() % pad.GetPositionX() % pad.GetPositionY() % pad.GetDimensionX() %
-                     pad.GetDimensionY();
-        if (isPositionWithinPadArea(pad, 40.0, 30.0)) {
-          std::cout << " xxx";
-        }
-        std::cout << std::endl;
-        break;
-      }
-    }
-  }
-  BOOST_TEST(true);
-}
+//BOOST_TEST_DECORATOR(*boost::unit_test::disabled())
+//BOOST_AUTO_TEST_CASE(PrintAllPadPositions)
+//{
+//  for (int s = 0; s < 2; ++s) {
+//    AliMpVSegmentation* segmentation = b_segs()[s];
+//    TArrayI manuId;
+//    segmentation->GetAllElectronicCardIDs(manuId);
+//    for (int i = 0; i < manuId.GetSize(); ++i) {
+//      //if (manuId[i] != 89 && manuId[i] != 115) { continue; }
+//      AliMpMotifPosition* mp = segmentation->MotifPosition(manuId[i]);
+//      std::unique_ptr<AliMpVPadIterator> it{mp->CreateIterator()};
+//      it->First();
+//      while (!it->IsDone()) {
+//        AliMpPad pad = it->CurrentItem();
+//        it->Next();
+//        std::cout << boost::format("PAD MANU %4d CH %2d X %7.3f Y %7.3f DX %5.3f DY %5.3f") % pad.GetManuId()
+//                     % pad.GetManuChannel() % pad.GetPositionX() % pad.GetPositionY() % pad.GetDimensionX() %
+//                     pad.GetDimensionY();
+//        if (isPositionWithinPadArea(pad, 40.0, 30.0)) {
+//          std::cout << " xxx";
+//        }
+//        std::cout << std::endl;
+//        break;
+//      }
+//    }
+//  }
+//  BOOST_TEST(true);
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
