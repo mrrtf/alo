@@ -144,6 +144,88 @@ BOOST_AUTO_TEST_CASE(ThrowIfClosingAPolygonResultInANonManhattanPolygon)
   BOOST_CHECK_THROW(close(triangle), std::logic_error);
 }
 
+BOOST_AUTO_TEST_CASE(AnOpenedPolygonCannotBeEqualToAClosedOneEvenWithSameSetOfVertices)
+{
+  Polygon<double> opened{
+    {0, 2},
+    {0, 0},
+    {2, 0},
+    {2, 4},
+    {1, 4},
+    {1, 2},
+  };
+
+  auto closed{close(opened)};
+
+  BOOST_CHECK(closed != opened);
+}
+
+BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespectiveOfOrder)
+{
+  Polygon<double> a{
+    {0, 2},
+    {0, 0},
+    {2, 0},
+    {2, 4},
+    {1, 4},
+    {1, 2},
+    {0, 2}
+  };
+
+  Polygon<double> b{
+    {2, 4},
+    {2, 0},
+    {1, 4},
+    {1, 2},
+    {0, 2},
+    {0, 0},
+    {2, 4}
+  };
+
+  Polygon<double> c{
+    {2, 4},
+    {2, 0},
+    {1, 4},
+    {1, 2},
+    {0, 2},
+    {1, 1}
+  };
+
+  BOOST_CHECK(a == b);
+  BOOST_CHECK(a != c);
+}
+
+BOOST_AUTO_TEST_CASE(PolygonCollectionAreEqualAsLongAsTheyContainTheSameSetOfVertices)
+{
+  PolygonCollection<double> aCollectionWithOnePolygon{
+    {
+      {0, 2},
+      {0, 0},
+      {2, 0},
+      {2, 4},
+      {1, 4},
+      {1, 2},
+      {0, 2}
+    }
+  };
+
+  PolygonCollection<double> anotherCollectionWithTwoPolygonsButSameVertices{
+    {
+      {2, 4},
+      {2, 0}
+    },
+    {
+      {1, 4},
+      {1, 2},
+      {0, 2},
+      {0, 0}
+    }
+
+  };
+
+  BOOST_CHECK(aCollectionWithOnePolygon == anotherCollectionWithTwoPolygonsButSameVertices);
+
+}
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

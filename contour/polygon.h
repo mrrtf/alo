@@ -93,31 +93,6 @@ PolygonCollection<int>
 integralPolygon(const PolygonCollection<double>& polygons, std::vector<double>& xPositions,
                 std::vector<double>& yPositions);
 
-/**
- * Two polygons are considered equal if they include the same set of vertices,
- * irrespective of orientation
- */
-template<typename T>
-bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
-{
-  if (lhs.size() != rhs.size()) {
-    return false;
-  }
-
-  auto l = lhs;
-  auto r = rhs;
-
-  std::sort(l.begin(), l.end());
-  std::sort(r.begin(), r.end());
-
-  for (auto i = 0; i < lhs.size(); ++i) {
-    if (l[i] != r[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 template<typename T>
 bool operator!=(const Polygon<T>& lhs, const Polygon<T>& rhs)
 {
@@ -130,7 +105,7 @@ std::vector<Vertex<T> > getVertices(const PolygonCollection<T>& polygons)
   std::vector<Vertex<T> > vertices;
 
   for (auto i = 0; i < polygons.size(); ++i) {
-    vertices.insert(vertices.end(), polygons[i].begin(), polygons[i].end());
+    vertices.insert(vertices.end(), polygons[i].begin(), isClosed(polygons[i]) ? polygons[i].end()-1 : polygons[i].end());
   }
 
   return vertices;
@@ -142,6 +117,40 @@ std::vector<Vertex<T> > getSortedVertices(const PolygonCollection<T>& polygons)
   std::vector<Vertex<T> > vertices{getVertices(polygons)};
   std::sort(vertices.begin(), vertices.end());
   return vertices;
+}
+
+template<typename T>
+std::vector<Vertex<T> > getSortedVertices(const Polygon<T>& polygon)
+{
+  std::vector<Vertex<T> > vertices{polygon.begin(),isClosed(polygon) ? polygon.end()-1 : polygon.end()};
+  std::sort(vertices.begin(), vertices.end());
+  return vertices;
+}
+
+/**
+ * Two polygons are considered equal if they include the same set of vertices,
+ * irrespective of orientation.
+ */
+template<typename T>
+bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
+{
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+
+  auto l = getSortedVertices(lhs);
+  auto r = getSortedVertices(rhs);
+
+  if (l.size() != r.size()) {
+    return false;
+  }
+
+  for (auto i = 0; i < l.size(); ++i) {
+    if (l[i] != r[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
