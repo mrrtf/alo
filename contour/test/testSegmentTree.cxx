@@ -41,8 +41,8 @@ struct YPOS
     YPOS()
     {
 
-      Node* left = new Node{Interval{0, 4}};
-      Node* right = new Node{Interval{4, 8}};
+      Node* left = new Node{Interval<int>{0, 4}};
+      Node* right = new Node{Interval<int>{4, 8}};
 
       testNode.setLeft(left).setRight(right);
 
@@ -52,8 +52,8 @@ struct YPOS
     }
 
     std::vector<double> ypos{0, 1, 2, 3, 4, 5, 6, 7, 8};
-    Node node{Interval{0, 8}};
-    Node testNode{Interval{0, 8}};
+    Node node{Interval<int>{0, 8}};
+    Node testNode{Interval<int>{0, 8}};
     int dummyCardinality{3};
 
 };
@@ -71,9 +71,9 @@ BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
 {
   std::unique_ptr<Node> t{createSegmentTree(ypos)};
 
-  t->insertInterval(Interval{1, 5});
-  t->insertInterval(Interval{5, 8});
-  t->deleteInterval(Interval{6, 7});
+  t->insertInterval(Interval<int>{1, 5});
+  t->insertInterval(Interval<int>{5, 8});
+  t->deleteInterval(Interval<int>{6, 7});
 
   std::ostringstream os;
 

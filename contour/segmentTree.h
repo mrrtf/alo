@@ -31,7 +31,7 @@ class Node
   public:
     Node() = delete;
 
-    explicit Node(Interval i);
+    explicit Node(Interval<int> i);
 
     ~Node();
 
@@ -59,12 +59,12 @@ class Node
       return *this;
     }
 
-    Interval interval() const
+    Interval<int> interval() const
     { return mInterval; }
 
-    void insertInterval(Interval i);
+    void insertInterval(Interval<int> i);
 
-    void deleteInterval(Interval i);
+    void deleteInterval(Interval<int> i);
 
     Node& setLeft(Node* left)
     {
@@ -78,7 +78,7 @@ class Node
       return *this;
     }
 
-    void contribution(Interval i, std::vector<Interval>& edgeStack);
+    void contribution(Interval<int> i, std::vector<Interval<int>>& edgeStack);
 
     void update();
 
@@ -91,14 +91,14 @@ class Node
     Node* mLeftChild;
     Node* mRightChild;
 
-    Interval mInterval;
+    Interval<int> mInterval;
     int mCardinality; // cardinality
     bool mIsPotent; // potent state
 };
 
 Node* createSegmentTree(std::vector<double> values);
 
-Node* buildNode(Interval i);
+Node* buildNode(Interval<int> i);
 
 std::ostream& operator<<(std::ostream& os, const Node& node);
 

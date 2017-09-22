@@ -42,7 +42,7 @@ class ManhattanEdge
     int coordinate() const
     { return mCoordinate; }
 
-    Interval interval() const
+    Interval<int> interval() const
     { return mInterval; }
 
     bool isDirect() const
@@ -56,7 +56,7 @@ class ManhattanEdge
 
   private:
     int mCoordinate;
-    Interval mInterval;
+    Interval<int> mInterval;
     bool mIsDirect;
 
 };

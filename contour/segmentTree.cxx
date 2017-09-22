@@ -23,7 +23,7 @@ namespace o2 {
 namespace mch {
 namespace contour {
 
-Node::Node(Interval i) : mInterval(i),
+Node::Node(Interval<int> i) : mInterval(i),
                          mCardinality(0),
                          mIsPotent(false),
                          mLeftChild(nullptr),
@@ -39,7 +39,7 @@ Node::~Node()
 }
 
 
-void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
+void Node::contribution(Interval<int> i, std::vector<Interval<int>>& edgeStack)
 {
   /// Contribution of an edge (b,e) to the final contour
   if (cardinality()) {
@@ -49,7 +49,7 @@ void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
     if (edgeStack.empty()) {
       edgeStack.push_back(mInterval);
     } else {
-      Interval& back = edgeStack.back();
+      auto& back = edgeStack.back();
       if (!back.extend(mInterval)) {
         // add a new segment if it can not be merged with current one
         edgeStack.push_back(mInterval);
@@ -65,7 +65,7 @@ void Node::contribution(Interval i, std::vector<Interval>& edgeStack)
   }
 }
 
-void Node::insertInterval(Interval i)
+void Node::insertInterval(Interval<int> i)
 {
   if (mInterval.isFullyContainedIn(i)) {
     ++mCardinality;
@@ -80,7 +80,7 @@ void Node::insertInterval(Interval i)
   update();
 }
 
-void Node::deleteInterval(Interval i)
+void Node::deleteInterval(Interval<int> i)
 {
   if (mInterval.isFullyContainedIn(i)) {
     --mCardinality;
@@ -135,10 +135,10 @@ Node* createSegmentTree(std::vector<double> values)
     throw std::runtime_error("too many values");
   }
 
-  return buildNode(Interval{0, static_cast<int>(values.size() - 1)});
+  return buildNode(Interval<int>{0, static_cast<int>(values.size() - 1)});
 }
 
-Node* buildNode(Interval i)
+Node* buildNode(Interval<int> i)
 {
   auto* node = new Node(i);
   if (isElementary(i)) { return node; }

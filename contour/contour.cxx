@@ -57,7 +57,7 @@ std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdg
 {
   std::vector<VerticalEdge> contourVerticalEdges;
 
-  std::vector<Interval> edgeStack;
+  std::vector<Interval<int>> edgeStack;
 
   for (auto i = 0; i < polygonVerticalEdges.size(); ++i) {
 

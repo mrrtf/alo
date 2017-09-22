@@ -16,22 +16,12 @@
 #ifndef O2_MCH_CONTOUR_VERTEX_H
 #define O2_MCH_CONTOUR_VERTEX_H
 
-#include <utility>
-#include <vector>
 #include <iostream>
-#include <cmath>
+#include "helper.h"
 
 namespace o2 {
 namespace mch {
 namespace contour {
-
-inline bool areEqual(double a, double b)
-{
-  return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
-}
-
-inline bool areEqual(int a, int b)
-{ return a == b; }
 
 template<typename T>
 struct Vertex

@@ -11,7 +11,7 @@ add_library(contour STATIC
         segmentTree.cxx
         segmentTree.h
         vertex.h
-        )
+        helper.h)
 
 add_subdirectory(test)
 
