@@ -285,6 +285,69 @@ BOOST_AUTO_TEST_CASE(TwoDifferentContours)
   BOOST_TEST(c1.second != c2.second);
 }
 
+
+
+BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
+{
+  AliMpManuIterator it;
+  int detElemId, manuId;
+
+  try {
+    while (it.Next(detElemId, manuId)) {
+      BOOST_TEST_CHECK(areTheSame(createContours(mseg, detElemId, manuId)),
+                       " problem with de " << detElemId << " manu " << manuId);
+    }
+  }
+  catch (std::exception& err) {
+    std::cout << "problem with de " << detElemId << " manu " << manuId << '\n';
+    std::cout << err.what() << '\n';
+  }
+}
+
+BOOST_AUTO_TEST_CASE(CreateO2ContourWithOneCommonVertex)
+{
+  std::vector<Polygon<double>> input{
+    {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}},
+    {{0, 1}, {1, 1}, {1, 2}, {0, 2}, {0, 1}},
+    {{1, 2}, {2, 2}, {2, 3}, {1, 3}, {1, 2}},
+    {{1, 3}, {2, 3}, {2, 4}, {1, 4}, {1, 3}}
+  };
+
+  auto contour = createContour(input);
+
+  PolygonCollection<double> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
+
+  BOOST_CHECK(contour == expected);
+}
+
+BOOST_AUTO_TEST_CASE(CreateAliRootContourWithOneCommonVertex)
+{
+  TObjArray pads(kTRUE);
+
+  pads.AddLast(new AliMUONPolygon(0.5, 0.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(0.5, 1.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 2.5, 0.5, 0.5));
+  pads.AddLast(new AliMUONPolygon(1.5, 3.5, 0.5, 0.5));
+
+  AliMUONContourMaker maker;
+
+  AliMUONContour* contour = maker.CreateContour(pads);
+
+  auto c = convert(*(contour->Polygons()));
+
+  PolygonCollection<double> expected{
+    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
+    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
+  };
+
+  BOOST_CHECK(c == expected);
+}
+
+BOOST_AUTO_TEST_SUITE(TimeContourCreation, *boost::unit_test::disabled())
+
 BOOST_AUTO_TEST_CASE(TimeCreationOfAllAliRootContours)
 {
   auto start = std::chrono::high_resolution_clock::now();
@@ -346,65 +409,7 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
   BOOST_CHECK(t < 5200);
 }
 
-BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
-{
-  AliMpManuIterator it;
-  int detElemId, manuId;
-
-  try {
-    while (it.Next(detElemId, manuId)) {
-      BOOST_TEST_CHECK(areTheSame(createContours(mseg, detElemId, manuId)),
-                       " problem with de " << detElemId << " manu " << manuId);
-    }
-  }
-  catch (std::exception& err) {
-    std::cout << "problem with de " << detElemId << " manu " << manuId << '\n';
-    std::cout << err.what() << '\n';
-  }
-}
-
-BOOST_AUTO_TEST_CASE(CreateO2ContourWithOneCommonVertex)
-{
-  std::vector<Polygon<double>> input{
-    {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0, 0}},
-    {{0, 1}, {1, 1}, {1, 2}, {0, 2}, {0, 1}},
-    {{1, 2}, {2, 2}, {2, 3}, {1, 3}, {1, 2}},
-    {{1, 3}, {2, 3}, {2, 4}, {1, 4}, {1, 3}}
-  };
-
-  auto contour = createContour(input);
-
-  PolygonCollection<double> expected{
-    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
-    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
-  };
-
-  BOOST_CHECK(contour == expected);
-}
-
-BOOST_AUTO_TEST_CASE(CreateAliRootContourWithOneCommonVertex)
-{
-  TObjArray pads(kTRUE);
-
-  pads.AddLast(new AliMUONPolygon(0.5, 0.5, 0.5, 0.5));
-  pads.AddLast(new AliMUONPolygon(0.5, 1.5, 0.5, 0.5));
-  pads.AddLast(new AliMUONPolygon(1.5, 2.5, 0.5, 0.5));
-  pads.AddLast(new AliMUONPolygon(1.5, 3.5, 0.5, 0.5));
-
-  AliMUONContourMaker maker;
-
-  AliMUONContour* contour = maker.CreateContour(pads);
-
-  auto c = convert(*(contour->Polygons()));
-
-  PolygonCollection<double> expected{
-    {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
-    {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
-  };
-
-  BOOST_CHECK(c == expected);
-}
-
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
 
