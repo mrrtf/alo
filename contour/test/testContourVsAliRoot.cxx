@@ -168,27 +168,6 @@ PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId,
 
 BOOST_FIXTURE_TEST_SUITE(aliroot_mch_contour, MAPPING)
 
-BOOST_AUTO_TEST_CASE(AliRootGetYPositions)
-{
-  AliMUONContourMaker maker;
-
-  TObjArray polygonVerticalEdges(kTRUE);
-  TArrayD yPositions;
-
-  polygonVerticalEdges.AddLast(new AliMUONSegment(0, 2, 0, 3));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(1, 2, 1, 3));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(2, 2, 2, 4));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(3, 2, 3, 4));
-  polygonVerticalEdges.AddLast(new AliMUONSegment(3, 5, 3, 6));
-
-  maker.GetYPositions(polygonVerticalEdges, yPositions);
-
-  std::vector<double> ypos{yPositions.GetArray(), yPositions.GetArray() + yPositions.GetSize()};
-  const std::vector<double> expected{2, 3, 4, 5, 6};
-  BOOST_TEST(ypos == expected);
-}
-
-
 BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 {
   TObjArray pads(kTRUE);
