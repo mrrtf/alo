@@ -30,49 +30,67 @@ namespace contour {
 
 PolygonCollection<double> createContour(const PolygonCollection<double>& polygons);
 
-void sortVerticalEdges(std::vector<VerticalEdge>& edges);
+void sortVerticalEdges(std::vector<VerticalEdge<double>>& edges);
 
-std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges);
+std::vector<VerticalEdge<double>>
+sweep(Node<double>* segmentTree, const std::vector<VerticalEdge<double>>& polygonVerticalEdges);
 
-std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdge>& verticals);
+std::vector<HorizontalEdge<double>> verticalsToHorizontals(const std::vector<VerticalEdge<double>>& verticals);
 
-template<bool vertical>
-std::vector<ManhattanEdge<vertical>> getEdges(const Polygon<int>& polygon)
+PolygonCollection<double>
+finalizeContour(const std::vector<VerticalEdge<double>>& verticals,
+                const std::vector<HorizontalEdge<double>>& horizontals);
+
+template<typename T>
+Interval<T> interval(const VerticalEdge<T>& edge)
+{
+  auto y1 = edge.begin().y;
+  auto y2 = edge.end().y;
+  return y2 > y1 ? Interval<T>(y1, y2) : Interval<T>(y2, y1);
+}
+
+template<typename T>
+std::vector<VerticalEdge<T>> getVerticalEdges(const Polygon<T>& polygon)
 {
   /// Return the vertical edges of the input polygon
-  std::vector<ManhattanEdge<vertical>>
-    edges;
+  std::vector<VerticalEdge<T>> edges;
   for (auto i = 0; i < polygon.size() - 1; ++i) {
     auto& current = polygon[i];
     auto& next = polygon[i + 1];
-    if (vertical && current.x == next.x) {
+    if (current.x == next.x) {
       edges.push_back({current.x, current.y, next.y});
-    }
-    if (!vertical && current.y == next.y) {
-      edges.push_back({current.y, current.x, next.x});
     }
   }
   return edges;
 }
 
-template<bool vertical>
-std::vector<ManhattanEdge<vertical>> getEdges(const PolygonCollection<int>& polygons)
+template<typename T>
+std::vector<VerticalEdge<T>> getVerticalEdges(const PolygonCollection<T>& polygons)
 {
-  std::vector<ManhattanEdge<vertical>>
-    edges;
+  std::vector<VerticalEdge<T>> edges;
   for (const auto& p: polygons) {
-    auto e = getEdges<vertical>(p);
+    auto e = getVerticalEdges(p);
     edges.insert(edges.end(), e.begin(), e.end());
   }
   return edges;
 }
 
-PolygonCollection<int>
-finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals);
+template<typename T>
+std::vector<T> getYPositions(const PolygonCollection<T>& polygons)
+{
+  auto vertices = getSortedVertices(polygons);
+  std::vector<T> ypos;
+  for (const auto& v: vertices) {
+    ypos.push_back(v.y);
+  }
+  auto last = std::unique(ypos.begin(), ypos.end(),
+                          [](const T& a, const T& b) { return areEqual(a, b); });
+  ypos.erase(last, ypos.end());
+  return ypos;
+}
 
 }
 }
 }
-
 
 #endif

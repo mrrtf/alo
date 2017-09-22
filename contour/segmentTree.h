@@ -176,7 +176,7 @@ void Node<T>::contribution(Interval <T> i, std::vector<o2::mch::contour::Interva
     if (goLeft(i)) {
       left()->contribution(i, edgeStack);
     }
-    if (goRight(i) < i.end()) {
+    if (goRight(i)) {
       right()->contribution(i, edgeStack);
     }
   }

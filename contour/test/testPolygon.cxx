@@ -72,16 +72,6 @@ BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
 
 BOOST_FIXTURE_TEST_SUITE(polygon, POLYGONS)
 
-BOOST_AUTO_TEST_CASE(GetYPositions)
-{
-  std::vector<double> xpos, ypos;
-
-  auto p = integralPolygon(testPads, xpos, ypos);
-
-  const std::vector<double> expected{0, 1, 2, 3, 4};
-  BOOST_TEST(ypos == expected);
-}
-
 BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 {
   BOOST_CHECK(isCounterClockwiseOriented(counterClockwisePolygon));
@@ -90,14 +80,6 @@ BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 BOOST_AUTO_TEST_CASE(CreateClockwiseOrientedPolygon)
 {
   BOOST_CHECK(!isCounterClockwiseOriented(clockwisePolygon));
-}
-
-BOOST_AUTO_TEST_CASE(CircularTestIntegralToDoublePolygon)
-{
-  std::vector<double> xPositions, yPositions;
-  Polygon<int> ipolygons = integralPolygon(testPolygon, xPositions, yPositions);
-  Polygon<double> test = fpPolygon(ipolygons, xPositions, yPositions);
-  BOOST_CHECK(test == testPolygon);
 }
 
 BOOST_AUTO_TEST_CASE(SignedArea)

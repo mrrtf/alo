@@ -86,13 +86,6 @@ Polygon<T> close(Polygon<T> polygon)
   return polygon;
 }
 
-Polygon<int>
-integralPolygon(const Polygon<double>& polygon, std::vector<double>& xPositions, std::vector<double>& yPositions);
-
-PolygonCollection<int>
-integralPolygon(const PolygonCollection<double>& polygons, std::vector<double>& xPositions,
-                std::vector<double>& yPositions);
-
 template<typename T>
 bool operator!=(const Polygon<T>& lhs, const Polygon<T>& rhs)
 {
@@ -250,13 +243,6 @@ std::ostream& operator<<(std::ostream& os, const PolygonCollection<T>& polygons)
   os << ')';
   return os;
 }
-
-PolygonCollection<double> fpPolygon(const PolygonCollection<int>& ipolygons, const std::vector<double>& xPositions,
-                                    const std::vector<double>& yPositions);
-
-Polygon<double> fpPolygon(const Polygon<int>& ipolygons, const std::vector<double>& xPositions,
-                          const std::vector<double>& yPositions);
-
 
 }
 }

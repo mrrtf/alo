@@ -15,7 +15,6 @@
 
 #include "contour.h"
 #include "edge.h"
-#include "segment.h"
 #include "segmentTree.h"
 #include <cassert>
 #include <iomanip>
@@ -26,17 +25,17 @@ namespace o2 {
 namespace mch {
 namespace contour {
 
-void sortVerticalEdges(std::vector<VerticalEdge>& edges)
+void sortVerticalEdges(std::vector<VerticalEdge<double>>& edges)
 {
 // sort vertical edges in ascending x order
 // if same x, insure that left edges are before right edges
 // within same x, order by increasing bottommost y
 // Mind your steps ! This sorting is critical to the contour merging algorithm !
 
-  std::sort(edges.begin(), edges.end(), [](const VerticalEdge& e1, const VerticalEdge& e2) {
+  std::sort(edges.begin(), edges.end(), [](const VerticalEdge<double>& e1, const VerticalEdge<double>& e2) {
 
-    auto x1 = e1.coordinate();
-    auto x2 = e2.coordinate();
+    auto x1 = e1.begin().x;
+    auto x2 = e2.begin().x;
 
     auto y1 = bottom(e1);
     auto y2 = bottom(e2);
@@ -53,22 +52,22 @@ void sortVerticalEdges(std::vector<VerticalEdge>& edges)
   });
 }
 
-std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges)
+std::vector<VerticalEdge<double>> sweep(Node<double>* segmentTree, const std::vector<VerticalEdge<double>>& polygonVerticalEdges)
 {
-  std::vector<VerticalEdge> contourVerticalEdges;
+  std::vector<VerticalEdge<double>> contourVerticalEdges;
 
-  std::vector<Interval<int>> edgeStack;
+  std::vector<Interval<double>> edgeStack;
 
   for (auto i = 0; i < polygonVerticalEdges.size(); ++i) {
 
     const auto& edge = polygonVerticalEdges[i];
 
     if (isLeftEdge(edge)) {
-      segmentTree->contribution(edge.interval(), edgeStack);
-      segmentTree->insertInterval(edge.interval());
+      segmentTree->contribution(interval(edge), edgeStack);
+      segmentTree->insertInterval(interval(edge));
     } else {
-      segmentTree->deleteInterval(edge.interval());
-      segmentTree->contribution(edge.interval(), edgeStack);
+      segmentTree->deleteInterval(interval(edge));
+      segmentTree->contribution(interval(edge), edgeStack);
     }
 
     auto e1{edge};
@@ -78,12 +77,12 @@ std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<Vertic
     }
 
     if ((isLeftEdge(edge) != isLeftEdge(e1)) ||
-        (!areEqual(edge.coordinate(), e1.coordinate())) ||
+        (!areEqual(edge.begin().x, e1.begin().x)) ||
         (i == polygonVerticalEdges.size() - 1)) {
-      for (auto&& interval : edgeStack) {
+      for (const auto& interval : edgeStack) {
         contourVerticalEdges.push_back(
-          isRightEdge(edge) ? VerticalEdge{edge.coordinate(), interval.begin(), interval.end()} :
-          VerticalEdge{edge.coordinate(), interval.end(), interval.begin()});
+          isRightEdge(edge) ? VerticalEdge<double>{edge.begin().x, interval.begin(), interval.end()} :
+          VerticalEdge<double>{edge.begin().x, interval.end(), interval.begin()});
       }
       edgeStack.clear();
     }
@@ -101,18 +100,18 @@ std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<Vertic
  * @return the horizontals, in the relevant order
  */
 
-std::vector<HorizontalEdge>
-verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
+std::vector<HorizontalEdge<double>>
+verticalsToHorizontals(const std::vector<VerticalEdge<double>>& verticals)
 {
-  std::vector<HorizontalEdge> horizontals(verticals.size());
+  std::vector<HorizontalEdge<double>> horizontals(verticals.size());
 
-  typedef std::pair<Vertex<int>, int> VertexWithRef;
+  typedef std::pair<Vertex<double>, double> VertexWithRef;
   std::vector<VertexWithRef> vertices;
 
   for (auto i = 0; i < verticals.size(); ++i) {
-    const VerticalEdge& edge = verticals[i];
-    vertices.push_back({{edge.coordinate(), edge.interval().end()}, i});
-    vertices.push_back({{edge.coordinate(), edge.interval().begin()}, i});
+    const auto& edge = verticals[i];
+    vertices.push_back({edge.begin(),i});
+    vertices.push_back({edge.end(),i});
   }
 
   std::sort(vertices.begin(), vertices.end(), [](const VertexWithRef& v1, const VertexWithRef& v2) {
@@ -120,16 +119,16 @@ verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
   });
 
   for (auto i = 0; i < vertices.size() / 2; ++i) {
-    auto& p1 = vertices[2 * i];
-    auto& p2 = vertices[2 * i + 1];
-    const VerticalEdge& refEdge = verticals[p1.second];
-    int e = p1.first.x;
-    int b = p2.first.x;
+    const auto& p1 = vertices[2 * i];
+    const auto& p2 = vertices[2 * i + 1];
+    const VerticalEdge<double>& refEdge = verticals[p1.second];
+    auto e = p1.first.x;
+    auto b = p2.first.x;
     if ((p1.first.y == bottom(refEdge) && isLeftEdge(refEdge)) ||
         (p1.first.y == top(refEdge) && isRightEdge(refEdge))) {
       std::swap(b, e);
     }
-    HorizontalEdge h{p1.first.y, b, e};
+    HorizontalEdge<double> h{p1.first.y, b, e};
     // which vertical edge is preceding this horizontal ?
     int preceding = p1.second;
     int next = p2.second;
@@ -141,27 +140,27 @@ verticalsToHorizontals(const std::vector<VerticalEdge>& verticals)
   return horizontals;
 }
 
-PolygonCollection<int>
-finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<HorizontalEdge>& horizontals)
+PolygonCollection<double>
+finalizeContour(const std::vector<VerticalEdge<double>>& verticals, const std::vector<HorizontalEdge<double>>& horizontals)
 {
   if (verticals.size() != horizontals.size()) {
     throw std::invalid_argument("should get the same number of verticals and horizontals");
   }
 
   for (auto i = 0; i < verticals.size(); ++i) {
-    if (beginVertex(horizontals[i]) != endVertex(verticals[i])) {
+    if (horizontals[i].begin() != verticals[i].end()) {
       throw std::invalid_argument("got an horizontal edge not connected to its (supposedly) preceding vertical edge");
     }
   }
 
-  std::vector<Segment> all;
+  std::vector<ManhattanEdge<double>> all;
 
   for (auto i = 0; i < verticals.size(); ++i) {
-    all.push_back(Segment{verticals[i]});
-    all.push_back(Segment{horizontals[i]});
+    all.push_back(verticals[i]);
+    all.push_back(horizontals[i]);
   }
 
-  PolygonCollection<int> contour;
+  PolygonCollection<double> contour;
 
   std::vector<bool> alreadyAdded(all.size(), false);
   std::vector<int> inorder;
@@ -169,16 +168,16 @@ finalizeContour(const std::vector<VerticalEdge>& verticals, const std::vector<Ho
   int nofUsed{0};
   int iCurrent{0};
 
-  Segment startSegment{all[iCurrent]};
+  ManhattanEdge<double> startSegment{all[iCurrent]};
 
   while (nofUsed < all.size()) {
 
-    const Segment& currentSegment{all[iCurrent]};
+    const ManhattanEdge<double>& currentSegment{all[iCurrent]};
     inorder.push_back(iCurrent);
     alreadyAdded[iCurrent] = true;
     ++nofUsed;
     if (currentSegment.end() == startSegment.begin()) {
-      Polygon<int> polygon;
+      Polygon<double> polygon;
       for (auto i: inorder) {
         polygon.push_back(all[i].begin());
       }
@@ -220,29 +219,21 @@ PolygonCollection<double> createContour(const PolygonCollection<double>& polygon
     return polygons;
   }
 
-  std::vector<double> xPositions;
-  std::vector<double> yPositions;
-
-  PolygonCollection<int> ipolygons{integralPolygon(polygons, xPositions, yPositions)};
-
-  std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(ipolygons)};
+  std::vector<VerticalEdge<double>> polygonVerticalEdges{getVerticalEdges(polygons)};
 
   sortVerticalEdges(polygonVerticalEdges);
 
   // Initialize the segment tree that is used by the sweep() function
-  std::vector<int> ypos(yPositions.size());
-  for (auto i=0;i<ypos.size();++i) ypos[i]=i;
-  std::unique_ptr<Node<int>> segmentTree{createSegmentTree(ypos)};
+  std::unique_ptr<Node<double>> segmentTree{createSegmentTree(getYPositions(polygons))};
 
   // Find the vertical edges of the merged contour. This is the meat of the algorithm...
-  std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
+  std::vector<VerticalEdge<double>> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
 
   // Deduce the horizontal edges from the vertical ones
-  std::vector<HorizontalEdge> contourHorizontalEdges{verticalsToHorizontals(contourVerticalEdges)};
+  std::vector<HorizontalEdge<double>> contourHorizontalEdges{verticalsToHorizontals(contourVerticalEdges)};
 
-  PolygonCollection<int> icontour{finalizeContour(contourVerticalEdges, contourHorizontalEdges)};
+  return finalizeContour(contourVerticalEdges, contourHorizontalEdges);
 
-  return fpPolygon(icontour, xPositions, yPositions);
 }
 
 }

@@ -34,7 +34,6 @@
 #include <iostream>
 #include "contour.h"
 #include "segmentTree.h"
-#include "segment.h"
 #include "svg.h"
 
 using namespace o2::mch::contour;
@@ -70,27 +69,19 @@ struct POLYGONS
                                            {1, 1},
                                            {1, 0},
                                            {0, 0}};
-    std::vector<VerticalEdge> testVerticals{{0, 7, 1},
-                                            {1, 1, 0},
-                                            {3, 0, 1},
-                                            {5, 1, 0},
-                                            {6, 0, 7},
-                                            {2, 5, 3},
-                                            {4, 3, 5}};
+    std::vector<VerticalEdge<double>> testVerticals{{0, 7, 1},
+                                                    {1, 1, 0},
+                                                    {3, 0, 1},
+                                                    {5, 1, 0},
+                                                    {6, 0, 7},
+                                                    {2, 5, 3},
+                                                    {4, 3, 5}};
 
 };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
 
 BOOST_FIXTURE_TEST_SUITE(contour, POLYGONS)
-
-BOOST_AUTO_TEST_CASE(CircularTestIntegralToDoublePolygon)
-{
-  std::vector<double> xPositions, yPositions;
-  Polygon<int> ipolygons = integralPolygon(testPolygon, xPositions, yPositions);
-  Polygon<double> test = fpPolygon(ipolygons, xPositions, yPositions);
-  BOOST_CHECK(test == testPolygon);
-}
 
 BOOST_AUTO_TEST_CASE(ContourCreationGeneratesEmptyContourForEmptyInput)
 {
@@ -121,46 +112,15 @@ BOOST_AUTO_TEST_CASE(ContourCreationReturnsInputIfInputIsASinglePolygon)
   BOOST_CHECK_EQUAL(contour[0], polygon);
 }
 
-BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfOneSimplePolygon)
-{
-  std::vector<double> xpos, ypos;
-  auto p = integralPolygon(testPolygon, xpos, ypos);
-  auto edges = getEdges<true>(p);
-
-  BOOST_REQUIRE(edges.size() == 4);
-  BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
-  BOOST_CHECK_EQUAL(edges[1], VerticalEdge(2.0, 1, 3));
-  BOOST_CHECK_EQUAL(edges[2], VerticalEdge(1.0, 3, 2));
-  BOOST_CHECK_EQUAL(edges[3], VerticalEdge(0.0, 2, 0));
-}
-
-BOOST_AUTO_TEST_CASE(GetVerticalEdgesOfAMultiPolygon)
-{
-  PolygonCollection<int> group;
-  Polygon<int> triangle{{{0, 0}, {1, 0}, {0, 1}, {0, 0}}};
-  std::vector<double> xpos, ypos;
-  auto p = integralPolygon(testPolygon, xpos, ypos);
-  group.push_back(p);
-  group.push_back(triangle);
-
-  auto edges = getEdges<true>(group);
-
-  BOOST_REQUIRE(edges.size() == 5);
-  BOOST_CHECK_EQUAL(edges[0], VerticalEdge(1.0, 0, 1));
-  BOOST_CHECK_EQUAL(edges[1], VerticalEdge(2.0, 1, 3));
-  BOOST_CHECK_EQUAL(edges[2], VerticalEdge(1.0, 3, 2));
-  BOOST_CHECK_EQUAL(edges[3], VerticalEdge(0.0, 2, 0));
-  BOOST_CHECK_EQUAL(edges[4], VerticalEdge(0.0, 1, 0));
-}
 
 BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 {
-  std::vector<VerticalEdge> edges;
-  constexpr int sameX{42};
-  VerticalEdge lastEdge{sameX + 1, 2, 0};
-  VerticalEdge leftEdgeBottom{sameX, 2, 0};
-  VerticalEdge leftEdgeTop{sameX, 10, 5};
-  VerticalEdge rightEdge{sameX, 0, 2};
+  std::vector<VerticalEdge<double>> edges;
+  constexpr double sameX{42};
+  VerticalEdge<double> lastEdge{sameX + 1, 2, 0};
+  VerticalEdge<double> leftEdgeBottom{sameX, 2, 0};
+  VerticalEdge<double> leftEdgeTop{sameX, 10, 5};
+  VerticalEdge<double> rightEdge{sameX, 0, 2};
 
   edges.push_back(lastEdge);
   edges.push_back(rightEdge);
@@ -177,9 +137,9 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
 
 BOOST_AUTO_TEST_CASE(VerticalsToHorizontals)
 {
-  std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};
+  std::vector<HorizontalEdge<double>> he{verticalsToHorizontals(testVerticals)};
 
-  std::vector<HorizontalEdge> expected{
+  std::vector<HorizontalEdge<double>> expected{
     {1, 0, 1},
     {0, 1, 3},
     {1, 3, 5},
@@ -194,45 +154,42 @@ BOOST_AUTO_TEST_CASE(VerticalsToHorizontals)
 
 BOOST_AUTO_TEST_CASE(GetVertexFromVertical)
 {
-  VerticalEdge e{12, 20, 100};
+  VerticalEdge<int> e{12, 20, 100};
 
-  BOOST_CHECK_EQUAL(beginVertex(e), Vertex<int>(12, 20));
-  BOOST_CHECK_EQUAL(endVertex(e), Vertex<int>(12, 100));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<int>(12, 20));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<int>(12, 100));
 }
 
 BOOST_AUTO_TEST_CASE(GetVertexFromHorizontal)
 {
-  HorizontalEdge e{12, 20, 100};
+  HorizontalEdge<int> e{12, 20, 100};
 
-  BOOST_CHECK_EQUAL(beginVertex(e), Vertex<int>(20, 12));
-  BOOST_CHECK_EQUAL(endVertex(e), Vertex<int>(100, 12));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<int>(20, 12));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<int>(100, 12));
 }
 
 BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfNumberOfVerticalsDifferFromNumberOfHorizontals)
 {
-  std::vector<VerticalEdge> v{{0, 1, 0},
+  std::vector<VerticalEdge<double>> v{{0, 1, 0},
                               {1, 0, 1}};
-  std::vector<HorizontalEdge> h{{0, 0, 1}};
-  std::vector<int> vorder{0, 1, 2};
+  std::vector<HorizontalEdge<double>> h{{0, 0, 1}};
   BOOST_CHECK_THROW(finalizeContour(v, h), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfEndOfVerticalsDoNotMatchBeginOfHorizontals)
 {
-  std::vector<VerticalEdge> v{{0, 7, 1}};
-  std::vector<HorizontalEdge> wrong{{1, 2, 3}};
-  std::vector<int> vorder{0, 1, 2};
-
+  std::vector<VerticalEdge<double>> v{{0, 7, 1}};
+  std::vector<HorizontalEdge<double>> wrong{{1, 2, 3}};
   BOOST_CHECK_THROW(finalizeContour(v, wrong), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(FinalizeContourIEEEExample)
 {
-  std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};
+  auto he{verticalsToHorizontals(testVerticals)};
 
   auto contour = finalizeContour(testVerticals, he);
 
-  PolygonCollection<int> expected{
+  PolygonCollection<double> expected{
     {{0, 7}, {0, 1}, {1, 1}, {1, 0}, {3, 0}, {3, 1}, {5, 1}, {5, 0}, {6, 0}, {6, 7}, {0, 7}},
     {{2, 5}, {2, 3}, {4, 3}, {4, 5}, {2, 5}}
   };
@@ -242,18 +199,18 @@ BOOST_AUTO_TEST_CASE(FinalizeContourIEEEExample)
 
 BOOST_AUTO_TEST_CASE(FinalizeContourWithOneCommonVertex)
 {
-  std::vector<VerticalEdge> ve{
+  std::vector<VerticalEdge<double>> ve{
     {0, 2, 0},
     {1, 0, 2},
     {1, 4, 2},
     {2, 2, 4}
   };
 
-  std::vector<HorizontalEdge> he{verticalsToHorizontals(ve)};
+  auto he{verticalsToHorizontals(ve)};
 
   auto contour = finalizeContour(ve, he);
 
-  PolygonCollection<int> expected{
+  PolygonCollection<double> expected{
     {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
     {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
   };

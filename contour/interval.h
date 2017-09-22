@@ -31,7 +31,9 @@ class Interval
 
     Interval(T b = {}, T e = {}) : mBegin(b), mEnd(e)
     {
-      if (b > e || areEqual(b, e)) { throw std::invalid_argument("begin should be strictly < end"); }
+      if (b > e || areEqual(b, e)) {
+        throw std::invalid_argument("begin should be strictly < end");
+      }
     }
 
     bool isFullyContainedIn(Interval i) const
