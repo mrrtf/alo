@@ -41,8 +41,8 @@ struct YPOS
     YPOS()
     {
 
-      Node* left = new Node{Interval<int>{0, 4}};
-      Node* right = new Node{Interval<int>{4, 8}};
+      auto* left = new Node<int>{Interval<int>{0, 4}};
+      auto* right = new Node<int>{Interval<int>{4, 8}};
 
       testNode.setLeft(left).setRight(right);
 
@@ -51,9 +51,10 @@ struct YPOS
 
     }
 
-    std::vector<double> ypos{0, 1, 2, 3, 4, 5, 6, 7, 8};
-    Node node{Interval<int>{0, 8}};
-    Node testNode{Interval<int>{0, 8}};
+    std::vector<int> yposInt{0, 1, 2, 3, 4, 5, 6, 7, 8};
+    std::vector<double> yposDouble{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+    Node<int> node{Interval<int>{0, 8}};
+    Node<int> testNode{Interval<int>{0, 8}};
     int dummyCardinality{3};
 
 };
@@ -64,12 +65,13 @@ BOOST_FIXTURE_TEST_SUITE(segmenttree, YPOS)
 
 BOOST_AUTO_TEST_CASE(NeedAtLeastTwoValuesToBuildASegmentTree)
 {
-  BOOST_CHECK_THROW(createSegmentTree({1}), std::invalid_argument);
+  std::vector<int> onlyOneElement{0};
+  BOOST_CHECK_THROW(createSegmentTree(onlyOneElement), std::invalid_argument);
 }
 
-BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
+BOOST_AUTO_TEST_CASE(NodeInsertAndDeleteIntVersion)
 {
-  std::unique_ptr<Node> t{createSegmentTree(ypos)};
+  std::unique_ptr<Node<int>> t{createSegmentTree(yposInt)};
 
   t->insertInterval(Interval<int>{1, 5});
   t->insertInterval(Interval<int>{5, 8});
@@ -100,6 +102,41 @@ BOOST_AUTO_TEST_CASE(NodeInsertAndDelete)
 
   BOOST_CHECK_EQUAL(os.str(), expectedOutput);
 }
+
+BOOST_AUTO_TEST_CASE(NodeInsertAndDeleteDoubleVersion)
+{
+  std::unique_ptr<Node<double>> t{createSegmentTree(yposDouble)};
+
+  t->insertInterval(Interval<double>{0.1, 0.5});
+  t->insertInterval(Interval<double>{0.5, 0.8});
+  t->deleteInterval(Interval<double>{0.6, 0.7});
+
+  std::ostringstream os;
+
+  os << '\n' << (*t);
+
+  std::string expectedOutput =
+    R"(
+[0,0.8] potent
+     [0,0.4] potent
+           [0,0.2] potent
+                 [0,0.1]
+                 [0.1,0.2] C=1
+           [0.2,0.4] C=1
+                 [0.2,0.3]
+                 [0.3,0.4]
+     [0.4,0.8] potent
+           [0.4,0.6] C=1
+                 [0.4,0.5]
+                 [0.5,0.6]
+           [0.6,0.8] potent
+                 [0.6,0.7]
+                 [0.7,0.8] C=1
+)";
+
+  BOOST_CHECK_EQUAL(os.str(), expectedOutput);
+}
+
 
 BOOST_AUTO_TEST_CASE(JustCreatedNodeIsNotPotent)
 {

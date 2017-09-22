@@ -175,27 +175,6 @@ BOOST_AUTO_TEST_CASE(VerticalEdgeSortingMustSortSameAbcissaPointsLeftEdgeFirst)
   BOOST_CHECK_EQUAL(edges[3], lastEdge);
 }
 
-BOOST_AUTO_TEST_CASE(SweepCreateContour)
-{
-  std::vector<double> xPositions, yPositions;
-
-  auto p = integralPolygon(testPads, xPositions, yPositions);
-  BOOST_REQUIRE(yPositions.size() == 5);
-
-  std::vector<VerticalEdge> polygonVerticalEdges{getEdges<true>(p)};
-
-  sortVerticalEdges(polygonVerticalEdges);
-
-  std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
-
-  std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};
-
-  BOOST_REQUIRE(contourVerticalEdges.size() == 3);
-  BOOST_CHECK_EQUAL(contourVerticalEdges[0], VerticalEdge(0, 2, 0));
-  BOOST_CHECK_EQUAL(contourVerticalEdges[1], VerticalEdge(1, 4, 2));
-  BOOST_CHECK_EQUAL(contourVerticalEdges[2], VerticalEdge(2, 0, 4));
-}
-
 BOOST_AUTO_TEST_CASE(VerticalsToHorizontals)
 {
   std::vector<HorizontalEdge> he{verticalsToHorizontals(testVerticals)};

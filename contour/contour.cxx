@@ -53,7 +53,7 @@ void sortVerticalEdges(std::vector<VerticalEdge>& edges)
   });
 }
 
-std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges)
+std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges)
 {
   std::vector<VerticalEdge> contourVerticalEdges;
 
@@ -230,7 +230,9 @@ PolygonCollection<double> createContour(const PolygonCollection<double>& polygon
   sortVerticalEdges(polygonVerticalEdges);
 
   // Initialize the segment tree that is used by the sweep() function
-  std::unique_ptr<Node> segmentTree{createSegmentTree(yPositions)};
+  std::vector<int> ypos(yPositions.size());
+  for (auto i=0;i<ypos.size();++i) ypos[i]=i;
+  std::unique_ptr<Node<int>> segmentTree{createSegmentTree(ypos)};
 
   // Find the vertical edges of the merged contour. This is the meat of the algorithm...
   std::vector<VerticalEdge> contourVerticalEdges{sweep(segmentTree.get(), polygonVerticalEdges)};

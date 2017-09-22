@@ -22,18 +22,17 @@
 
 #include "edge.h"
 #include "polygon.h"
+#include "segmentTree.h"
 
 namespace o2 {
 namespace mch {
 namespace contour {
 
-class Node;
-
 PolygonCollection<double> createContour(const PolygonCollection<double>& polygons);
 
 void sortVerticalEdges(std::vector<VerticalEdge>& edges);
 
-std::vector<VerticalEdge> sweep(Node* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges);
+std::vector<VerticalEdge> sweep(Node<int>* segmentTree, const std::vector<VerticalEdge>& polygonVerticalEdges);
 
 std::vector<HorizontalEdge> verticalsToHorizontals(const std::vector<VerticalEdge>& verticals);
 

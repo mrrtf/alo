@@ -8,7 +8,6 @@ add_library(contour STATIC
         polygon.cxx
         polygon.h
         segment.h
-        segmentTree.cxx
         segmentTree.h
         vertex.h
         helper.h)

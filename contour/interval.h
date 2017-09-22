@@ -31,7 +31,7 @@ class Interval
 
     Interval(T b = {}, T e = {}) : mBegin(b), mEnd(e)
     {
-      if (b >= e) { throw std::invalid_argument("begin should be strictly < end"); }
+      if (b > e || areEqual(b, e)) { throw std::invalid_argument("begin should be strictly < end"); }
     }
 
     bool isFullyContainedIn(Interval i) const
@@ -45,9 +45,6 @@ class Interval
 
     T end() const
     { return mEnd; }
-
-    T midpoint() const
-    { return (mBegin + mEnd) / 2; }
 
     bool extend(const Interval& i)
     {
@@ -74,20 +71,6 @@ class Interval
     T mBegin;
     T mEnd;
 };
-
-template<typename T>
-inline Interval<T> leftPart(const Interval<T>& i)
-{ return {i.begin(), i.midpoint()}; }
-
-template<typename T>
-inline Interval<T> rightPart(const Interval<T>& i)
-{ return {i.midpoint(), i.end()}; }
-
-inline bool isElementary(const Interval<int>& i)
-{ return i.end() - i.begin() == 1; }
-
-inline bool isElementary(const Interval<double>& i)
-{ return areEqual(i.end() - i.begin(), 1.0); }
 
 template<typename T>
 inline std::ostream& operator<<(std::ostream& os, const Interval<T>& i)
