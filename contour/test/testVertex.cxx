@@ -34,7 +34,7 @@
 
 using namespace o2::mch::contour;
 
-BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
+BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 BOOST_AUTO_TEST_SUITE(vertex)
 
 BOOST_AUTO_TEST_CASE(Vertical)
@@ -53,6 +53,13 @@ BOOST_AUTO_TEST_CASE(Horizontal)
   BOOST_TEST(isHorizontal(v1, v2));
   Vertex<int> v3{0, 0};
   BOOST_TEST(isHorizontal(v1, v3) == false);
+}
+
+BOOST_AUTO_TEST_CASE(Equality)
+{
+  Vertex<double> a{0.0,1.0};
+  Vertex<double> b{0.0,1.0+1E-6};
+  BOOST_TEST(a==b);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -18,38 +18,39 @@
 
 #include <vector>
 #include <ostream>
+#include "helper.h"
 
 namespace o2 {
 namespace mch {
 namespace contour {
 
+template<typename T>
 class Interval
 {
   public:
 
-    Interval(int b = {}, int e = {}) : mBegin(b), mEnd(e)
+    Interval(T b = {}, T e = {}) : mBegin(b), mEnd(e)
     {
-      if (b >= e) { throw std::invalid_argument("begin should be strictly < end"); }
+      if (b > e || areEqual(b, e)) {
+        throw std::invalid_argument("begin should be strictly < end");
+      }
     }
 
     bool isFullyContainedIn(Interval i) const
     {
-      // returns true if this node's interval is fully contained within interval [b,e]
-      return i.begin() <= mBegin && mEnd <= i.end();
+      return (i.begin() < mBegin || areEqual(i.begin(), mBegin)) &&
+             (mEnd < i.end() || areEqual(i.end(), mEnd));
     }
 
-    int begin() const
+    T begin() const
     { return mBegin; }
 
-    int end() const
+    T end() const
     { return mEnd; }
-
-    int midpoint() const
-    { return (mBegin + mEnd) / 2; }
 
     bool extend(const Interval& i)
     {
-      if (i.begin() == end()) {
+      if (areEqual(i.begin(), end())) {
         mEnd = i.end();
         return true;
       } else {
@@ -59,8 +60,8 @@ class Interval
 
     bool operator==(const Interval& rhs) const
     {
-      return mBegin == rhs.mBegin &&
-             mEnd == rhs.mEnd;
+      return areEqual(mBegin, rhs.mBegin) &&
+             areEqual(mEnd, rhs.mEnd);
     }
 
     bool operator!=(const Interval& rhs) const
@@ -69,20 +70,12 @@ class Interval
     }
 
   private:
-    int mBegin;
-    int mEnd;
+    T mBegin;
+    T mEnd;
 };
 
-inline Interval leftPart(Interval i)
-{ return {i.begin(), i.midpoint()}; }
-
-inline Interval rightPart(Interval i)
-{ return {i.midpoint(), i.end()}; }
-
-inline bool isElementary(Interval i)
-{ return i.end() - i.begin() == 1; }
-
-inline std::ostream& operator<<(std::ostream& os, const Interval& i)
+template<typename T>
+inline std::ostream& operator<<(std::ostream& os, const Interval<T>& i)
 {
   os << "[" << i.begin() << "," << i.end() << "]";
   return os;
