@@ -16,22 +16,12 @@
 #ifndef O2_MCH_CONTOUR_VERTEX_H
 #define O2_MCH_CONTOUR_VERTEX_H
 
-#include <utility>
-#include <vector>
 #include <iostream>
-#include <cmath>
+#include "helper.h"
 
 namespace o2 {
 namespace mch {
 namespace contour {
-
-inline bool areEqual(double a, double b)
-{
-  return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
-}
-
-inline bool areEqual(int a, int b)
-{ return a == b; }
 
 template<typename T>
 struct Vertex
@@ -95,12 +85,7 @@ bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
 template<typename T>
 bool operator==(const Vertex<T>& lhs, const Vertex<T>& rhs)
 {
-  return lhs.x == rhs.x && lhs.y == rhs.y;
-}
-
-inline bool operator==(const Vertex<double>& lhs, const Vertex<double>& rhs)
-{
-  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
+  return areEqual(lhs.x,rhs.x) && areEqual(lhs.y,rhs.y);
 }
 
 template<typename T>

@@ -16,7 +16,6 @@
 #ifndef ALO_SVG_H
 #define ALO_SVG_H
 
-#include "polygon.h"
 #include <boost/format.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/algorithms/envelope.hpp>
@@ -30,6 +29,8 @@
 #include <boost/geometry/io/wkt/read.hpp>
 #include <boost/geometry/io/wkt/write.hpp>
 #include <fstream>
+#include "contour.h"
+#include "polygon.h"
 
 typedef boost::geometry::model::d2::point_xy<double> Point;
 typedef boost::geometry::model::polygon<Point, false> SimplePolygon;
@@ -40,7 +41,7 @@ SimplePolygon convertToGGL(const o2::mch::contour::Polygon<T>& polygon)
 {
   SimplePolygon p;
 
-  for (auto&& v: polygon) {
+  for (auto&& v: polygon.getVertices()) {
     boost::geometry::append(p.outer(), Point{v.x, v.y});
   }
 
@@ -48,12 +49,13 @@ SimplePolygon convertToGGL(const o2::mch::contour::Polygon<T>& polygon)
 }
 
 template<typename T>
-MultiPolygon convertToGGL(const o2::mch::contour::PolygonCollection<T>& polygons)
+MultiPolygon convertToGGL(const o2::mch::contour::Contour<T>& contour)
 {
   MultiPolygon contourGGL;
-  for ( const auto& p: polygons) {
-    if (p.size() > 2) {
-      contourGGL.push_back(convertToGGL(p));
+  for ( auto i = 0; i < contour.size(); ++i ) {
+    const o2::mch::contour::Polygon<T>& polygon = contour[i];
+    if (polygon.size() > 2) {
+      contourGGL.push_back(convertToGGL(polygon));
     };
   }
   return contourGGL;
@@ -115,7 +117,7 @@ void basicSVG(const char* filename, std::initializer_list<T> geom)
   out << "</svg>";
 }
 
-void basicSVG(const char* filename, const o2::mch::contour::PolygonCollection<double>& contour)
+void basicSVG(const char* filename, const o2::mch::contour::Contour<double>& contour)
 {
   auto c = convertToGGL(contour);
   basicSVG(filename,{c});

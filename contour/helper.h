@@ -13,10 +13,10 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_CONTOUR_CANTYPEFITVALUE_H
-#define O2_MCH_CONTOUR_CANTYPEFITVALUE_H
+#ifndef O2_MCH_CONTOUR_HELPER_H
+#define O2_MCH_CONTOUR_HELPER_H
 
-#include <limits>
+#include <cmath>
 
 namespace o2 {
 namespace mch {
@@ -31,8 +31,30 @@ bool CanTypeFitValue(const U value)
   const uintmax_t topU = uintmax_t(std::numeric_limits<U>::max());
   return !((botT > botU && value < static_cast<U> (botT)) || (topT < topU && value > static_cast<U> (topT)));
 }
+
+inline bool areEqual(double a, double b)
+{
+  return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
+}
+
+inline bool areEqual(int a, int b)
+{
+  return a == b;
+}
+
+inline bool isStrictlyBelow(double a, double b)
+{
+
+  return ( a < b ) && !areEqual(a, b);
+}
+
+inline bool isStrictlyBelow(int a, int b)
+{
+  return a < b;
+}
+
 }
 }
 }
 
-#endif
+#endif //ALO_HELPER_H

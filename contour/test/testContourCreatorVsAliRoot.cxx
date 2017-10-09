@@ -47,7 +47,7 @@
 #include "AliMpMotifType.h"
 #include "AliMpSegmentation.h"
 #include "AliMpVSegmentation.h"
-#include "contour.h"
+#include "contourCreator.h"
 #include "svg.h"
 #include <TArrayD.h>
 #include <boost/format.hpp>
@@ -85,42 +85,42 @@ Polygon<double> convert(const AliMUONPolygon& polygon)
   Polygon<double> p;
 
   for (int i = 0; i < polygon.NumberOfVertices(); ++i) {
-    p.push_back({polygon.X(i), polygon.Y(i)});
+    p.addVertex({polygon.X(i), polygon.Y(i)});
   }
 
   return p;
 }
 
-PolygonCollection<double> convert(const TObjArray& polygons)
+Contour<double> convert(const TObjArray& polygons)
 {
   TIter next(&polygons);
   AliMUONPolygon* polygon;
 
-  PolygonCollection<double> pc;
+  Contour<double> pc;
 
   while ((polygon = static_cast<AliMUONPolygon*>(next()))) {
     if (polygon->NumberOfVertices() > 2) {
-      pc.push_back(convert(*polygon));
+      pc.addPolygon(convert(*polygon));
     };
   }
   return pc;
 }
 
-PolygonCollection<double> createAliRootContour(int detElemId, int manuId)
+Contour<double> createAliRootContour(int detElemId, int manuId)
 {
   AliMUONManuContourMaker contourMaker(nullptr);
   std::unique_ptr<AliMUONContour> contour(contourMaker.CreateManuContour(detElemId, manuId));
   return convert(*(contour->Polygons()));
 }
 
-PolygonCollection<double> createManuPads(AliMpSegmentation* mseg, int detElemId, int manuId)
+std::vector<Polygon<double>> createManuPads(AliMpSegmentation* mseg, int detElemId, int manuId)
 {
   const AliMpVSegmentation* seg = mseg->GetMpSegmentationByElectronics(detElemId, manuId);
   AliMpMotifPosition* pos = seg->MotifPosition(manuId);
   AliMpVMotif* motif = pos->GetMotif();
   AliMpMotifType* motifType = motif->GetMotifType();
 
-  PolygonCollection<double> pads;
+  std::vector<Polygon<double>> pads;
 
   auto xoffset = pos->GetPositionX() - seg->GetPositionX();
   auto yoffset = pos->GetPositionY() - seg->GetPositionY();
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
 
   auto c = convert(*(contour->Polygons()));
 
-  PolygonCollection<double> expected{
+  Contour<double> expected{
     {
       {0, 2},
       {0, 0},
@@ -199,21 +199,47 @@ BOOST_AUTO_TEST_CASE(AliRootCreateContour)
   BOOST_CHECK(c == expected);
 }
 
-PolygonCollection<double> createO2Contour(AliMpSegmentation* mseg, int detElemId, int manuId)
+BOOST_AUTO_TEST_CASE(O2CreateContour)
+{
+  std::vector<Polygon<double>> pads;
+
+  pads.push_back( { { 0.0, 0.0 }, {1.0,0.0}, {1.0,1.0}, {0.0,1.0}, {0.0,0.0} });
+  pads.push_back( { { 0.0, 1.0 }, {1.0,1.0}, {1.0,2.0}, {0.0,2.0}, {0.0,1.0} });
+  pads.push_back( { { 1.0, 0.0 }, {2.0,0.0}, {2.0,1.0}, {1.0,1.0}, {1.0,0.0} });
+  pads.push_back( { { 1.0, 1.0 }, {2.0,1.0}, {2.0,2.0}, {1.0,2.0}, {1.0,1.0} });
+  pads.push_back( { { 1.0, 2.0 }, {2.0,2.0}, {2.0,3.0}, {1.0,3.0}, {1.0,2.0} });
+  pads.push_back( { { 1.0, 3.0 }, {2.0,3.0}, {2.0,4.0}, {1.0,4.0}, {1.0,3.0} });
+
+  auto c = createContour(pads);
+
+  Contour<double> expected{
+    {
+      {0, 2},
+      {0, 0},
+      {2, 0},
+      {2, 4},
+      {1, 4},
+      {1, 2},
+      {0, 2}
+    }
+  };
+  BOOST_CHECK(c == expected);
+}
+Contour<double> createO2Contour(AliMpSegmentation* mseg, int detElemId, int manuId)
 {
   auto pads = createManuPads(mseg, detElemId, manuId);
   return createContour(pads);
 }
 
-std::pair<PolygonCollection<double>, PolygonCollection<double>>
+std::pair<Contour<double>, Contour<double>>
 createContours(AliMpSegmentation* mseg, int detElemId, int manuId)
 {
-  PolygonCollection<double> fromAliRoot = createAliRootContour(detElemId, manuId);
-  PolygonCollection<double> fromO2 = createO2Contour(mseg, detElemId, manuId);
+  Contour<double> fromAliRoot = createAliRootContour(detElemId, manuId);
+  Contour<double> fromO2 = createO2Contour(mseg, detElemId, manuId);
   return {fromAliRoot, fromO2};
 }
 
-bool areTheSame(const std::pair<PolygonCollection<double>, PolygonCollection<double>>& contours)
+bool areTheSame(const std::pair<Contour<double>, Contour<double>>& contours)
 {
   if (contours.first == contours.second) {
     return true;
@@ -221,23 +247,31 @@ bool areTheSame(const std::pair<PolygonCollection<double>, PolygonCollection<dou
     std::cout << "FromAliRoot: " << contours.first.size() << "\n" << contours.first << '\n';
     std::cout << "FromO2: " << contours.second.size() << "\n" << contours.second << '\n';
     std::cout << '\n';
-    std::cout << getSortedVertices(contours.first).size() << " " << getSortedVertices(contours.first) << '\n';
-    std::cout << getSortedVertices(contours.second).size() << " " << getSortedVertices(contours.second) << '\n';
+    std::cout << contours.first.getSortedVertices().size() << " " << contours.first.getSortedVertices() << '\n';
+    std::cout << contours.second.getSortedVertices().size() << " " << contours.second.getSortedVertices() << '\n';
     basicSVG("fromaliroot.svg", contours.first);
     basicSVG("fromo2.svg", contours.second);
     return false;
   }
 }
 
-BOOST_AUTO_TEST_CASE(ContourForMotifTypeE15IsDisjoint)
+//BOOST_AUTO_TEST_CASE(ContourForMotifTypeE15IsDisjoint)
+//{
+//  BOOST_TEST(areTheSame(createContours(mseg, 1001, 408)));
+//}
+
+BOOST_AUTO_TEST_CASE(FirstExampleOfNormalContour)
 {
-  BOOST_TEST(areTheSame(createContours(mseg, 1001, 408)));
+  BOOST_TEST(areTheSame(createContours(mseg, 505, 8)));
 }
 
-BOOST_AUTO_TEST_CASE(SomeExamplesOfNormalContours)
+BOOST_AUTO_TEST_CASE(SecondExampleOfNormalContour)
 {
   BOOST_TEST(areTheSame(createContours(mseg, 601, 7)));
-  BOOST_TEST(areTheSame(createContours(mseg, 505, 8)));
+}
+
+BOOST_AUTO_TEST_CASE(ThirdExampleOfNormalContour)
+{
   BOOST_TEST(areTheSame(createContours(mseg, 501, 407)));
 }
 
@@ -254,7 +288,7 @@ BOOST_AUTO_TEST_CASE(DE701MANU407VsAliRoot)
 BOOST_AUTO_TEST_CASE(IsContourDE701MANU407CounterClockwiseOriented)
 {
   auto contour = createO2Contour(mseg, 701, 407);
-  BOOST_TEST(isCounterClockwiseOriented(contour));
+  BOOST_TEST(contour.isCounterClockwiseOriented());
 }
 
 BOOST_AUTO_TEST_CASE(TwoDifferentContours)
@@ -263,7 +297,6 @@ BOOST_AUTO_TEST_CASE(TwoDifferentContours)
   auto c2 = createContours(mseg, 1001, 408);
   BOOST_TEST(c1.second != c2.second);
 }
-
 
 
 BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
@@ -294,7 +327,7 @@ BOOST_AUTO_TEST_CASE(CreateO2ContourWithOneCommonVertex)
 
   auto contour = createContour(input);
 
-  PolygonCollection<double> expected{
+  Contour<double> expected{
     {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
     {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
   };
@@ -317,7 +350,7 @@ BOOST_AUTO_TEST_CASE(CreateAliRootContourWithOneCommonVertex)
 
   auto c = convert(*(contour->Polygons()));
 
-  PolygonCollection<double> expected{
+  Contour<double> expected{
     {{0, 2}, {0, 0}, {1, 0}, {1, 2}, {0, 2}},
     {{1, 4}, {1, 2}, {2, 2}, {2, 4}, {1, 4}}
   };
@@ -335,7 +368,7 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllAliRootContours)
 
   int detElemId, manuId;
 
-  std::vector<PolygonCollection<double>> contours(16828);
+  std::vector<Contour<double>> contours(16828);
   int i{0};
   while (it.Next(detElemId, manuId)) {
     contours[i++] = createAliRootContour(detElemId, manuId);
@@ -358,7 +391,7 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
 
   int detElemId, manuId;
 
-  std::vector<PolygonCollection<double>> pads;
+  std::vector<std::vector<Polygon<double>>> pads;
 
   while (it.Next(detElemId, manuId)) {
     pads.push_back(createManuPads(mseg, detElemId, manuId));
@@ -368,7 +401,7 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
     std::chrono::high_resolution_clock::now() - start).count()
             << " ms to build pads\n";
 
-  std::vector<PolygonCollection<double>> contours(16828);
+  std::vector<Contour<double>> contours(16828);
 
   start = std::chrono::high_resolution_clock::now();
 
