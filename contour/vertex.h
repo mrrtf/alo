@@ -85,12 +85,7 @@ bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
 template<typename T>
 bool operator==(const Vertex<T>& lhs, const Vertex<T>& rhs)
 {
-  return lhs.x == rhs.x && lhs.y == rhs.y;
-}
-
-inline bool operator==(const Vertex<double>& lhs, const Vertex<double>& rhs)
-{
-  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
+  return areEqual(lhs.x,rhs.x) && areEqual(lhs.y,rhs.y);
 }
 
 template<typename T>

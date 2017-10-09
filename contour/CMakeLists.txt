@@ -1,7 +1,8 @@
 
 add_library(contour STATIC
         contour.h
-        contour.cxx
+        contourCreator.h
+        contourCreator.cxx
         edge.h
         interval.h
         polygon.h

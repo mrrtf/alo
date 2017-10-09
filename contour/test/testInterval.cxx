@@ -26,7 +26,7 @@
 ///
 /// @author  Laurent Aphecetche
 
-#define BOOST_TEST_MODULE o2 mch geometry test
+#define BOOST_TEST_MODULE o2 mch contour test
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
@@ -36,7 +36,7 @@
 
 using namespace o2::mch::contour;
 
-BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
+BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 
 BOOST_AUTO_TEST_SUITE(interval)
 

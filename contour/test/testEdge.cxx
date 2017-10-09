@@ -29,27 +29,14 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/data/test_case.hpp>
 #include <iostream>
 #include "edge.h"
 
 using namespace o2::mch::contour;
 
-struct EDGES
-{
-    std::vector<VerticalEdge<double>> testVerticals{{0, 7, 1},
-                                                    {1, 1, 0},
-                                                    {3, 0, 1},
-                                                    {5, 1, 0},
-                                                    {6, 0, 7},
-                                                    {2, 5, 3},
-                                                    {4, 3, 5}};
+BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 
-};
-
-BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
-
-BOOST_FIXTURE_TEST_SUITE(edge, EDGES)
+BOOST_AUTO_TEST_SUITE(edge)
 
 BOOST_AUTO_TEST_CASE(AVerticalLeftEdgeIsTopToBottom)
 {
@@ -106,34 +93,47 @@ BOOST_AUTO_TEST_CASE(BeginAndEndForALeftEdgeVertical)
 {
   VerticalEdge<double> e{0, 7, 1};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0,7));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0,1));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0, 7));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0, 1));
   BOOST_CHECK_EQUAL(top(e), 7);
-  BOOST_CHECK_EQUAL(bottom(e),1);
+  BOOST_CHECK_EQUAL(bottom(e), 1);
 }
 
 BOOST_AUTO_TEST_CASE(BeginAndEndForARightEdgeVertical)
 {
   VerticalEdge<double> e{0, 1, 7};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0,1));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0,7));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0, 1));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0, 7));
   BOOST_CHECK_EQUAL(top(e), 7);
-  BOOST_CHECK_EQUAL(bottom(e),1);
+  BOOST_CHECK_EQUAL(bottom(e), 1);
 }
 
 BOOST_AUTO_TEST_CASE(BeginAndEndForALeftToRightHorizontal)
 {
   HorizontalEdge<double> e{0, 1, 7};
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(1,0));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(7,0));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(1, 0));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(7, 0));
 }
 
 BOOST_AUTO_TEST_CASE(BeginAndEndForARightToLeftHorizontal)
 {
   HorizontalEdge<double> e{0, 7, 1};
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(7,0));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(1,0));
+  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(7, 0));
+  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(1, 0));
+}
+
+BOOST_AUTO_TEST_CASE(VectorOfVerticals)
+{
+  std::vector<VerticalEdge<double>> testVerticals{
+    {0.0, 7.0, 1.0},
+    {1.0, 1.0, 0.0},
+    {3.0, 0.0, 1.0},
+    {5.0, 1.0, 0.0},
+    {6.0, 0.0, 7.0},
+    {2.0, 5.0, 3.0},
+    {4.0, 3.0, 5.0}};
+  BOOST_TEST(testVerticals.size() == 7);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

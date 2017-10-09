@@ -21,24 +21,107 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <initializer_list>
+#include <sstream>
 
 namespace o2 {
 namespace mch {
 namespace contour {
 
 template<typename T>
-using Polygon = std::vector<Vertex<T>>;
+class Polygon
+{
+  public:
+
+    using size_type = typename std::vector<o2::mch::contour::Vertex<T>>::size_type;
+
+    Polygon() = default;
+
+    Polygon(std::initializer_list<o2::mch::contour::Vertex<T>> args) : mVertices{args}
+    {}
+
+    o2::mch::contour::Vertex<T> firstVertex() const
+    { return mVertices.front(); }
+
+    Polygon<T>& addVertex(const Vertex <T>& vertex)
+    {
+      mVertices.push_back(vertex);
+      return *this;
+    }
+
+    size_type size() const
+    { return mVertices.size(); }
+
+    bool empty() const
+    { return size() == 0; }
+
+    o2::mch::contour::Vertex<T> operator[](int i) const
+    { return mVertices[i]; }
+
+    bool isCounterClockwiseOriented() const
+    {
+      return signedArea() > 0.0;
+    }
+
+    std::vector<o2::mch::contour::Vertex<T>> getVertices() const
+    { return mVertices; }
+
+    std::vector<o2::mch::contour::Vertex<T>> getSortedVertices() const
+    {
+      std::vector<o2::mch::contour::Vertex<T>> vertices{
+        mVertices.begin(), isClosed() ? mVertices.end() - 1 : mVertices.end()
+      };
+      std::sort(vertices.begin(), vertices.end());
+      return vertices;
+    }
+
+    bool isManhattan() const
+    {
+      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+        if (!isVertical(mVertices[i], mVertices[i + 1]) && !isHorizontal(mVertices[i], mVertices[i + 1])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool isClosed() const
+    {
+      return mVertices.back() == mVertices.front();
+    }
+
+    double signedArea() const
+    {
+      /// Compute the signed area of this polygon
+      /// Algorithm from F. Feito, J.C. Torres and A. Urena,
+      /// Comput. & Graphics, Vol. 19, pp. 595-600, 1995
+      double area{0.0};
+      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+        auto& current = mVertices[i];
+        auto& next = mVertices[i + 1];
+        area += current.x * next.y - next.x * current.y;
+      }
+      return area * 0.5;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Polygon<T>& polygon)
+    {
+      os << "POLYGON(";
+      os << polygon.mVertices;
+      os << ")";
+      return os;
+    }
+
+  private:
+    std::vector<o2::mch::contour::Vertex<T>> mVertices;
+};
 
 template<typename T>
-using PolygonCollection = std::vector<Polygon<T>>;
-
-inline std::ostream& operator<<(std::ostream& os, const Polygon<int>& polygon)
+std::ostream& operator<<(std::ostream& os, const std::vector<Vertex<T>>& vertices)
 {
-  os << "POLYGON(";
-
-  for (auto i = 0; i < polygon.size(); ++i) {
-    os << polygon[i];
-    if (i < polygon.size() - 1) {
+  for (auto i = 0; i < vertices.size(); ++i) {
+    os << std::setw(5) << vertices[i].x << " " << std::setw(5) << vertices[i].y;
+    if (i < vertices.size() - 1) {
       os << ',';
     }
   }
@@ -47,43 +130,16 @@ inline std::ostream& operator<<(std::ostream& os, const Polygon<int>& polygon)
 }
 
 template<typename T>
-bool isManhattan(const Polygon<T>& polygon)
-{
-  for (auto i = 0; i < polygon.size() - 1; ++i) {
-    if (!isVertical(polygon[i], polygon[i + 1]) && !isHorizontal(polygon[i], polygon[i + 1])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template<typename T>
-bool isClosed(const Polygon<T>& polygon)
-{
-  return polygon.back() == polygon.front();
-}
-
-template<typename T>
-bool isClosed(const PolygonCollection<T>& polygons)
-{
-  for (const auto& p: polygons) {
-    if (!isClosed(p)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template<typename T>
 Polygon<T> close(Polygon<T> polygon)
 {
-  if (!isClosed(polygon)) {
-    polygon.push_back(polygon.front());
+  Polygon<T> pol{polygon};
+  if (!polygon.isClosed()) {
+    pol.addVertex(polygon.firstVertex());
   }
-  if (!isManhattan(polygon)) {
+  if (!pol.isManhattan()) {
     throw std::logic_error("closing resulted in non Manhattan polygon");
   }
-  return polygon;
+  return pol;
 }
 
 template<typename T>
@@ -92,33 +148,6 @@ bool operator!=(const Polygon<T>& lhs, const Polygon<T>& rhs)
   return !(rhs == lhs);
 }
 
-template<typename T>
-std::vector<Vertex<T> > getVertices(const PolygonCollection<T>& polygons)
-{
-  std::vector<Vertex<T> > vertices;
-
-  for (auto i = 0; i < polygons.size(); ++i) {
-    vertices.insert(vertices.end(), polygons[i].begin(), isClosed(polygons[i]) ? polygons[i].end()-1 : polygons[i].end());
-  }
-
-  return vertices;
-}
-
-template<typename T>
-std::vector<Vertex<T> > getSortedVertices(const PolygonCollection<T>& polygons)
-{
-  std::vector<Vertex<T> > vertices{getVertices(polygons)};
-  std::sort(vertices.begin(), vertices.end());
-  return vertices;
-}
-
-template<typename T>
-std::vector<Vertex<T> > getSortedVertices(const Polygon<T>& polygon)
-{
-  std::vector<Vertex<T> > vertices{polygon.begin(),isClosed(polygon) ? polygon.end()-1 : polygon.end()};
-  std::sort(vertices.begin(), vertices.end());
-  return vertices;
-}
 
 /**
  * Two polygons are considered equal if they include the same set of vertices,
@@ -127,12 +156,12 @@ std::vector<Vertex<T> > getSortedVertices(const Polygon<T>& polygon)
 template<typename T>
 bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 {
-  if (lhs.size() != rhs.size()) {
+  if ( lhs.size() != rhs.size()) {
     return false;
   }
 
-  auto l = getSortedVertices(lhs);
-  auto r = getSortedVertices(rhs);
+  auto l = lhs.getSortedVertices();
+  auto r = rhs.getSortedVertices();
 
   if (l.size() != r.size()) {
     return false;
@@ -146,103 +175,6 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
   return true;
 }
 
-/**
- * Two polygon collections are considered equal if they contain
- * the same set of vertices
- */
-template<typename T>
-bool operator==(const PolygonCollection<T>& lhs, const PolygonCollection<T>& rhs)
-{
-  std::vector<Vertex<T> > vl{getSortedVertices(lhs)};
-  std::vector<Vertex<T> > vr{getSortedVertices(rhs)};
-
-  if (vl.size() != vr.size()) {
-    return false;
-  }
-  for (auto i = 0; i < vl.size(); ++i) {
-    if (vl[i] != vr[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template<typename T>
-bool operator!=(const PolygonCollection<T>& lhs, const PolygonCollection<T>& rhs)
-{
-  return !(rhs == lhs);
-}
-
-template<typename T>
-double signedArea(const Polygon<T>& polygon)
-{
-  /// Compute the signed area of this polygon
-  /// Algorithm from F. Feito, J.C. Torres and A. Urena,
-  /// Comput. & Graphics, Vol. 19, pp. 595-600, 1995
-  double area{0.0};
-  for (auto i = 0; i < polygon.size() - 1; ++i) {
-    auto& current = polygon[i];
-    auto& next = polygon[i + 1];
-    area += current.x * next.y - next.x * current.y;
-  }
-  return area * 0.5;
-}
-
-template<typename T>
-bool isCounterClockwiseOriented(const Polygon<T>& polygon)
-{
-  return signedArea(polygon) > 0.0;
-}
-
-template<typename T>
-bool isCounterClockwiseOriented(const PolygonCollection<T>& polygons)
-{
-  for (const auto& p: polygons) {
-    if (!isCounterClockwiseOriented(p)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const Polygon<T>& polygon)
-{
-  os << "POLYGON(";
-
-  for (auto i = 0; i < polygon.size(); ++i) {
-    os << std::setw(5) << polygon[i].x << " " << std::setw(5) << polygon[i].y;
-    if (i < polygon.size() - 1) {
-      os << ',';
-    }
-  }
-
-  os << ')';
-  return os;
-}
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const PolygonCollection<T>& polygons)
-{
-  os << "MULTIPOLYGON(";
-
-  for (auto j = 0; j < polygons.size(); ++j) {
-    const Polygon<T>& p{polygons[j]};
-    os << '(';
-    for (auto i = 0; i < p.size(); ++i) {
-      os << p[i].x << " " << p[i].y;
-      if (i < p.size() - 1) {
-        os << ',';
-      }
-    }
-    os << ')';
-    if (j < polygons.size() - 1) {
-      os << ',';
-    }
-  }
-  os << ')';
-  return os;
-}
 
 }
 }
