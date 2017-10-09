@@ -37,8 +37,6 @@ template<typename T>
 class ManhattanEdge
 {
   public:
-    ManhattanEdge() = delete;
-
     ManhattanEdge(Vertex<T> b = {}, Vertex<T> e = {});
 
     Vertex<T> begin() const
@@ -76,7 +74,7 @@ template<typename T>
 class VerticalEdge : public ManhattanEdge<T>
 {
   public:
-    VerticalEdge(T x, T y1, T y2) :
+    VerticalEdge(T x = {}, T y1 = {}, T y2 = {}) :
       ManhattanEdge<T>({x, y1}, {x, y2})
     {}
 };

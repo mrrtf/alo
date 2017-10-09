@@ -41,25 +41,25 @@ struct YPOS
     YPOS()
     {
 
-      auto* left = new Node<int>{Interval<int>{0, 4}};
-      auto* right = new Node<int>{Interval<int>{4, 8}};
+      auto* left = new Node<int>{Interval<int>{0, 4},2};
+      auto* right = new Node<int>{Interval<int>{4, 8},6};
 
       testNode.setLeft(left).setRight(right);
 
-      left->cardinality(dummyCardinality);
-      right->cardinality(dummyCardinality);
+      left->setCardinality(dummyCardinality);
+      right->setCardinality(dummyCardinality);
 
     }
 
     std::vector<int> yposInt{0, 1, 2, 3, 4, 5, 6, 7, 8};
     std::vector<double> yposDouble{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
-    Node<int> node{Interval<int>{0, 8}};
-    Node<int> testNode{Interval<int>{0, 8}};
+    Node<int> node{Interval<int>{0, 8},4};
+    Node<int> testNode{Interval<int>{0, 8},4};
     int dummyCardinality{3};
 
 };
 
-BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
+BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 
 BOOST_FIXTURE_TEST_SUITE(segmenttree, YPOS)
 
@@ -165,6 +165,16 @@ BOOST_AUTO_TEST_CASE(DemoteNode)
   BOOST_CHECK_EQUAL(testNode.left()->cardinality(), dummyCardinality);
   BOOST_CHECK_EQUAL(testNode.right()->cardinality(), dummyCardinality);
   BOOST_CHECK_EQUAL(testNode.isPotent(), true);
+}
+
+BOOST_AUTO_TEST_CASE(MidPointOfANodeIsNotHalfPoint)
+{
+  std::vector<double> ypos{-2.0,-1.5,-1,0};
+  std::unique_ptr<Node<double>> root{createSegmentTree(ypos)};
+  auto right = root->right();
+  BOOST_CHECK_EQUAL(right->interval(),Interval<double>(-1.5,0));
+  BOOST_CHECK(right->midpoint() != 1.5/2);
+  BOOST_CHECK_EQUAL(right->midpoint(),-1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

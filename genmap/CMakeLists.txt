@@ -5,4 +5,6 @@ add_library(genmap STATIC genMotifType.h genMotifType.cxx genDetectionElement.h 
         genSegmentationImpl0.h
         )
 
+target_include_directories(genmap SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+
 add_subdirectory(test)

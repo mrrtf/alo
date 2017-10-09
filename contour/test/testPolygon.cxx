@@ -12,20 +12,6 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-// Copyright CERN and copyright holders of ALICE O2. This software is
-// distributed under the terms of the GNU General Public License v3 (GPL
-// Version 3), copied verbatim in the file "COPYING".
-//
-// See https://alice-o2.web.cern.ch/ for full licensing information.
-//
-// In applying this license CERN does not waive the privileges and immunities
-// granted to it by virtue of its status as an Intergovernmental Organization
-// or submit itself to any jurisdiction.
-
-///
-/// @author  Laurent Aphecetche
-
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
@@ -46,7 +32,7 @@ struct POLYGONS
       testPads.push_back({{{1.0, 2.0}, {2.0, 2.0}, {2.0, 3.0}, {1.0, 3.0}, {1.0, 2.0}}});
     }
 
-    PolygonCollection<double> testPads;
+    std::vector<Polygon<double>> testPads;
     Polygon<double> polygon;
     Polygon<double> testPolygon{
       {{0.1, 0.1}, {1.1, 0.1}, {1.1, 1.1}, {2.1, 1.1}, {2.1, 3.1}, {1.1, 3.1}, {1.1, 2.1}, {0.1, 2.1}, {0.1, 0.1}}};
@@ -68,23 +54,23 @@ struct POLYGONS
 
 };
 
-BOOST_AUTO_TEST_SUITE(o2_mch_geometry)
+BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 
 BOOST_FIXTURE_TEST_SUITE(polygon, POLYGONS)
 
 BOOST_AUTO_TEST_CASE(CreateCounterClockwiseOrientedPolygon)
 {
-  BOOST_CHECK(isCounterClockwiseOriented(counterClockwisePolygon));
+  BOOST_CHECK(counterClockwisePolygon.isCounterClockwiseOriented());
 }
 
 BOOST_AUTO_TEST_CASE(CreateClockwiseOrientedPolygon)
 {
-  BOOST_CHECK(!isCounterClockwiseOriented(clockwisePolygon));
+  BOOST_CHECK(!clockwisePolygon.isCounterClockwiseOriented());
 }
 
 BOOST_AUTO_TEST_CASE(SignedArea)
 {
-  BOOST_CHECK_CLOSE(signedArea(testPolygon), 4.0, 0.1);
+  BOOST_CHECK_CLOSE(testPolygon.signedArea(), 4.0, 0.1);
 }
 
 BOOST_AUTO_TEST_CASE(AClosePolygonIsAPolygonWhereLastVertexIsTheSameAsFirstOne)
@@ -94,7 +80,7 @@ BOOST_AUTO_TEST_CASE(AClosePolygonIsAPolygonWhereLastVertexIsTheSameAsFirstOne)
                  {1, 1},
                  {1, 0},
                  {0, 0}};
-  BOOST_CHECK(isClosed(p));
+  BOOST_CHECK(p.isClosed());
 }
 
 BOOST_AUTO_TEST_CASE(ClosingAClosedPolygonIsANop)
@@ -177,37 +163,7 @@ BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespecti
   BOOST_CHECK(a != c);
 }
 
-BOOST_AUTO_TEST_CASE(PolygonCollectionAreEqualAsLongAsTheyContainTheSameSetOfVertices)
-{
-  PolygonCollection<double> aCollectionWithOnePolygon{
-    {
-      {0, 2},
-      {0, 0},
-      {2, 0},
-      {2, 4},
-      {1, 4},
-      {1, 2},
-      {0, 2}
-    }
-  };
 
-  PolygonCollection<double> anotherCollectionWithTwoPolygonsButSameVertices{
-    {
-      {2, 4},
-      {2, 0}
-    },
-    {
-      {1, 4},
-      {1, 2},
-      {0, 2},
-      {0, 0}
-    }
-
-  };
-
-  BOOST_CHECK(aCollectionWithOnePolygon == anotherCollectionWithTwoPolygonsButSameVertices);
-
-}
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -13,81 +13,157 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_CONTOUR_CONTOUR_H
-#define O2_MCH_CONTOUR_CONTOUR_H
+#ifndef O2_MCH_CONTOUR_H
+#define O2_MCH_CONTOUR_H
 
-#include <utility>
-#include <vector>
-#include <iostream>
-
-#include "edge.h"
 #include "polygon.h"
-#include "segmentTree.h"
+#include <vector>
+#include <cassert>
+#include <initializer_list>
 
 namespace o2 {
 namespace mch {
 namespace contour {
 
-PolygonCollection<double> createContour(const PolygonCollection<double>& polygons);
-
-void sortVerticalEdges(std::vector<VerticalEdge<double>>& edges);
-
-std::vector<VerticalEdge<double>>
-sweep(Node<double>* segmentTree, const std::vector<VerticalEdge<double>>& polygonVerticalEdges);
-
-std::vector<HorizontalEdge<double>> verticalsToHorizontals(const std::vector<VerticalEdge<double>>& verticals);
-
-PolygonCollection<double>
-finalizeContour(const std::vector<VerticalEdge<double>>& verticals,
-                const std::vector<HorizontalEdge<double>>& horizontals);
-
 template<typename T>
-Interval<T> interval(const VerticalEdge<T>& edge)
+std::vector<o2::mch::contour::Vertex<T> > getVertices(const std::vector<o2::mch::contour::Polygon<T>>& polygons)
 {
-  auto y1 = edge.begin().y;
-  auto y2 = edge.end().y;
-  return y2 > y1 ? Interval<T>(y1, y2) : Interval<T>(y2, y1);
+  std::vector<o2::mch::contour::Vertex<T> > vertices;
+
+  for (const auto& p: polygons) {
+    auto pv = p.getVertices();
+    vertices.insert(vertices.end(), pv.begin(), p.isClosed() ? pv.end() - 1 : pv.end());
+  }
+
+  return vertices;
 }
 
 template<typename T>
-std::vector<VerticalEdge<T>> getVerticalEdges(const Polygon<T>& polygon)
+std::vector<o2::mch::contour::Vertex<T>> getSortedVertices(const std::vector<o2::mch::contour::Polygon<T>>& polygons)
 {
-  /// Return the vertical edges of the input polygon
-  std::vector<VerticalEdge<T>> edges;
-  for (auto i = 0; i < polygon.size() - 1; ++i) {
-    auto& current = polygon[i];
-    auto& next = polygon[i + 1];
-    if (current.x == next.x) {
-      edges.push_back({current.x, current.y, next.y});
+  std::vector<Vertex<T> > vertices{
+    getVertices(polygons)
+  };
+  std::sort(vertices.begin(), vertices.end());
+  return vertices;
+}
+
+template<typename T>
+bool isCounterClockwiseOriented(const std::vector<T>& polygons)
+{
+  for (const auto& p: polygons) {
+    if (!p.isCounterClockwiseOriented()) {
+      return false;
     }
   }
-  return edges;
+  return true;
 }
 
 template<typename T>
-std::vector<VerticalEdge<T>> getVerticalEdges(const PolygonCollection<T>& polygons)
+class Contour
 {
-  std::vector<VerticalEdge<T>> edges;
-  for (const auto& p: polygons) {
-    auto e = getVerticalEdges(p);
-    edges.insert(edges.end(), e.begin(), e.end());
+  public:
+
+    using size_type = typename std::vector<o2::mch::contour::Polygon<T>>::size_type;
+
+    Contour() = default;
+
+    Contour(std::initializer_list<o2::mch::contour::Polygon<T>> args) : mPolygons(args)
+    {}
+
+    size_type size() const
+    { return mPolygons.size(); }
+
+    o2::mch::contour::Polygon<T> operator[](int i) const
+    { return mPolygons[i]; }
+
+    bool empty() const
+    { return size() == 0; }
+
+    Contour<T>& addPolygon(const Polygon <T>& polygon)
+    {
+      mPolygons.push_back(polygon);
+      return *this;
+    }
+
+    bool isClosed() const
+    {
+      for (const auto& p: mPolygons) {
+        if (!p.isClosed()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool isCounterClockwiseOriented() const
+    { return o2::mch::contour::isCounterClockwiseOriented(mPolygons); }
+
+    std::vector<o2::mch::contour::Vertex<T>> getSortedVertices() const
+    { return o2::mch::contour::getSortedVertices(mPolygons); }
+
+
+    friend
+    std::ostream& operator<<(std::ostream& os, const Contour<T>& contour)
+    {
+      os << contour.mPolygons;
+      return os;
+    }
+
+  private:
+    std::vector<o2::mch::contour::Polygon<T>> mPolygons;
+};
+
+template<typename T>
+bool operator!=(const Contour<T>& lhs, const Contour<T>& rhs)
+{
+  return !(rhs == lhs);
+}
+
+/**
+ * Two contours are considered equal if they contain
+ * the same set of vertices
+ */
+template<typename T>
+bool operator==(const Contour<T>& lhs, const Contour<T>& rhs)
+{
+  std::vector<Vertex<T> > vl{lhs.getSortedVertices()};
+  std::vector<Vertex<T> > vr{rhs.getSortedVertices()};
+
+  if (vl.size() != vr.size()) {
+    return false;
   }
-  return edges;
+  for (auto i = 0; i < vl.size(); ++i) {
+    if (vl[i] != vr[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 template<typename T>
-std::vector<T> getYPositions(const PolygonCollection<T>& polygons)
+std::ostream& operator<<(std::ostream& os, const std::vector<o2::mch::contour::Polygon<T>>& polygons)
 {
-  auto vertices = getSortedVertices(polygons);
-  std::vector<T> ypos;
-  for (const auto& v: vertices) {
-    ypos.push_back(v.y);
+  os << "MULTIPOLYGON(";
+
+  for (auto j = 0; j < polygons.size(); ++j) {
+    const Polygon<T>& p{polygons[j]};
+    os << '(';
+    for (auto i = 0; i < p.size(); ++i) {
+      os << p[i].x << " " << p[i].y;
+      if (i < p.size() - 1) {
+        os << ',';
+      }
+    }
+    os << ')';
+    if (j < polygons.size() - 1) {
+      os << ',';
+    }
   }
-  auto last = std::unique(ypos.begin(), ypos.end(),
-                          [](const T& a, const T& b) { return areEqual(a, b); });
-  ypos.erase(last, ypos.end());
-  return ypos;
+  os << ')';
+  return os;
 }
+
 
 }
 }
