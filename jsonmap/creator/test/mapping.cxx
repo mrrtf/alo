@@ -17,6 +17,7 @@
 #include "de.h"
 #include "seg.h"
 #include "mapping.h"
+#include <algorithm>
 
 Mapping::Mapping()
 {

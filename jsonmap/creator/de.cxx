@@ -6,6 +6,7 @@
 #include "bp.h"
 #include "seg.h"
 #include "AliMpSegmentation.h"
+#include <algorithm>
 
 std::vector<int> get_deids(AliMpDDLStore* /*ddlStore*/)
 {
