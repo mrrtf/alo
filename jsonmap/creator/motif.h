@@ -17,6 +17,7 @@
 #define ALO_JSONMAP_CREATOR_MOTIF_H
 
 #include <vector>
+#include <string>
 
 class AliMpPCB;
 

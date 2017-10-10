@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cassert>
 #include <set>
+#include <algorithm>
 
 bool is_slat(std::string segtype) {
     return (segtype.find("st") == std::string::npos);

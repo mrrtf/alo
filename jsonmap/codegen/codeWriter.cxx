@@ -11,6 +11,7 @@
 #include "codeWriter.h"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 std::string mappingNamespaceBegin()
 {

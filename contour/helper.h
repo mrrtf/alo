@@ -17,6 +17,7 @@
 #define O2_MCH_CONTOUR_HELPER_H
 
 #include <cmath>
+#include <limits>
 
 namespace o2 {
 namespace mch {

@@ -25,6 +25,7 @@
 #include "padsize.h"
 #include <sstream>
 #include <cassert>
+#include <algorithm>
 
 int get_padsize_index(float px, float py, const std::vector<std::pair<float, float>>& padsizes)
 {

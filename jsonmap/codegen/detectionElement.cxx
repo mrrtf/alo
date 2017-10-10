@@ -15,6 +15,7 @@
 #include <vector>
 #include <sstream>
 #include "codeWriter.h"
+#include <algorithm>
 
 using namespace rapidjson;
 

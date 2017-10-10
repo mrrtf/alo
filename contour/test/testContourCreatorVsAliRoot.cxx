@@ -12,20 +12,6 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-// Copyright CERN and copyright holders of ALICE O2. This software is
-// distributed under the terms of the GNU General Public License v3 (GPL
-// Version 3), copied verbatim in the file "COPYING".
-//
-// See https://alice-o2.web.cern.ch/ for full licensing information.
-//
-// In applying this license CERN does not waive the privileges and immunities
-// granted to it by virtue of its status as an Intergovernmental Organization
-// or submit itself to any jurisdiction.
-
-///
-/// @author  Laurent Aphecetche
-
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN
 
@@ -48,7 +34,6 @@
 #include "AliMpSegmentation.h"
 #include "AliMpVSegmentation.h"
 #include "contourCreator.h"
-#include "svg.h"
 #include <TArrayD.h>
 #include <boost/format.hpp>
 #include <chrono>
@@ -249,8 +234,8 @@ bool areTheSame(const std::pair<Contour<double>, Contour<double>>& contours)
     std::cout << '\n';
     std::cout << contours.first.getSortedVertices().size() << " " << contours.first.getSortedVertices() << '\n';
     std::cout << contours.second.getSortedVertices().size() << " " << contours.second.getSortedVertices() << '\n';
-    basicSVG("fromaliroot.svg", contours.first);
-    basicSVG("fromo2.svg", contours.second);
+    //basicSVG("fromaliroot.svg", contours.first);
+    //basicSVG("fromo2.svg", contours.second);
     return false;
   }
 }

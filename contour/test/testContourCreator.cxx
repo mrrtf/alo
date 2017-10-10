@@ -32,7 +32,6 @@
 #include <chrono>
 #include <iostream>
 #include "contourCreator.h"
-#include "svg.h"
 
 using namespace o2::mch::contour;
 
