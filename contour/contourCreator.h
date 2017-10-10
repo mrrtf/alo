@@ -19,11 +19,11 @@
 #include <utility>
 #include <vector>
 #include <iostream>
-
 #include "edge.h"
 #include "polygon.h"
 #include "contour.h"
 #include "segmentTree.h"
+#include <algorithm>
 
 namespace o2 {
 namespace mch {

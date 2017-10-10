@@ -18,7 +18,7 @@
 
 #include <vector>
 #include <ostream>
-
+#include <algorithm>
 #include "interval.h"
 
 namespace o2 {

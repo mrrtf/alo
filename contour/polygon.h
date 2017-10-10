@@ -23,6 +23,7 @@
 #include <vector>
 #include <initializer_list>
 #include <sstream>
+#include <algorithm>
 
 namespace o2 {
 namespace mch {
