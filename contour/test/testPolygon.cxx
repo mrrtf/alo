@@ -163,6 +163,31 @@ BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespecti
   BOOST_CHECK(a != c);
 }
 
+BOOST_AUTO_TEST_CASE(IsInsideThrowsIfCalledOnNonClosedPolygon)
+{
+  Polygon<double> opened{{0, 0},
+                         {1, 0},
+                         {1, 1},
+                         {0, 1}};
+  BOOST_CHECK_THROW(opened.isInside(0, 0), std::invalid_argument);
+};
+
+BOOST_AUTO_TEST_CASE(IsInsideReturnsTrueIfPointIsInsidePolygon)
+{
+  Polygon<double> testPolygon2
+    {
+      {
+        {-5.0, 10.0},
+        {-5.0, -2.0},
+        {0.0, -2.0},
+        {0.0, -10.0},
+        {5.0, -10.0},
+        {5.0, 10.0},
+        {-5.0, 10.0}
+      }
+    };
+  BOOST_CHECK_EQUAL(testPolygon2.isInside(0, 0), true);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

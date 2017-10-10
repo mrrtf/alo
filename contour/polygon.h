@@ -17,7 +17,6 @@
 #define O2_MCH_CONTOUR_POLYGON_H
 
 #include "vertex.h"
-#include <iomanip>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -91,6 +90,8 @@ class Polygon
       return mVertices.back() == mVertices.front();
     }
 
+    bool isInside(T x, T y) const;
+
     double signedArea() const
     {
       /// Compute the signed area of this polygon
@@ -116,19 +117,6 @@ class Polygon
   private:
     std::vector<o2::mch::contour::Vertex<T>> mVertices;
 };
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<Vertex<T>>& vertices)
-{
-  for (auto i = 0; i < vertices.size(); ++i) {
-    os << std::setw(5) << vertices[i].x << " " << std::setw(5) << vertices[i].y;
-    if (i < vertices.size() - 1) {
-      os << ',';
-    }
-  }
-  os << ')';
-  return os;
-}
 
 template<typename T>
 Polygon<T> close(Polygon<T> polygon)
@@ -176,6 +164,12 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
   return true;
 }
 
+template<typename T>
+bool Polygon<T>::isInside(T x, T y) const
+{
+  if (!isClosed()) { throw std::invalid_argument("isInside can only work with closed polygons"); }
+  return false;
+}
 
 }
 }
