@@ -35,8 +35,8 @@
 
 using namespace o2::mch::contour;
 
-struct POLYGONS {
-  POLYGONS() {
+struct ContourCreatorPolygons {
+  ContourCreatorPolygons() {
     testPads.push_back({{{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}}});
     testPads.push_back({{{1.0, 3.0}, {2.0, 3.0}, {2.0, 4.0}, {1.0, 4.0}, {1.0, 3.0}}});
     testPads.push_back({{{1.0, 0.0}, {2.0, 0.0}, {2.0, 1.0}, {1.0, 1.0}, {1.0, 0.0}}});
@@ -69,7 +69,7 @@ struct POLYGONS {
 
 BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 
-BOOST_FIXTURE_TEST_SUITE(contourCreator, POLYGONS)
+BOOST_FIXTURE_TEST_SUITE(contourCreator, ContourCreatorPolygons)
 
 BOOST_AUTO_TEST_CASE(ContourCreationGeneratesEmptyContourForEmptyInput) {
   std::vector<Polygon<double>> list;

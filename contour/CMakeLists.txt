@@ -1,5 +1,6 @@
 
 add_library(contour STATIC
+        bbox.h
         contour.h
         contourCreator.h
         contourCreator.cxx
@@ -8,7 +9,7 @@ add_library(contour STATIC
         polygon.h
         segmentTree.h
         vertex.h
-        helper.h)
+        helper.h bbox.h)
 
 add_subdirectory(test)
 

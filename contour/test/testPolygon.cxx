@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include "polygon.h"
+#include "bbox.h"
 
 using namespace o2::mch::contour;
 
@@ -51,7 +52,18 @@ struct POLYGONS
                                            {1, 1},
                                            {1, 0},
                                            {0, 0}};
-
+    Polygon<double> testPolygon2
+      {
+        {
+          {-5.0, 10.0},
+          {-5.0, -2.0},
+          {0.0, -2.0},
+          {0.0, -10.0},
+          {5.0, -10.0},
+          {5.0, 10.0},
+          {-5.0, 10.0}
+        }
+      };
 };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_contour)
@@ -174,19 +186,19 @@ BOOST_AUTO_TEST_CASE(IsInsideThrowsIfCalledOnNonClosedPolygon)
 
 BOOST_AUTO_TEST_CASE(IsInsideReturnsTrueIfPointIsInsidePolygon)
 {
-  Polygon<double> testPolygon2
-    {
-      {
-        {-5.0, 10.0},
-        {-5.0, -2.0},
-        {0.0, -2.0},
-        {0.0, -10.0},
-        {5.0, -10.0},
-        {5.0, 10.0},
-        {-5.0, 10.0}
-      }
-    };
   BOOST_CHECK_EQUAL(testPolygon2.isInside(0, 0), true);
+  BOOST_CHECK_EQUAL(testPolygon2.isInside(-4.999, -1.999), true);
+}
+
+BOOST_AUTO_TEST_CASE(IsInsideReturnsFalseIfPointIsExactlyOnAPolygonEdge)
+{
+  BOOST_CHECK_EQUAL(testPolygon2.isInside(-2.5, -2), false);
+}
+
+BOOST_AUTO_TEST_CASE(BBoxCreation)
+{
+  BBox<double> expected{-5.0, 5.0, -10.0, 10.0};
+  BOOST_TEST(getBBox(testPolygon2) == expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

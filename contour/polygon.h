@@ -16,13 +16,14 @@
 #ifndef O2_MCH_CONTOUR_POLYGON_H
 #define O2_MCH_CONTOUR_POLYGON_H
 
-#include "vertex.h"
 #include <iostream>
 #include <utility>
 #include <vector>
 #include <initializer_list>
 #include <sstream>
 #include <algorithm>
+#include "bbox.h"
+#include "vertex.h"
 
 namespace o2 {
 namespace mch {
@@ -43,7 +44,7 @@ class Polygon
     o2::mch::contour::Vertex<T> firstVertex() const
     { return mVertices.front(); }
 
-    Polygon<T>& addVertex(const Vertex <T>& vertex)
+    Polygon<T>& addVertex(const Vertex<T>& vertex)
     {
       mVertices.push_back(vertex);
       return *this;
@@ -145,7 +146,7 @@ bool operator!=(const Polygon<T>& lhs, const Polygon<T>& rhs)
 template<typename T>
 bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 {
-  if ( lhs.size() != rhs.size()) {
+  if (lhs.size() != rhs.size()) {
     return false;
   }
 
@@ -165,10 +166,30 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 }
 
 template<typename T>
-bool Polygon<T>::isInside(T x, T y) const
+bool Polygon<T>::isInside(T xp, T yp) const
 {
+  // TODO : look e.g. to http://alienryderflex.com/polygon/ for some possible optimizations
+  // (e.g. pre-computation)
   if (!isClosed()) { throw std::invalid_argument("isInside can only work with closed polygons"); }
-  return false;
+  auto j = mVertices.size() - 1;
+  bool oddNodes{false};
+  for (auto i = 0; i < mVertices.size(); i++) {
+    if ((mVertices[i].y < yp && mVertices[j].y >= yp) || (mVertices[j].y < yp && mVertices[i].y >= yp)) {
+      if (
+        mVertices[i].x + (yp - mVertices[i].y) / (mVertices[j].y - mVertices[i].y) * (mVertices[j].x - mVertices[i].x) <
+        xp) {
+        oddNodes = !oddNodes;
+      }
+    }
+    j = i;
+  }
+  return oddNodes;
+}
+
+template<typename T>
+BBox<T> getBBox(const Polygon<T>& polygon)
+{
+  return getBBox(polygon.getVertices());
 }
 
 }

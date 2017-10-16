@@ -80,10 +80,20 @@ class Contour
     bool empty() const
     { return size() == 0; }
 
-    Contour<T>& addPolygon(const Polygon <T>& polygon)
+    Contour<T>& addPolygon(const Polygon<T>& polygon)
     {
       mPolygons.push_back(polygon);
       return *this;
+    }
+
+    bool isInside(T x, T y) const
+    {
+      for (const auto& p: mPolygons) {
+        if (p.isInside(x, y)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     bool isClosed() const
@@ -98,6 +108,9 @@ class Contour
 
     bool isCounterClockwiseOriented() const
     { return o2::mch::contour::isCounterClockwiseOriented(mPolygons); }
+
+    std::vector<o2::mch::contour::Vertex<T>> getVertices() const
+    { return o2::mch::contour::getVertices(mPolygons); }
 
     std::vector<o2::mch::contour::Vertex<T>> getSortedVertices() const
     { return o2::mch::contour::getSortedVertices(mPolygons); }
@@ -164,7 +177,10 @@ std::ostream& operator<<(std::ostream& os, const std::vector<o2::mch::contour::P
   return os;
 }
 
-
+template<typename T>
+BBox<T> getBBox(const Contour<T>& contour) {
+  return getBBox(contour.getVertices());
+}
 }
 }
 }

@@ -35,11 +35,14 @@
 #include "AliMpVSegmentation.h"
 #include "contourCreator.h"
 #include <TArrayD.h>
+#include <algorithm>
 #include <boost/format.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <vector>
+#include <utility>
 
 constexpr int NLOOP = 1;
 
@@ -188,12 +191,36 @@ BOOST_AUTO_TEST_CASE(O2CreateContour)
 {
   std::vector<Polygon<double>> pads;
 
-  pads.push_back( { { 0.0, 0.0 }, {1.0,0.0}, {1.0,1.0}, {0.0,1.0}, {0.0,0.0} });
-  pads.push_back( { { 0.0, 1.0 }, {1.0,1.0}, {1.0,2.0}, {0.0,2.0}, {0.0,1.0} });
-  pads.push_back( { { 1.0, 0.0 }, {2.0,0.0}, {2.0,1.0}, {1.0,1.0}, {1.0,0.0} });
-  pads.push_back( { { 1.0, 1.0 }, {2.0,1.0}, {2.0,2.0}, {1.0,2.0}, {1.0,1.0} });
-  pads.push_back( { { 1.0, 2.0 }, {2.0,2.0}, {2.0,3.0}, {1.0,3.0}, {1.0,2.0} });
-  pads.push_back( { { 1.0, 3.0 }, {2.0,3.0}, {2.0,4.0}, {1.0,4.0}, {1.0,3.0} });
+  pads.push_back({{0.0, 0.0},
+                  {1.0, 0.0},
+                  {1.0, 1.0},
+                  {0.0, 1.0},
+                  {0.0, 0.0}});
+  pads.push_back({{0.0, 1.0},
+                  {1.0, 1.0},
+                  {1.0, 2.0},
+                  {0.0, 2.0},
+                  {0.0, 1.0}});
+  pads.push_back({{1.0, 0.0},
+                  {2.0, 0.0},
+                  {2.0, 1.0},
+                  {1.0, 1.0},
+                  {1.0, 0.0}});
+  pads.push_back({{1.0, 1.0},
+                  {2.0, 1.0},
+                  {2.0, 2.0},
+                  {1.0, 2.0},
+                  {1.0, 1.0}});
+  pads.push_back({{1.0, 2.0},
+                  {2.0, 2.0},
+                  {2.0, 3.0},
+                  {1.0, 3.0},
+                  {1.0, 2.0}});
+  pads.push_back({{1.0, 3.0},
+                  {2.0, 3.0},
+                  {2.0, 4.0},
+                  {1.0, 4.0},
+                  {1.0, 3.0}});
 
   auto c = createContour(pads);
 
@@ -210,6 +237,7 @@ BOOST_AUTO_TEST_CASE(O2CreateContour)
   };
   BOOST_CHECK(c == expected);
 }
+
 Contour<double> createO2Contour(AliMpSegmentation* mseg, int detElemId, int manuId)
 {
   auto pads = createManuPads(mseg, detElemId, manuId);
@@ -283,7 +311,6 @@ BOOST_AUTO_TEST_CASE(TwoDifferentContours)
   BOOST_TEST(c1.second != c2.second);
 }
 
-
 BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
 {
   AliMpManuIterator it;
@@ -292,6 +319,60 @@ BOOST_AUTO_TEST_CASE(AllManuContoursMustBeTheSameWhateverTheCreateContourMethod)
   try {
     while (it.Next(detElemId, manuId)) {
       BOOST_TEST_CHECK(areTheSame(createContours(mseg, detElemId, manuId)),
+                       " problem with de " << detElemId << " manu " << manuId);
+    }
+  }
+  catch (std::exception& err) {
+    std::cout << "problem with de " << detElemId << " manu " << manuId << '\n';
+    std::cout << err.what() << '\n';
+  }
+}
+
+bool isInsideCheck(AliMUONContour* alirootContour, const Contour<double>& o2Contour, int n)
+{
+  // check that for a large range of points, the isInside of O2 is giving back the same
+  // answer as the AliRoot one
+  std::vector<std::pair<double, double>> testPoints(n);
+
+  // generate n testpoints within bounding box +- offset cm
+  double offset{10.0};
+
+  auto bbox = getBBox(o2Contour);
+
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::uniform_real_distribution<double> distX{bbox.xmin(), bbox.xmax()};
+  std::uniform_real_distribution<double> distY{bbox.ymin(), bbox.ymax()};
+
+  std::generate(testPoints.begin(), testPoints.end(),
+                [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
+
+  int nok{0};
+
+  for (const auto& tp: testPoints) {
+
+    bool alirootInside = alirootContour->IsInside(tp.first, tp.second);
+    bool o2Inside = o2Contour.isInside(tp.first, tp.second);
+    if (alirootInside != o2Inside) {
+      std::cout << "Point " << tp.first << "," << tp.second << " is aliroot:" << alirootInside << " o2: " << o2Inside
+                << '\n';
+      ++nok;
+    }
+  }
+  return nok==0;
+}
+
+BOOST_AUTO_TEST_CASE(IsInsideMustBehaveTheSameInAliRootAndInO2Polygons)
+{
+  AliMpManuIterator it;
+  int detElemId, manuId;
+  AliMUONManuContourMaker contourMaker(nullptr);
+
+  try {
+    while (it.Next(detElemId, manuId)) {
+      std::unique_ptr<AliMUONContour> aliroot(contourMaker.CreateManuContour(detElemId, manuId));
+      auto o2 = createO2Contour(mseg, detElemId, manuId);
+      BOOST_TEST_CHECK(isInsideCheck(aliroot.get(), o2, 100),
                        " problem with de " << detElemId << " manu " << manuId);
     }
   }
@@ -343,6 +424,87 @@ BOOST_AUTO_TEST_CASE(CreateAliRootContourWithOneCommonVertex)
   BOOST_CHECK(c == expected);
 }
 
+double area1(const Polygon<double>& p)
+{
+  auto vertices = p.getVertices();
+  double a{0.0};
+  for (auto i = 0; i < vertices.size() - 1; ++i) {
+    const auto& current = vertices[i];
+    const auto& next = vertices[i + 1];
+    a += current.x * next.y - current.y * next.x;
+  }
+  return a / 2.0;
+}
+
+double area1(const Contour<double>& c)
+{
+  double a{0.0};
+  for (auto i = 0; i < c.size(); ++i) {
+    a += area1(c[i]);
+  }
+  return a;
+}
+
+double area2(const Polygon<double>& p)
+{
+  auto vertices = p.getVertices();
+  double a{0.0};
+  for (auto i = 0; i < vertices.size() - 1; ++i) {
+    const auto& current = vertices[i];
+    const auto& next = vertices[i + 1];
+    a += (current.x + next.x) * (next.y - current.y);
+  }
+  return a / 2.0;
+}
+
+double area2(const Contour<double>& c)
+{
+  double a{0.0};
+  for (auto i = 0; i < c.size(); ++i) {
+    a += area2(c[i]);
+  }
+  return a;
+}
+
+BOOST_AUTO_TEST_CASE(PolygonArea1, *boost::unit_test::tolerance(1E-6))
+{
+  Polygon<double> testPolygon{
+    {{0.1, 0.1}, {1.1, 0.1}, {1.1, 1.1}, {2.1, 1.1}, {2.1, 3.1}, {1.1, 3.1}, {1.1, 2.1}, {0.1, 2.1}, {0.1, 0.1}}};
+  BOOST_CHECK(testPolygon.signedArea() == area1(testPolygon));
+}
+
+BOOST_AUTO_TEST_CASE(PolygonArea2, *boost::unit_test::tolerance(1E-6))
+{
+  Polygon<double> testPolygon{
+    {{0.1, 0.1}, {1.1, 0.1}, {1.1, 1.1}, {2.1, 1.1}, {2.1, 3.1}, {1.1, 3.1}, {1.1, 2.1}, {0.1, 2.1}, {0.1, 0.1}}};
+  BOOST_TEST(testPolygon.signedArea() == area2(testPolygon));
+}
+
+std::vector<std::vector<Polygon<double>>> getPads(AliMpSegmentation* mseg)
+{
+  AliMpManuIterator it;
+
+  int detElemId, manuId;
+
+  std::vector<std::vector<Polygon<double>>> pads;
+
+  while (it.Next(detElemId, manuId)) {
+    pads.push_back(createManuPads(mseg, detElemId, manuId));
+  }
+  return pads;
+
+}
+
+std::vector<Contour<double>> getContours(const std::vector<std::vector<Polygon<double>>>& pads)
+{
+  std::vector<Contour<double>> contours(pads.size());
+
+  for (auto i = 0; i < pads.size(); ++i) {
+    contours[i] = createContour(pads[i]);
+  }
+  return contours;
+}
+
 BOOST_AUTO_TEST_SUITE(TimeContourCreation, *boost::unit_test::disabled())
 
 BOOST_AUTO_TEST_CASE(TimeCreationOfAllAliRootContours)
@@ -365,37 +527,22 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllAliRootContours)
 
   std::cout << "AliRoot: " << t << " ms to build " << contours.size() << " manu contours\n";
 
-  BOOST_CHECK(t < 5200);
+  BOOST_CHECK(t < 2000);
 }
 
 BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
 {
   auto start = std::chrono::high_resolution_clock::now();
 
-  AliMpManuIterator it;
-
-  int detElemId, manuId;
-
-  std::vector<std::vector<Polygon<double>>> pads;
-
-  while (it.Next(detElemId, manuId)) {
-    pads.push_back(createManuPads(mseg, detElemId, manuId));
-  }
+  std::vector<std::vector<Polygon<double>>> pads = getPads(mseg);
 
   std::cout << "O2: " << std::chrono::duration_cast<std::chrono::milliseconds>(
     std::chrono::high_resolution_clock::now() - start).count()
             << " ms to build pads\n";
 
-  std::vector<Contour<double>> contours(16828);
-
   start = std::chrono::high_resolution_clock::now();
 
-  it.Reset();
-  int i{0};
-  while (it.Next(detElemId, manuId)) {
-    contours[i] = createContour(pads[i]);
-    ++i;
-  }
+  std::vector<Contour<double>> contours = getContours(pads);
 
   auto stop = std::chrono::high_resolution_clock::now();
 
@@ -403,10 +550,46 @@ BOOST_AUTO_TEST_CASE(TimeCreationOfAllO2Contours)
 
   std::cout << "O2: " << t << " ms to build " << contours.size() << " manu contours\n";
 
-  BOOST_CHECK(t < 5200);
+  BOOST_CHECK(t < 700);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(TimePolygonArea, *boost::unit_test::disabled())
+
+BOOST_AUTO_TEST_CASE(TimePolygonArea1)
+{
+  auto contours = getContours(getPads(mseg));
+  auto start = std::chrono::high_resolution_clock::now();
+  for (auto i = 0; i < 100; ++i) {
+    for (auto& c: contours) {
+      area1(c);
+    }
+  }
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto t = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+  std::cout << "area1 " << t << " ms \n";
+  BOOST_CHECK(t < 1000);
+}
+
+BOOST_AUTO_TEST_CASE(TimePolygonArea2)
+{
+  auto contours = getContours(getPads(mseg));
+  auto start = std::chrono::high_resolution_clock::now();
+  for (auto i = 0; i < 100; ++i) {
+    for (auto& c: contours) {
+      area2(c);
+    }
+  }
+  auto stop = std::chrono::high_resolution_clock::now();
+  auto t = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+  std::cout << "area2 " << t << " ms \n";
+  BOOST_CHECK(t < 1000);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
 BOOST_AUTO_TEST_SUITE_END()
 
 
