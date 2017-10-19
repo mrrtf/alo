@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(PolygonAreEqualAsLongAsTheyContainTheSameVerticesIrrespecti
     {2, 4}
   };
 
-  Polygon<double> c{
+  Polygon2<double> c{
     {2, 4},
     {2, 0},
     {1, 4},
