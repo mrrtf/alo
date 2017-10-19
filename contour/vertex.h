@@ -17,6 +17,7 @@
 #define O2_MCH_CONTOUR_VERTEX_H
 
 #include <iostream>
+#include <iomanip>
 #include "helper.h"
 
 namespace o2 {
@@ -37,6 +38,19 @@ template<typename T>
 std::ostream& operator<<(std::ostream& os, const Vertex<T>& vertex)
 {
   os << '(' << vertex.x << ' ' << vertex.y << ')';
+  return os;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<Vertex<T>>& vertices)
+{
+  for (auto i = 0; i < vertices.size(); ++i) {
+    os << std::setw(5) << vertices[i].x << " " << std::setw(5) << vertices[i].y;
+    if (i < vertices.size() - 1) {
+      os << ',';
+    }
+  }
+  os << ')';
   return os;
 }
 
@@ -85,7 +99,7 @@ bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
 template<typename T>
 bool operator==(const Vertex<T>& lhs, const Vertex<T>& rhs)
 {
-  return areEqual(lhs.x,rhs.x) && areEqual(lhs.y,rhs.y);
+  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
 }
 
 template<typename T>

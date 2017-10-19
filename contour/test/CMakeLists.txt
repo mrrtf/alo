@@ -2,6 +2,7 @@ find_package(Boost COMPONENTS unit_test_framework)
 
 
 add_executable(testContour
+        testBBox.cxx
         testInterval.cxx
         testEdge.cxx
         testPolygon.cxx
@@ -9,7 +10,7 @@ add_executable(testContour
         testVertex.cxx
         svg.h
         testContour.cxx
-        testContourCreator.cxx)
+        testContourCreator.cxx testBBox.cxx)
 
 target_include_directories(testContour PUBLIC ${CMAKE_SOURCE_DIR}/contour ${BOOST_INCLUDE_DIRS})
 target_link_libraries(testContour PUBLIC contour Boost::unit_test_framework)

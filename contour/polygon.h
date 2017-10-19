@@ -16,14 +16,14 @@
 #ifndef O2_MCH_CONTOUR_POLYGON_H
 #define O2_MCH_CONTOUR_POLYGON_H
 
-#include "vertex.h"
-#include <iomanip>
 #include <iostream>
 #include <utility>
 #include <vector>
 #include <initializer_list>
 #include <sstream>
 #include <algorithm>
+#include "bbox.h"
+#include "vertex.h"
 
 namespace o2 {
 namespace mch {
@@ -44,7 +44,7 @@ class Polygon
     o2::mch::contour::Vertex<T> firstVertex() const
     { return mVertices.front(); }
 
-    Polygon<T>& addVertex(const Vertex <T>& vertex)
+    Polygon<T>& addVertex(const Vertex<T>& vertex)
     {
       mVertices.push_back(vertex);
       return *this;
@@ -91,6 +91,8 @@ class Polygon
       return mVertices.back() == mVertices.front();
     }
 
+    bool isInside(T x, T y) const;
+
     double signedArea() const
     {
       /// Compute the signed area of this polygon
@@ -116,19 +118,6 @@ class Polygon
   private:
     std::vector<o2::mch::contour::Vertex<T>> mVertices;
 };
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<Vertex<T>>& vertices)
-{
-  for (auto i = 0; i < vertices.size(); ++i) {
-    os << std::setw(5) << vertices[i].x << " " << std::setw(5) << vertices[i].y;
-    if (i < vertices.size() - 1) {
-      os << ',';
-    }
-  }
-  os << ')';
-  return os;
-}
 
 template<typename T>
 Polygon<T> close(Polygon<T> polygon)
@@ -157,7 +146,7 @@ bool operator!=(const Polygon<T>& lhs, const Polygon<T>& rhs)
 template<typename T>
 bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 {
-  if ( lhs.size() != rhs.size()) {
+  if (lhs.size() != rhs.size()) {
     return false;
   }
 
@@ -176,6 +165,32 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
   return true;
 }
 
+template<typename T>
+bool Polygon<T>::isInside(T xp, T yp) const
+{
+  // TODO : look e.g. to http://alienryderflex.com/polygon/ for some possible optimizations
+  // (e.g. pre-computation)
+  if (!isClosed()) { throw std::invalid_argument("isInside can only work with closed polygons"); }
+  auto j = mVertices.size() - 1;
+  bool oddNodes{false};
+  for (auto i = 0; i < mVertices.size(); i++) {
+    if ((mVertices[i].y < yp && mVertices[j].y >= yp) || (mVertices[j].y < yp && mVertices[i].y >= yp)) {
+      if (
+        mVertices[i].x + (yp - mVertices[i].y) / (mVertices[j].y - mVertices[i].y) * (mVertices[j].x - mVertices[i].x) <
+        xp) {
+        oddNodes = !oddNodes;
+      }
+    }
+    j = i;
+  }
+  return oddNodes;
+}
+
+template<typename T>
+BBox<T> getBBox(const Polygon<T>& polygon)
+{
+  return getBBox(polygon.getVertices());
+}
 
 }
 }
