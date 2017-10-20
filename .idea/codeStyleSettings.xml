@@ -43,7 +43,7 @@
             <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="DeallocMethod" />
           </class>
           <extensions>
-            <pair source="cpp" header="h" />
+            <pair source="cxx" header="h" />
             <pair source="c" header="h" />
           </extensions>
         </Objective-C-extensions>

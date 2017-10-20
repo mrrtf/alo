@@ -1,5 +1,3 @@
-find_package(Boost COMPONENTS unit_test_framework)
-
 include_directories(${CMAKE_SOURCE_DIR}/jsonmap/creator ${BOOST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
 
 add_library(mapping SHARED mapping.cxx mapping.h segnumbers.h segnumbers.cxx pcbnumbers.h)
