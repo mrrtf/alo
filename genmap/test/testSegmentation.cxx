@@ -162,9 +162,9 @@ BOOST_AUTO_TEST_CASE(ReturnsFalseIfPadIsNotConnected) {
 }
 BOOST_AUTO_TEST_SUITE_END()
 
-//BOOST_AUTO_TEST_CASE(HasPadByPosition) {
-//  BOOST_CHECK_EQUAL(getSegmentation(0,true)->hasPadByPosition(40.0,30.0),true);
-//}
+BOOST_AUTO_TEST_CASE(HasPadByPosition) {
+  BOOST_CHECK_EQUAL(getSegmentation(0,true)->hasPadByPosition(40.0,30.0),true);
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

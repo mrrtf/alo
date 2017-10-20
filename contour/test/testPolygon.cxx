@@ -181,18 +181,18 @@ BOOST_AUTO_TEST_CASE(IsInsideThrowsIfCalledOnNonClosedPolygon)
                          {1, 0},
                          {1, 1},
                          {0, 1}};
-  BOOST_CHECK_THROW(opened.isInside(0, 0), std::invalid_argument);
+  BOOST_CHECK_THROW(opened.contains(0, 0), std::invalid_argument);
 };
 
 BOOST_AUTO_TEST_CASE(IsInsideReturnsTrueIfPointIsInsidePolygon)
 {
-  BOOST_CHECK_EQUAL(testPolygon2.isInside(0, 0), true);
-  BOOST_CHECK_EQUAL(testPolygon2.isInside(-4.999, -1.999), true);
+  BOOST_CHECK_EQUAL(testPolygon2.contains(0, 0), true);
+  BOOST_CHECK_EQUAL(testPolygon2.contains(-4.999, -1.999), true);
 }
 
 BOOST_AUTO_TEST_CASE(IsInsideReturnsFalseIfPointIsExactlyOnAPolygonEdge)
 {
-  BOOST_CHECK_EQUAL(testPolygon2.isInside(-2.5, -2), false);
+  BOOST_CHECK_EQUAL(testPolygon2.contains(-2.5, -2), false);
 }
 
 BOOST_AUTO_TEST_CASE(BBoxCreation)

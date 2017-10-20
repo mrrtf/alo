@@ -33,7 +33,7 @@ struct MotifPosition
     float y;
 };
 
-std::ostream& operator<<(std::ostream& os, const MotifPosition& position)
+std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
 {
   os << "{" << position.fecId << "," << position.motifTypeId << "," << position.dx << ","
      << position.dy << "," << position.x << "," << position.y << "}";
@@ -42,17 +42,17 @@ std::ostream& operator<<(std::ostream& os, const MotifPosition& position)
 
 
 auto
-getMotifPositionArray(int index, const Value& segmentations, bool isBendingPlane)
+getMotifPositionArray(int index, const Value &segmentations, bool isBendingPlane)
 {
-  const auto& seg = segmentations.GetArray()[index];
-  const Value& plane = isBendingPlane ? seg["bending"] : seg["non-bending"];
+  const auto &seg = segmentations.GetArray()[index];
+  const Value &plane = isBendingPlane ? seg["bending"] : seg["non-bending"];
   return plane["motifpositions"].GetArray();
 }
 
 
 std::vector<MotifPosition>
-getMotifPositions(int index, bool bending, const Value& segmentations, const Value& motiftypes,
-                  const Value& padsizes)
+getMotifPositions(int index, bool bending, const Value &segmentations, const Value &motiftypes,
+                  const Value &padsizes)
 {
   std::vector<MotifPosition> motifpositions;
 
@@ -60,7 +60,7 @@ getMotifPositions(int index, bool bending, const Value& segmentations, const Val
   auto mtArray = motiftypes.GetArray();
   auto psArray = padsizes.GetArray();
 
-  for (auto& mp: mpArray) {
+  for (auto &mp: mpArray) {
     int padSizeId = mp["padsize"].GetInt();
     motifpositions.push_back({
                                mp["fec"].GetInt(),
@@ -73,8 +73,8 @@ getMotifPositions(int index, bool bending, const Value& segmentations, const Val
   }
 
   // sort the motifpositions by fecId => is that needed at all as we have a fecid <-> index array ?
-  std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition& mp1,
-                                                             const MotifPosition& mp2) {
+  std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition &mp1,
+                                                             const MotifPosition &mp2) {
     return mp1.fecId < mp2.fecId;
   });
 
@@ -83,17 +83,16 @@ getMotifPositions(int index, bool bending, const Value& segmentations, const Val
 
 std::string bergToChannelFunctionName(int index)
 {
-  if (index < 2 )
-  {
+  if (index < 2) {
     return "berg80ToManu";
   }
   return "berg100ToManu";
 }
 
 std::string generateCodeForOneSegmentation(int index, bool isBending,
-                                           const Value& segmentations,
-                                           const Value& motiftypes,
-                                           const Value& padsizes)
+                                           const Value &segmentations,
+                                           const Value &motiftypes,
+                                           const Value &padsizes)
 {
   std::vector<MotifPosition> motifpositions = getMotifPositions(index, isBending, segmentations, motiftypes, padsizes);
 
@@ -102,13 +101,14 @@ std::string generateCodeForOneSegmentation(int index, bool isBending,
   std::string bendingString = (isBending ? "true" : "false");
   code << "template<>\n";
   code << "SegmentationImpl0<" << index << "," << bendingString
-       << "," << motifpositions.size() << "," << bergToChannelFunctionName(index) << ">::SegmentationImpl0(const MotifTypeArray& motifTypes)"
+       << "," << motifpositions.size() << "," << bergToChannelFunctionName(index)
+       << ">::SegmentationImpl0(const MotifTypeArray& motifTypes)"
        << " : mId(" << index << "),mIsBendingPlane(" << bendingString << "), "
        << "mNofPads{0},"
        << "mMotifPositions{ {\n";
 
   int i{0};
-  for (const auto& mp: motifpositions) {
+  for (const auto &mp: motifpositions) {
     code << "  " << mp;
     if (i++ < motifpositions.size() - 1) { code << ",\n"; }
   }
@@ -117,6 +117,7 @@ std::string generateCodeForOneSegmentation(int index, bool isBending,
   code << "{";
 
   code << "  populatePads(motifTypes);\n";
+  code << "  createContours(motifTypes);\n";
 
   code << "}\n";
 
@@ -162,6 +163,7 @@ generateCodeForSegmentationCommon()
 #include <stdexcept>
 #include <ostream>
 #include "boost/format.hpp"
+#include "contourCreator.h"
 )";
 
   decl << mappingNamespaceBegin();
@@ -203,6 +205,11 @@ class SegmentationImpl0 : public SegmentationInterface
     }
 
     bool hasPadByPosition(float x, float y) const override {
+      for ( auto i = 0; i < mFEContours.size(); ++i ){
+        if (mFEContours[i].contains(x,y)) {
+          return true;
+        }
+      }
        return false;
     }
 
@@ -269,26 +276,52 @@ class SegmentationImpl0 : public SegmentationInterface
       }
     }
 
+    std::vector<o2::mch::contour::Polygon<double>> getPads(const MotifPosition& mp, const MotifTypeArray& motifTypes)
+    {
+      std::vector<o2::mch::contour::Polygon<double>> pads;
+      const MotifType& mt = motifTypes[mp.motifTypeId];
+      for (int i = 0; i < mt.getNofPads(); ++i) {
+        float padx = mp.x + mt.getIx(i) * mp.dx;
+        float pady = mp.y + mt.getIy(i) * mp.dy;
+        pads.push_back({
+                         {padx - mp.dx, pady + mp.dy},
+                         {padx - mp.dx, pady - mp.dy},
+                         {padx + mp.dx, pady - mp.dy},
+                         {padx + mp.dx, pady + mp.dy},
+                         {padx - mp.dx, pady + mp.dy}
+                       });
+      }
+      return pads;
+    }
+
+    void createContours(const MotifTypeArray& motifTypes)
+    {
+      for (int index = 0; index < mMotifPositions.size(); ++index) {
+        mFEContours[index] = o2::mch::contour::createContour(getPads(mMotifPositions[index], motifTypes));
+      }
+    }
+
     int mId;
     bool mIsBendingPlane;
     int mNofPads;
     std::array<Pad,NFEC*64> mPads;
     std::array<MotifPosition,NFEC> mMotifPositions;
+    std::array<o2::mch::contour::Contour<double>,NFEC> mFEContours;
 };
 )***";
   return decl.str();
 }
 
 std::string
-generateCodeForSegmentationType(int index, const Value& segmentations, const Value& motiftypes,
-                                const Value& padsizes)
+generateCodeForSegmentationType(int index, const Value &segmentations, const Value &motiftypes,
+                                const Value &padsizes)
 {
   std::string code = generateCodeForOneSegmentation(index, true, segmentations, motiftypes, padsizes);
   code += generateCodeForOneSegmentation(index, false, segmentations, motiftypes, padsizes);
   return code;
 }
 
-std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Value& segmentations)
+std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Value &segmentations)
 {
   std::ostringstream decl;
   std::ostringstream impl;
@@ -325,7 +358,8 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
     }
   }
 
-  impl << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr>{arrayOfMotifTypes}};\n";
+  impl
+    << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr>{arrayOfMotifTypes}};\n";
   impl << "}\n";
 
   impl << mappingNamespaceEnd();
@@ -333,7 +367,7 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
 }
 
-std::string generateCodeForBerg2Manu(const Value& bergs, int id)
+std::string generateCodeForBerg2Manu(const Value &bergs, int id)
 {
   std::ostringstream code;
 
@@ -342,7 +376,7 @@ std::string generateCodeForBerg2Manu(const Value& bergs, int id)
   code << "int berg" << npins << "ToManu(int berg) {\n";
 
   int i{0};
-  for (const auto& b: bergs[id]["pins"].GetArray()) {
+  for (const auto &b: bergs[id]["pins"].GetArray()) {
     std::string smanu = b["manu"].GetString();
     if (isdigit(smanu[0])) {
       code << "  if (berg==" << b["id"].GetInt() << ") return " << atoi(smanu.c_str()) << ";\n";
@@ -360,9 +394,9 @@ std::string generateCodeForBerg2Manu(const Value& bergs, int id)
   return code.str();
 }
 
-void generateCodeForSegmentations(const Value& segmentations, const Value& motiftypes,
-                                  const Value& padsizes,
-                                  const Value& bergs)
+void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
+                                  const Value &padsizes,
+                                  const Value &bergs)
 {
   std::pair<std::string, std::string> code = generateCodeForSegmentationInterface();
   outputCode(code.first, code.second, "genSegmentationInterface");

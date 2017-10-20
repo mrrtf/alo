@@ -91,7 +91,7 @@ class Polygon
       return mVertices.back() == mVertices.front();
     }
 
-    bool isInside(T x, T y) const;
+    bool contains(T x, T y) const;
 
     double signedArea() const
     {
@@ -166,7 +166,7 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 }
 
 template<typename T>
-bool Polygon<T>::isInside(T xp, T yp) const
+bool Polygon<T>::contains(T xp, T yp) const
 {
   // TODO : look e.g. to http://alienryderflex.com/polygon/ for some possible optimizations
   // (e.g. pre-computation)
