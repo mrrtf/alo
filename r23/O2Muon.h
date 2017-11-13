@@ -15,8 +15,14 @@ public:
   O2Muon(const char* ocdbpath="local:///Users/laurent/Alice/OCDBcopy2011");
   virtual ~O2Muon();
 
+  enum class DetectorType {
+    Muon,
+    Mch,
+    Mtr
+  };
+
   /** simple loop over events with decoding of the MCH data */
-  int decodeEvents(const char* rawDataInputFile);
+  int decodeEvents(const char* rawDataInputFile, DetectorType detType = DetectorType::Muon);
 
   /** Create a new raw data file with only the events matching the given trigger.
    */
@@ -25,9 +31,9 @@ public:
   /** Create a Root file with (calibrated) MCH digits from a raw data file.
     * Not meant to be fast, just a re-use of the existing classes to get the job done.
     */
-  int makeDigitFile(const char* rawDataInputFile="/alice/data/2011/LHC11h/000169099/raw/11000169099001.28.FILTER_RAWMUON.root", const char* digitOutputFile="digits.root", Bool_t calibrate=kTRUE);
+  int makeDigitFile(const char* rawDataInputFile="/alice/data/2011/LHC11h/000169099/raw/11000169099001.28.FILTER_RAWMUON.root", const char* digitOutputFile="digits.root", Bool_t calibrate=kTRUE, DetectorType detType = DetectorType::Muon);
 
-  int makeDigitFiles(const char* rawDataInputFileList, const char* triggerClass="", Bool_t calibrate=kTRUE);
+  int makeDigitFiles(const char* rawDataInputFileList, const char* triggerClass="", Bool_t calibrate=kTRUE, DetectorType detType = DetectorType::Muon);
 
   /// Make pre-clusters out of digits
   int makeClustering(const char* digitInputFile="digits.root",
@@ -44,7 +50,7 @@ public:
   /// Go from digits to tracks
   int makeClusteringAndTracking(const char* digitInputFile, const char* trackOutputFile,
                                 const char* clusterFinderType, const char* outputLogFile,
-                                int runNumber);
+                                int runNumber, DetectorType detType = DetectorType::Muon);
 
 private:
 

@@ -41,8 +41,13 @@
 #include "TGeoGlobalMagField.h"
 #include "AliGRPObject.h"
 #include "AliMagF.h"
+#include "AliMUONTriggerElectronics.h"
+#include "AliMUONTriggerCircuit.h"
+#include "AliMUONTriggerTrackStoreV1.h"
+#include "AliMUONTriggerStoreV1.h"
 #include "AliMUONTrackReconstructorK.h"
 #include "AliMUONRawStreamTrackerHP.h"
+#include "AliMUONRawStreamTriggerHP.h"
 
 //_________________________________________________________________________________________________
 O2Muon::O2Muon(const char* ocdbPath) : TObject(), mOCDBPath(ocdbPath) {
@@ -156,7 +161,7 @@ int O2Muon::filterRaw(const char* rawDataInputFile, const char* triggerClass) {
 }
 
 //_________________________________________________________________________________________________
-int O2Muon::decodeEvents(const char* rawDataInputFile) {
+int O2Muon::decodeEvents(const char* rawDataInputFile, DetectorType detType) {
 
   AliRawReader* rawReader = AliRawReader::Create(rawDataInputFile);
   Long64_t nofEvents(0);
@@ -164,24 +169,30 @@ int O2Muon::decodeEvents(const char* rawDataInputFile) {
   {
     AliCodeTimerAuto("total",0);
 
-    AliMUONRawStreamTrackerHP stream(rawReader);
+    AliMUONRawStreamTrackerHP streamTrack(rawReader);
+    AliMUONRawStreamTriggerHP streamTrig(rawReader);
+
+    Int_t busPatch;
+    UShort_t manuId, adc;
+    UChar_t manuChannel;
 
     while ( rawReader->NextEvent() )  {
       ++nofEvents;
 
-      Int_t busPatch;
-      UShort_t manuId, adc;
-      UChar_t manuChannel;
-
       AliCodeTimerAutoGeneral("decode",1);
 
-      stream.First();
-
-      while ( stream.Next(busPatch,manuId,manuChannel,adc) )
-      {
-        adc *= 2;
+      if ( detType != DetectorType::Mtr ) {
+        streamTrack.First();
+        while ( streamTrack.Next(busPatch,manuId,manuChannel,adc) )
+        {
+          adc *= 2;
+        }
       }
-
+      if ( detType != DetectorType::Mch ) {
+        while (streamTrig.NextDDL())
+        {
+        }
+      }
     }
   }
 
@@ -203,13 +214,14 @@ int O2Muon::decodeEvents(const char* rawDataInputFile) {
 
 //_________________________________________________________________________________________________
 int O2Muon::makeDigitFile(const char* rawDataInputFile, const char* digitOutputFile,
-                          Bool_t calibrate) {
-  /** Create a Root file with calibrated MCH digits from a raw data file.
+                          Bool_t calibrate, DetectorType detType ) {
+  /** Create a Root file with MTR and/or calibrated MCH digits from a raw data file.
     * Not meant to be fast, just a re-use of the existing classes to get the job done.
     *
     * @param in rawDataInputFile rawdata input file used as a source of raw data
     * @param out digitOutputFile output file with digits
     * @param calibrate : whether or not the digits are calibrated
+    * @param detType : produce digits for tracker alone, trigger alone or both
     */
 
   AliRawReader* rawReader = AliRawReader::Create(rawDataInputFile);
@@ -223,6 +235,8 @@ int O2Muon::makeDigitFile(const char* rawDataInputFile, const char* digitOutputF
   AliMUONRecoParam* recoParam = getRecoParam(runNumber);
 
   AliMUONDigitMaker digitMaker(kFALSE);
+  digitMaker.SetMakeTrackerDigits((detType==DetectorType::Mtr)?kFALSE:kTRUE);
+  digitMaker.SetMakeTriggerDigits((detType==DetectorType::Mch)?kFALSE:kTRUE);
 
   AliMUONCalibrationData* calibrationData(0x0);
   AliMUONDigitCalibrator* digitCalibrator(0x0);
@@ -321,7 +335,7 @@ int O2Muon::makeDigitFile(const char* rawDataInputFile, const char* digitOutputF
 
 //_________________________________________________________________________________________________
 int O2Muon::makeDigitFiles(const char* rawDataInputFileList, const char* triggerClass,
-                           Bool_t calibrate) {
+                           Bool_t calibrate, DetectorType detType) {
   std::ifstream in(rawDataInputFileList);
   char line[1024];
 
@@ -340,7 +354,7 @@ int O2Muon::makeDigitFiles(const char* rawDataInputFileList, const char* trigger
 
     std::cout << input << " -> " << filename.Data() << std::endl;
 
-    makeDigitFile(input,filename.Data(),calibrate);
+    makeDigitFile(input,filename.Data(),calibrate,detType);
   }
   return 0;
 }
@@ -515,7 +529,7 @@ int O2Muon::setupMagneticField() {
 //_________________________________________________________________________________________________
 int O2Muon::makeClusteringAndTracking(const char* digitInputFile, const char* trackOutputFile,
                                       const char* clusterFinderType, const char* outputLogFile,
-                                      int runNumber) {
+                                      int runNumber, DetectorType detType) {
   /** Make clusters and tracking out of digits.
    */
 
@@ -556,13 +570,27 @@ int O2Muon::makeClusteringAndTracking(const char* digitInputFile, const char* tr
 
   AliMUONTrackReconstructorK trackReco(recoParam,&clusterServer,&transformer);
 
-  AliMUONVClusterStore* clusterStore = new AliMUONClusterStoreV2();
-
-  AliMUONVTrackStore* trackStore = new AliMUONTrackStoreV1;
+  AliMUONVClusterStore* clusterStore(0x0);
+  AliMUONVTrackStore* trackStore(0x0);
+  AliMUONVTriggerTrackStore* triggerTrackStore(0x0);
+  AliMUONVTriggerStore* triggerStore(0x0);
+  AliMUONTriggerElectronics* triggerElectronics(0x0);
+  AliMUONTriggerCircuit triggerCircuit(&transformer);
 
   TFile* trackFile = TFile::Open(trackOutputFile,"RECREATE");
   TTree* treeT = new TTree("TreeT","Track Container");
-  trackStore->Connect(*treeT,kTRUE);
+  if ( detType != DetectorType::Mtr ) {
+    clusterStore = new AliMUONClusterStoreV2();
+    trackStore = new AliMUONTrackStoreV1;
+    trackStore->Connect(*treeT,kTRUE);
+  }
+  if ( detType != DetectorType::Mch ) {
+    AliMUONCalibrationData calib(runNumber);
+    triggerElectronics = new AliMUONTriggerElectronics(&calib);
+    triggerStore = new AliMUONTriggerStoreV1;
+    triggerTrackStore = new AliMUONTriggerTrackStoreV1;
+    triggerTrackStore->Connect(*treeT,kTRUE);
+  }
 
   AliMpArea area; // invalid area to clusterize everything
 
@@ -579,31 +607,48 @@ int O2Muon::makeClusteringAndTracking(const char* digitInputFile, const char* tr
   {
     treeD->GetEntry(i);
 
-    TIter next(digitStore->CreateIterator());
-    clusterServer.UseDigits(next,digitStore);
+    if ( trackStore ) {
+      TIter next(digitStore->CreateIterator());
+      clusterServer.UseDigits(next,digitStore);
 
-    {
-      AliCodeTimerAuto("Clustering",1);
-      for ( int chamberId = 0; chamberId < 10; ++chamberId )
       {
-        clusterServer.Clusterize(chamberId,*clusterStore,area,recoParam);
+        AliCodeTimerAuto("Clustering",1);
+        for ( int chamberId = 0; chamberId < 10; ++chamberId )
+        {
+          clusterServer.Clusterize(chamberId,*clusterStore,area,recoParam);
+        }
+      }
+
+      nofClusters += clusterStore->GetSize();
+
+      {
+        AliCodeTimerAuto("Tracking",2);
+        if ( trackStore ) trackReco.EventReconstruct(*clusterStore,*trackStore);
       }
     }
 
-    nofClusters += clusterStore->GetSize();
+    if ( triggerTrackStore ) {
+      {
+        AliCodeTimerAuto("TriggerTracking",2);
 
-    {
-      AliCodeTimerAuto("Tracking",2);
-      trackReco.EventReconstruct(*clusterStore,*trackStore);
+        triggerElectronics->Digits2Trigger(*digitStore,*triggerStore);
+        trackReco.EventReconstructTrigger(triggerCircuit,*triggerStore,*triggerTrackStore);
+      }
     }
 
     treeT->Fill();
 
-    nofTracks += trackStore->GetSize();
+    if ( trackStore ) {
+      nofTracks += trackStore->GetSize();
+      clusterStore->Clear();
+      trackStore->Clear();
+    }
+    if ( triggerTrackStore ) {
+      triggerStore->Clear();
+      triggerTrackStore->Clear();
+    }
 
-    clusterStore->Clear();
     digitStore->Clear();
-    trackStore->Clear();
   }
 
   trackFile->cd();
@@ -625,6 +670,9 @@ int O2Muon::makeClusteringAndTracking(const char* digitInputFile, const char* tr
   delete digitFile;
   delete digitStore;
   delete trackStore;
+  delete triggerStore;
+  delete triggerTrackStore;
+  delete triggerElectronics;
 
   return 0;
 }
