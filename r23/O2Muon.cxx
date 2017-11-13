@@ -230,7 +230,7 @@ int O2Muon::makeDigitFile(const char* rawDataInputFile, const char* digitOutputF
 
   std::cout << "RUN=" << runNumber << std::endl;
 
-  prepareOCDB(runNumber);
+  prepareOCDB(runNumber,rawReader);
 
   AliMUONRecoParam* recoParam = getRecoParam(runNumber);
 
