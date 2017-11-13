@@ -27,10 +27,10 @@ struct MotifPosition
 {
     int fecId;
     int motifTypeId;
-    float dx;
-    float dy;
-    float x;
-    float y;
+    double dx;
+    double dy;
+    double x;
+    double y;
 };
 
 std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
@@ -65,10 +65,10 @@ getMotifPositions(int index, bool bending, const Value &segmentations, const Val
     motifpositions.push_back({
                                mp["fec"].GetInt(),
                                mp["motiftype"].GetInt(),
-                               static_cast<float>(psArray[padSizeId]["x"].GetDouble()),
-                               static_cast<float>(psArray[padSizeId]["y"].GetDouble()),
-                               static_cast<float>(mp["x"].GetDouble()),
-                               static_cast<float>(mp["y"].GetDouble())
+                               static_cast<double>(psArray[padSizeId]["x"].GetDouble()),
+                               static_cast<double>(psArray[padSizeId]["y"].GetDouble()),
+                               static_cast<double>(mp["x"].GetDouble()),
+                               static_cast<double>(mp["y"].GetDouble())
                              });
   }
 
@@ -139,7 +139,7 @@ class SegmentationInterface {
     virtual int getId() const = 0;
     virtual int nofDualSampas() const = 0;
     virtual int nofPads() const = 0;
-    virtual bool hasPadByPosition(float x, float y) const = 0;
+    virtual bool hasPadByPosition(double x, double y) const = 0;
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
 };
 )";
@@ -204,7 +204,7 @@ class SegmentationImpl0 : public SegmentationInterface
       return mPads[padIndex].isValid();
     }
 
-    bool hasPadByPosition(float x, float y) const override {
+    bool hasPadByPosition(double x, double y) const override {
       for ( auto i = 0; i < mFEContours.size(); ++i ){
         if (mFEContours[i].contains(x,y)) {
           return true;
@@ -213,11 +213,23 @@ class SegmentationImpl0 : public SegmentationInterface
        return false;
     }
 
+    o2::mch::contour::Contour<double> getEnvelop() const override
+    {
+      std::vector<o2::mch::contour::Polygon<double>> polygons;
+      for (auto i = 0; i < mFEContours.size(); ++i) {
+        auto c = mFEContours[i];
+        for (auto j = 0; j < c.size(); ++j) {
+          polygons.push_back(c[j]);
+        }
+      }
+      return o2::mch::contour::createContour(polygons);
+    }
+
   private:
 
     struct Pad
     {
-        Pad(float x1 = 0, float y1 = 0, float x2 = 0, float y2 = 0) :
+        Pad(double x1 = 0, double y1 = 0, double x2 = 0, double y2 = 0) :
           xBottomLeft{x1}, yBottomLeft{y1},
           xTopRight{x2}, yTopRight{y2}
         {}
@@ -238,32 +250,57 @@ class SegmentationImpl0 : public SegmentationInterface
         return os;
         }
 
-        float xBottomLeft;
-        float yBottomLeft;
-        float xTopRight;
-        float yTopRight;
+        Pad translate(double x, double y) {
+          return { xBottomLeft+x, yBottomLeft+y, xTopRight+x, yTopRight+y };
+        }
+
+        double xBottomLeft;
+        double yBottomLeft;
+        double xTopRight;
+        double yTopRight;
     };
 
     struct MotifPosition
     {
-      MotifPosition(int f=0, int m=0, float dx_=0, float dy_=0, float x_=0, float y_=0) :
-        fecId(f), motifTypeId(m), dx(dx_),dy(dy_), x(x_), y(y_) {}
+      MotifPosition(int f=0, int m=0, double padsizex_=0, double padsizey_=0, double x_=0, double y_=0,
+       double dx_=0, double dy_=0) :
+        fecId(f), motifTypeId(m), padSizeX(padsizex_),padSizeY(padsizey_), x(x_), y(y_) {}
       int fecId;
       int motifTypeId;
-      float dx;
-      float dy;
-      float x;
-      float y;
+      double padSizeX;
+      double padSizeY;
+      double x;
+      double y;
+      double dx;
+      double dy;
     };
+
+    std::vector<Pad> getPads(const MotifType& mt, double padsizex, double padsizey) {
+      std::vector<Pad> pads;
+      for (int i = 0; i < mt.getNofPads(); ++i) {
+        double padx = mt.getIx(i) * padsizex;
+        double pady = mt.getIy(i) * padsizey;
+        pads.push_back({padx,pady,padx+padsizex,pady+padsizey});
+      }
+      return pads;
+    }
+
+    std::vector<Pad> getPads(const MotifPosition& mp, const MotifTypeArray& motifTypes) {
+      std::vector<Pad> motifPads{getPads(motifTypes[mp.motifTypeId],mp.padSizeX,mp.padSizeY)};
+      std::vector<Pad> pads;
+      for (auto p: motifPads) {
+        pads.push_back(p.translate(mp.x,mp.y));
+      }
+      return pads;
+    }
 
     void populatePadsForOneMotifPosition(int index, const MotifPosition& mp, const MotifTypeArray& motifTypes) {
       const MotifType& mt = motifTypes[mp.motifTypeId];
-      for ( int i = 0; i < mt.getNofPads(); ++i ) {
+      auto pads = getPads(mp,motifTypes);
+      for (auto i = 0; i < pads.size(); ++i) {
          int fecChannel = berg2channel(mt.getBerg(i));
-         float padx = mp.x + mt.getIx(i) * mp.dx;
-         float pady = mp.y + mt.getIy(i) * mp.dy;
          int padIndex = index*64 + fecChannel;
-         mPads[padIndex] = { padx-mp.dx, pady-mp.dy, padx+mp.dx, pady+mp.dy };
+         mPads[padIndex] = pads[i];
       }
     }
 
@@ -276,28 +313,25 @@ class SegmentationImpl0 : public SegmentationInterface
       }
     }
 
-    std::vector<o2::mch::contour::Polygon<double>> getPads(const MotifPosition& mp, const MotifTypeArray& motifTypes)
+    std::vector<o2::mch::contour::Polygon<double>> padAsPolygons(const std::vector<Pad>& pads)
     {
-      std::vector<o2::mch::contour::Polygon<double>> pads;
-      const MotifType& mt = motifTypes[mp.motifTypeId];
-      for (int i = 0; i < mt.getNofPads(); ++i) {
-        float padx = mp.x + mt.getIx(i) * mp.dx;
-        float pady = mp.y + mt.getIy(i) * mp.dy;
-        pads.push_back({
-                         {padx - mp.dx, pady + mp.dy},
-                         {padx - mp.dx, pady - mp.dy},
-                         {padx + mp.dx, pady - mp.dy},
-                         {padx + mp.dx, pady + mp.dy},
-                         {padx - mp.dx, pady + mp.dy}
+      std::vector<o2::mch::contour::Polygon<double>> cpads;
+      for (auto&& p: pads) {
+        cpads.push_back({
+                         { p.xBottomLeft, p.yBottomLeft},
+                         { p.xTopRight, p.yBottomLeft},
+                         { p.xTopRight, p.yTopRight},
+                         { p.xBottomLeft, p.yTopRight},
+                         { p.xBottomLeft, p.yBottomLeft}
                        });
       }
-      return pads;
+      return cpads;
     }
 
     void createContours(const MotifTypeArray& motifTypes)
     {
       for (int index = 0; index < mMotifPositions.size(); ++index) {
-        mFEContours[index] = o2::mch::contour::createContour(getPads(mMotifPositions[index], motifTypes));
+        mFEContours[index] = o2::mch::contour::createContour(padAsPolygons(getPads(mMotifPositions[index], motifTypes)));
       }
     }
 

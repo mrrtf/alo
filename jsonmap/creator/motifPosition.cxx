@@ -17,50 +17,55 @@
 #include "seg.h"
 #include "TArrayI.h"
 #include "AliMpVSegmentation.h"
+#include "AliMpMotifPosition.h"
 
-std::vector<AliMpMotifPosition*> get_motifpositions(const AliMpVSegmentation& seg)
+std::vector<AliMpMotifPosition *> get_motifpositions(const AliMpVSegmentation &seg)
 {
-  std::vector<AliMpMotifPosition*> mp;
+  std::vector<AliMpMotifPosition *> mp;
 
   TArrayI ecn;
   seg.GetAllElectronicCardIDs(ecn);
   for (int i = 0; i < ecn.GetSize(); ++i) {
-    mp.push_back(seg.MotifPosition(ecn[i]));
+    AliMpMotifPosition *origin = seg.MotifPosition(ecn[i]);
+    mp.push_back(
+      new AliMpMotifPosition(origin->GetID(), origin->GetMotif(),
+                             origin->GetPositionX() - seg.GetPositionX() - origin->GetDimensionX(),
+                             origin->GetPositionY() - seg.GetPositionY() - origin->GetDimensionY()));
   }
   return mp;
 }
 
-std::vector<AliMpMotifPosition*> get_motifpositions(const AliMpVSegmentation& b, const AliMpVSegmentation& nb)
+std::vector<AliMpMotifPosition *> get_motifpositions(const AliMpVSegmentation &b, const AliMpVSegmentation &nb)
 {
-  std::vector<AliMpMotifPosition*> m = get_motifpositions(b);
-  std::vector<AliMpMotifPosition*> mpnb = get_motifpositions(nb);
+  std::vector<AliMpMotifPosition *> m = get_motifpositions(b);
+  std::vector<AliMpMotifPosition *> mpnb = get_motifpositions(nb);
 
   m.insert(m.end(), mpnb.begin(), mpnb.end());
   return m;
 }
 
 
-std::vector<AliMpMotifPosition*>
-get_motifpositions(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg, std::string segname)
+std::vector<AliMpMotifPosition *>
+get_motifpositions(AliMpDDLStore *ddlStore, AliMpSegmentation *mseg, std::string segname)
 {
-  AliMpVSegmentation* b = get_seg(ddlStore, mseg, segname, AliMp::kBendingPlane);
-  AliMpVSegmentation* nb = get_seg(ddlStore, mseg, segname, AliMp::kNonBendingPlane);
+  AliMpVSegmentation *b = get_seg(ddlStore, mseg, segname, AliMp::kBendingPlane);
+  AliMpVSegmentation *nb = get_seg(ddlStore, mseg, segname, AliMp::kNonBendingPlane);
   return get_motifpositions(*b, *nb);
 }
 
-std::vector<std::pair<std::vector<AliMpMotifPosition*>, std::vector<AliMpMotifPosition*>>>
-get_motifpositions(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg, const std::vector<std::string>& segnames)
+std::vector<std::pair<std::vector<AliMpMotifPosition *>, std::vector<AliMpMotifPosition *>>>
+get_motifpositions(AliMpDDLStore *ddlStore, AliMpSegmentation *mseg, const std::vector<std::string> &segnames)
 {
   // return a vector of (vector of mp, vector of mp), i.e. a pair of motif position vectors per segname
 
-  std::vector<std::pair<std::vector<AliMpMotifPosition*>, std::vector<AliMpMotifPosition*>>> mp;
+  std::vector<std::pair<std::vector<AliMpMotifPosition *>, std::vector<AliMpMotifPosition *>>> mp;
 
-  for (auto segname: segnames ) {
-    AliMpVSegmentation* b_seg = get_seg(ddlStore,mseg,segname,AliMp::kBendingPlane);
-    AliMpVSegmentation* nb_seg = get_seg(ddlStore,mseg,segname,AliMp::kNonBendingPlane);
-    std::vector<AliMpMotifPosition*> b = get_motifpositions(*b_seg);
-    std::vector<AliMpMotifPosition*> nb = get_motifpositions(*nb_seg);
-    mp.push_back(std::make_pair(b,nb));
+  for (auto segname: segnames) {
+    AliMpVSegmentation *b_seg = get_seg(ddlStore, mseg, segname, AliMp::kBendingPlane);
+    AliMpVSegmentation *nb_seg = get_seg(ddlStore, mseg, segname, AliMp::kNonBendingPlane);
+    std::vector<AliMpMotifPosition *> b = get_motifpositions(*b_seg);
+    std::vector<AliMpMotifPosition *> nb = get_motifpositions(*nb_seg);
+    mp.push_back(std::make_pair(b, nb));
   }
   return mp;
 }

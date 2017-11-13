@@ -37,6 +37,7 @@ class BBox
       }
     }
 
+
     T xmin() const
     { return mTopLeft.x; }
 
@@ -49,18 +50,22 @@ class BBox
     T ymax() const
     { return mTopLeft.y; }
 
-    friend bool operator==(const BBox& lhs, const BBox& rhs)
+    T width() const { return xmax() - xmin(); }
+
+    T height() const { return ymax() - ymin(); }
+
+    friend bool operator==(const BBox &lhs, const BBox &rhs)
     {
       return lhs.mTopLeft == rhs.mTopLeft &&
              lhs.mBottomRight == rhs.mBottomRight;
     }
 
-    friend bool operator!=(const BBox& lhs, const BBox& rhs)
+    friend bool operator!=(const BBox &lhs, const BBox &rhs)
     {
       return !(rhs == lhs);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const BBox& box)
+    friend std::ostream &operator<<(std::ostream &os, const BBox &box)
     {
       os << "mTopLeft: " << box.mTopLeft << " mBottomRight: " << box.mBottomRight;
       return os;
@@ -72,7 +77,9 @@ class BBox
 };
 
 template<typename T>
-BBox<T> getBBox(const std::vector<Vertex<T>>& vertices) {
+BBox<T> getBBox(const std::vector<Vertex < T>>
+
+& vertices) {
 
 T xmin{std::numeric_limits<T>::max()};
 T xmax{std::numeric_limits<T>::min()};
@@ -80,7 +87,7 @@ T ymin{std::numeric_limits<T>::max()};
 T ymax{std::numeric_limits<T>::min()};
 
 for (
-const auto& v :
+const auto &v :
 vertices ) {
 xmin = std::min(xmin, v.x);
 xmax = std::max(xmax, v.x);
@@ -90,6 +97,15 @@ ymax = std::max(ymax, v.y);
 return {
 xmin,xmax,ymin,ymax
 };
+}
+
+template<typename T>
+Vertex<T> getCenter(const BBox <T> &bbox)
+{
+  return {
+    (bbox.xmax() + bbox.xmin()) / T{2},
+    (bbox.ymax() + bbox.ymin()) / T{2}
+  };
 }
 
 }
