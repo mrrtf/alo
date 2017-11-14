@@ -18,9 +18,12 @@
 
 #include "rapidjson/document.h"
 
-void generateCodeForSegmentations(const rapidjson::Value& segmentations,
-                                  const rapidjson::Value& motiftypes,
-                                  const rapidjson::Value& padsizes,
-                                  const rapidjson::Value& bergs);
+void generateCodeForSegmentations(const rapidjson::Value &segmentations,
+                                  const rapidjson::Value &motiftypes,
+                                  const rapidjson::Value &padsizes,
+                                  const rapidjson::Value &bergs);
+
+void generateCodeForDESegmentationFactory(const rapidjson::Value &segmentations,
+                                          const rapidjson::Value &detection_elements);
 
 #endif

@@ -15,6 +15,7 @@
 #define BOOST_TEST_DYN_LINK
 
 #include "genSegmentationFactory.h"
+#include "genDESegmentationFactory.h"
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
@@ -27,6 +28,12 @@ namespace bdata = boost::unit_test::data;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation)
+
+BOOST_AUTO_TEST_CASE(DESegmentationThrowsIfDEIndexIsIncorrect) {
+  BOOST_CHECK_THROW(getDESegmentation(-1,true), std::out_of_range);
+  BOOST_CHECK_THROW(getDESegmentation(156,true), std::out_of_range);
+  BOOST_CHECK_NO_THROW(getDESegmentation(16,true));
+}
 
 BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
 {

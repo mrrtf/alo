@@ -368,9 +368,7 @@ std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Val
   decl << mappingNamespaceBegin();
 
   decl << R"(
-
 std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
-
   )";
   decl << mappingNamespaceEnd();
 
@@ -395,7 +393,6 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
   impl
     << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr>{arrayOfMotifTypes}};\n";
   impl << "}\n";
-
   impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string, std::string>(decl.str(), impl.str());
@@ -450,3 +447,53 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
   outputCode(code.first, code.second, "genSegmentationFactory");
 }
 
+void generateCodeForDESegmentationFactory(const Value& segmentations, const Value& detection_elements)
+{
+  std::ostringstream decl;
+  std::ostringstream impl;
+
+  decl << R"(#include "genSegmentationInterface.h"
+#include <memory>
+)";
+
+  decl << mappingNamespaceBegin();
+
+  decl << R"(
+
+std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBendingPlane);
+
+  )";
+  decl << mappingNamespaceEnd();
+
+  impl << R"(
+#include "genSegmentationFactory.h"
+)";
+  impl << mappingNamespaceBegin();
+
+  impl << "\n  std::array<int," << detection_elements.Size() << "> segTypeFromDEIndex{";
+
+  for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
+    const auto& de = detection_elements.GetArray()[ide];
+    for ( int i = 0; i < segmentations.Size(); ++i ) {
+      const auto &seg = segmentations.GetArray()[i];
+      if ( !strcmp(seg["segtype"].GetString(),de["segtype"].GetString()) ) {
+        impl << i;
+        if (ide<detection_elements.GetArray().Size()-1) impl << ",";
+        break;
+      }
+    }
+  }
+
+  impl << "};\n";
+
+  impl << R"(
+  std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBendingPlane) {
+      if (deindex >= segTypeFromDEIndex.size()) throw std::out_of_range("deindex is incorrect");
+      return getSegmentation(segTypeFromDEIndex[deindex],isBendingPlane);
+  }
+)";
+
+  impl << mappingNamespaceEnd();
+
+  outputCode(decl.str(),impl.str(), "genDESegmentationFactory");
+}
