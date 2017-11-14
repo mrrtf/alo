@@ -89,6 +89,8 @@ void seg2json(std::string segname,
               WRITER& w)
 {
   w.StartObject();
+  w.Key("segtype");
+  w.String(segname.c_str());
   std::string prefix;
   auto i = segname.find_first_of("st");
   if (i != std::string::npos) {
