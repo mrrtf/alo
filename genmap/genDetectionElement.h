@@ -10,7 +10,8 @@ namespace mch
 namespace mapping
 {
 
-std::array<int,156> detectionElementArray();
+int getDetElemIdFromDetElemIndex(int deIndex);
+int getDetElemIndexFromDetElemId(int deId);
 
 } // namespace mapping
 } // namespace mch

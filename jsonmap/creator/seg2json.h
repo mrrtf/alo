@@ -27,9 +27,37 @@
 #include <algorithm>
 #include <string>
 
+namespace {
+bool areEqual(double a, double b)
+{
+  return std::fabs(b - a) < 1E-4; // 1E-4 cm = 1 micron
+}
+}
+
 template<typename WRITER>
-void motifposition2json(const AliMpMotifPosition& motifPosition, std::string motifLabel, int motifId, int motifTypeId,
-                        int padSizeId, WRITER& w)
+void WritePadBergNumbers(int i, const AliMpVMotif &motif, WRITER &w)
+{
+  std::vector<int> pads;
+  AliMpMotifType *mt = motif.GetMotifType();
+  for (int ix = 0; ix < mt->GetNofPadsX(); ++ix) {
+    for (int iy = 0; iy < mt->GetNofPadsY(); ++iy) {
+      AliMpConnection *connection = mt->FindConnectionByLocalIndices(ix, iy);
+      if (connection) {
+        double x, y;
+        motif.GetPadDimensionsByIndices(ix, iy, x, y);
+        if (areEqual(x, motif.GetPadDimensionX(i)) &&
+            areEqual(y, motif.GetPadDimensionY(i))) {
+          pads.push_back(connection->GetBergNum());
+        }
+      }
+    }
+  }
+  WriteArray(w, "pads", pads);
+}
+
+template<typename WRITER>
+void motifposition2json(const AliMpMotifPosition &motifPosition, std::string motifLabel, int motifId, int motifTypeId,
+                        const std::vector<std::pair<float, float>> &padsizes, WRITER &w)
 {
   w.StartObject();
   w.Key("fec");
@@ -43,17 +71,41 @@ void motifposition2json(const AliMpMotifPosition& motifPosition, std::string mot
   w.Key("motiftype");
   w.Int(motifTypeId);
   w.Key("padsize");
-  w.Int(padSizeId);
+  AliMpVMotif *motif = motifPosition.GetMotif();
+  float px = motif->GetPadDimensionX(0) * 2.0;
+  float py = motif->GetPadDimensionY(0) * 2.0;
+  int padSizeIndex = get_padsize_index(px, py, padsizes);
+  if (motif->GetNofPadDimensions() == 1) {
+    w.Int(padSizeIndex);
+  } else {
+    w.StartArray();
+    if (motif->GetNofPadDimensions() != 2) {
+      throw std::out_of_range("this code assumes a maximum of two pad sizes per motif");
+    }
+    float px = motif->GetPadDimensionX(1) * 2.0;
+    float py = motif->GetPadDimensionY(1) * 2.0;
+    int secondPadSizeIndex = get_padsize_index(px, py, padsizes);
+    w.Int(padSizeIndex);
+    w.Int(secondPadSizeIndex);
+    w.StartObject();
+    w.Key("x(TBR)");
+    w.Double(px);
+    w.Key("y(TBR)");
+    w.Double(py);
+    WritePadBergNumbers(1, *motif, w);
+    w.EndObject();
+    w.EndArray();
+  }
   w.Key("motifLabel(TBR)");
   w.String(motifLabel.c_str());
   w.EndObject();
 }
 
 template<typename WRITER>
-void segplane2json(std::string stype, std::string prefix, const std::vector<AliMpMotifPosition*>& mp,
-                   const std::vector<AliMpVMotif*>& motifs,
-                   const std::vector<AliMpMotifType*>& motiftypes,
-                   const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+void segplane2json(std::string stype, std::string prefix, const std::vector<AliMpMotifPosition *> &mp,
+                   const std::vector<AliMpVMotif *> &motifs,
+                   const std::vector<AliMpMotifType *> &motiftypes,
+                   const std::vector<std::pair<float, float>> &padsizes, WRITER &w)
 {
   if (prefix == '1' || prefix == '2') {
     // sectors
@@ -66,14 +118,13 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
   w.Key("motifpositions");
   w.StartArray();
   for (auto m:mp) {
-    AliMpVMotif* motif = m->GetMotif();
+    AliMpVMotif *motif = m->GetMotif();
     std::string motifLabel = prefix + get_motif_id(*motif, padsizes);
     auto ix = std::find_if(motifs.begin(), motifs.end(),
-                           [&](AliMpVMotif* m) { return motifLabel == m->GetID().Data(); });
+                           [&](AliMpVMotif *m) { return motifLabel == m->GetID().Data(); });
     int motifId = std::distance(motifs.begin(), ix);
     int motifTypeId = get_motiftype_index(motifLabel, motiftypes);
-    int padSizeId = get_padsize_index(motif->GetPadDimensionX(0) * 2.0, motif->GetPadDimensionY(0) * 2.0, padsizes);
-    motifposition2json(*m, motifLabel, motifId, motifTypeId, padSizeId, w);
+    motifposition2json(*m, motifLabel, motifId, motifTypeId, padsizes, w);
   }
   w.EndArray();
   w.EndObject();
@@ -81,12 +132,12 @@ void segplane2json(std::string stype, std::string prefix, const std::vector<AliM
 
 template<typename WRITER>
 void seg2json(std::string segname,
-              const std::vector<AliMpMotifPosition*>& b,
-              const std::vector<AliMpMotifPosition*>& nb,
-              const std::vector<AliMpVMotif*>& motifs,
-              const std::vector<AliMpMotifType*>& motiftypes,
-              const std::vector<std::pair<float, float>>& padsizes,
-              WRITER& w)
+              const std::vector<AliMpMotifPosition *> &b,
+              const std::vector<AliMpMotifPosition *> &nb,
+              const std::vector<AliMpVMotif *> &motifs,
+              const std::vector<AliMpMotifType *> &motiftypes,
+              const std::vector<std::pair<float, float>> &padsizes,
+              WRITER &w)
 {
   w.StartObject();
   w.Key("segtype");
@@ -103,13 +154,13 @@ void seg2json(std::string segname,
 
 template<typename WRITER>
 void all_seg2json(std::string topkey,
-                  const std::vector<std::string>& segnames,
-                  const std::vector<std::pair<std::vector<AliMpMotifPosition*>,
-                    std::vector<AliMpMotifPosition*>>>& motifPositions,
-                  const std::vector<AliMpVMotif*>& motifs,
-                  const std::vector<AliMpMotifType*>& motiftypes,
-                  const std::vector<std::pair<float, float>>& padsizes,
-                  WRITER& w)
+                  const std::vector<std::string> &segnames,
+                  const std::vector<std::pair<std::vector<AliMpMotifPosition *>,
+                    std::vector<AliMpMotifPosition *>>> &motifPositions,
+                  const std::vector<AliMpVMotif *> &motifs,
+                  const std::vector<AliMpMotifType *> &motiftypes,
+                  const std::vector<std::pair<float, float>> &padsizes,
+                  WRITER &w)
 {
   w.StartObject();
   w.Key(topkey.c_str());

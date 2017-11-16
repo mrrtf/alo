@@ -33,7 +33,8 @@ std::pair<std::string, std::string> generateCodeForDetectionElements(const rapid
 
   decl << "#include <array>\n";
   decl << mappingNamespaceBegin() << "\n";
-  decl << "std::array<int," << deids.size() << "> detectionElementArray();\n";
+  decl << "int getDetElemIdFromDetElemIndex(int deIndex);\n";
+  decl << "int getDetElemIndexFromDetElemId(int deId);\n";
   decl << mappingNamespaceEnd();
 
   std::ostringstream impl;
@@ -42,14 +43,22 @@ std::pair<std::string, std::string> generateCodeForDetectionElements(const rapid
 
   impl << "#include <array>\n";
   impl << mappingNamespaceBegin() << "\n";
-  impl << "std::array<int," << deids.size() << "> detectionElementArray() {\n";
-  impl << "static std::array<int," << deids.size() << "> deids = { ";
+  impl << "std::array<int," << deids.size() << "> deids = { ";
   for ( auto i = 0; i < deids.size(); ++i ) {
     impl << deids[i];
     if  ( i < deids.size() - 1 ) impl << ",";
   }
   impl << "};\n";
-  impl << "return deids;\n}\n";
+  impl << R"(
+int getDetElemIdFromDetElemIndex(int deIndex) {
+  if (deIndex < 0 || deIndex>=deids.size()) throw std::out_of_range("deIndex out of range");
+  return deids[deIndex];
+}
+
+int getDetElemIndexFromDetElemId(int deId) {
+  return std::distance(deids.begin(),std::find(deids.begin(),deids.end(),deId));
+}
+)";
   impl << mappingNamespaceEnd();
 
   return std::make_pair<std::string,std::string>(decl.str(),impl.str());

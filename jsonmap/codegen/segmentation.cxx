@@ -25,18 +25,64 @@ using rapidjson::Value;
 
 struct MotifPosition
 {
-    int fecId;
-    int motifTypeId;
-    double dx;
-    double dy;
-    double x;
-    double y;
+  public:
+    MotifPosition(int f, int m, double padsizex, double padsizey, double x, double y) :
+      mFECId(f), mMotifTypeId(m), mPadSizeX(padsizex), mPadSizeY(padsizey), mPositionX(x), mPositionY(y)
+    {
+
+    }
+
+    MotifPosition(int f, int m, double padsizex, double padsizey, double x, double y,
+                  double x2, double y2, std::vector<int> list) :
+      mFECId(f), mMotifTypeId(m), mPadSizeX(padsizex), mPadSizeY(padsizey), mPositionX(x), mPositionY(y),
+      mSecondPadSizeX(x2), mSecondPadSizeY(y2), mPadNumbers(list)
+    {
+
+    }
+
+    int FECId() const
+    { return mFECId; }
+
+    void secondPadSize(double x2_, double y2_,
+                       std::vector<int> padnumbers_)
+    {
+      mSecondPadSizeX = x2_;
+      mSecondPadSizeY = y2_;
+      mPadNumbers = padnumbers_;
+    }
+
+    bool hasTwoPadSizes() const
+    { return !mPadNumbers.empty(); }
+
+    friend std::ostream &operator<<(std::ostream &os, const MotifPosition &position);
+
+  private:
+    int mFECId;
+    int mMotifTypeId;
+    double mPadSizeX;
+    double mPadSizeY;
+    double mPositionX;
+    double mPositionY;
+    double mSecondPadSizeX;
+    double mSecondPadSizeY;
+    std::vector<int> mPadNumbers;
 };
 
 std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
 {
-  os << "{" << position.fecId << "," << position.motifTypeId << "," << position.dx << ","
-     << position.dy << "," << position.x << "," << position.y << "}";
+  os << "{" << position.mFECId << "," << position.mMotifTypeId << "," << position.mPadSizeX << ","
+     << position.mPadSizeY << "," << position.mPositionX << "," << position.mPositionY;
+  if (position.hasTwoPadSizes()) {
+    os << "," << position.mSecondPadSizeX << "," << position.mSecondPadSizeY << ", {";
+    for (auto i = 0; i < position.mPadNumbers.size(); ++i) {
+      os << position.mPadNumbers[i];
+      if (i < position.mPadNumbers.size() - 1) {
+        os << ",";
+      }
+    }
+    os << "}";
+  }
+  os << "}";
   return os;
 }
 
@@ -61,21 +107,47 @@ getMotifPositions(int index, bool bending, const Value &segmentations, const Val
   auto psArray = padsizes.GetArray();
 
   for (auto &mp: mpArray) {
-    int padSizeId = mp["padsize"].GetInt();
-    motifpositions.push_back({
-                               mp["fec"].GetInt(),
-                               mp["motiftype"].GetInt(),
-                               static_cast<double>(psArray[padSizeId]["x"].GetDouble()),
-                               static_cast<double>(psArray[padSizeId]["y"].GetDouble()),
-                               static_cast<double>(mp["x"].GetDouble()),
-                               static_cast<double>(mp["y"].GetDouble())
-                             });
+
+    int padSizeId{-1};
+    int secondPadSizeId{-1};
+
+    if (mp["padsize"].IsInt()) {
+      padSizeId = mp["padsize"].GetInt();
+    } else {
+      assert(mp["padsize"].IsArray());
+      padSizeId = mp["padsize"].GetArray()[0].GetInt();
+      secondPadSizeId = mp["padsize"].GetArray()[1].GetInt();
+    }
+
+    MotifPosition pos{
+      mp["fec"].GetInt(),
+      mp["motiftype"].GetInt(),
+      static_cast<double>(psArray[padSizeId]["x"].GetDouble()),
+      static_cast<double>(psArray[padSizeId]["y"].GetDouble()),
+      static_cast<double>(mp["x"].GetDouble()),
+      static_cast<double>(mp["y"].GetDouble())
+    };
+
+    if (secondPadSizeId >= 0) {
+      std::vector<int> padnumbers;
+      auto pn = mp["padsize"].GetArray()[2]["pads"].GetArray();
+      for (int i = 0; i < pn.Size(); ++i) {
+        padnumbers.push_back(pn[i].GetInt());
+      }
+      pos.secondPadSize(
+        psArray[secondPadSizeId]["x"].GetDouble(),
+        psArray[secondPadSizeId]["y"].GetDouble(),
+        padnumbers
+      );
+    }
+
+    motifpositions.push_back(pos);
   }
 
   // sort the motifpositions by fecId => is that needed at all as we have a fecid <-> index array ?
   std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition &mp1,
                                                              const MotifPosition &mp2) {
-    return mp1.fecId < mp2.fecId;
+    return mp1.FECId() < mp2.FECId();
   });
 
   return motifpositions;
@@ -102,6 +174,7 @@ std::string generateCodeForOneSegmentation(int index, bool isBending,
   code << "template<>\n";
   code << "SegmentationImpl0<" << index << "," << bendingString
        << "," << motifpositions.size() << "," << bergToChannelFunctionName(index)
+       << "," << (index ? "MotifPosition":"MotifPositionTwoPadSizes")
        << ">::SegmentationImpl0(const MotifTypeArray& motifTypes)"
        << " : mId(" << index << "),mIsBendingPlane(" << bendingString << "), "
        << "mNofPads{0},"
@@ -130,9 +203,14 @@ generateCodeForSegmentationInterface()
   std::ostringstream decl;
   std::ostringstream impl;
 
+  decl << R"(
+#include "contour.h"
+)";
+
   decl << mappingNamespaceBegin();
 
   decl << R"(
+
 class SegmentationInterface {
   public:
     virtual bool isBendingPlane() const = 0;
@@ -141,6 +219,8 @@ class SegmentationInterface {
     virtual int nofPads() const = 0;
     virtual bool hasPadByPosition(double x, double y) const = 0;
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
+    virtual o2::mch::contour::Contour<double> getEnvelop() const = 0;
+    virtual std::vector<o2::mch::contour::Contour<double>> getSampaContours() const = 0;
 };
 )";
 
@@ -162,14 +242,16 @@ generateCodeForSegmentationCommon()
 #include <algorithm>
 #include <stdexcept>
 #include <ostream>
-#include "boost/format.hpp"
 #include "contourCreator.h"
+#include "motifPosition.h"
+#include "motifPositionTwoPadSizes.h"
+#include "pad.h"
 )";
 
   decl << mappingNamespaceBegin();
 
   decl << R"***(
-template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int)>
+template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int), typename MOTIFPOSITION>
 class SegmentationImpl0 : public SegmentationInterface
 {
   public:
@@ -195,7 +277,7 @@ class SegmentationImpl0 : public SegmentationInterface
       if (dualSampaChannel < 0 || dualSampaChannel > 63) {
         throw std::out_of_range("dualSampaChannel should be between 0 and 63");
       }
-      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MotifPosition& mp) { return mp.fecId==dualSampaId; });
+      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MOTIFPOSITION& mp) { return mp.FECId()==dualSampaId; });
       if (it == mMotifPositions.end()) {
         throw std::out_of_range("dualSampaId is not there");
       }
@@ -225,77 +307,25 @@ class SegmentationImpl0 : public SegmentationInterface
       return o2::mch::contour::createContour(polygons);
     }
 
+    std::vector<o2::mch::contour::Contour<double>> getSampaContours() const override {
+      std::vector<o2::mch::contour::Contour<double>> contours;
+      contours.insert(contours.end(),mFEContours.begin(),mFEContours.end());
+      return contours;
+    }
+
   private:
 
-    struct Pad
-    {
-        Pad(double x1 = 0, double y1 = 0, double x2 = 0, double y2 = 0) :
-          xBottomLeft{x1}, yBottomLeft{y1},
-          xTopRight{x2}, yTopRight{y2}
-        {}
-
-        bool isValid() const
-        { return (xTopRight-xBottomLeft) > 0.1; }
-
-        friend std::ostream& operator<<(std::ostream& os, const Pad& pad)
-        {
-          if (pad.isValid()) {
-            os << boost::format("(%7.2f,%7.2f)->(%7.2f,%7.2f)") % pad.xBottomLeft % pad.yBottomLeft %
-                                                                  pad.xTopRight % pad.yTopRight;
-          }
-        else
-        {
-          os << " ( not existing pad )";
-        }
-        return os;
-        }
-
-        Pad translate(double x, double y) {
-          return { xBottomLeft+x, yBottomLeft+y, xTopRight+x, yTopRight+y };
-        }
-
-        double xBottomLeft;
-        double yBottomLeft;
-        double xTopRight;
-        double yTopRight;
-    };
-
-    struct MotifPosition
-    {
-      MotifPosition(int f=0, int m=0, double padsizex_=0, double padsizey_=0, double x_=0, double y_=0,
-       double dx_=0, double dy_=0) :
-        fecId(f), motifTypeId(m), padSizeX(padsizex_),padSizeY(padsizey_), x(x_), y(y_) {}
-      int fecId;
-      int motifTypeId;
-      double padSizeX;
-      double padSizeY;
-      double x;
-      double y;
-      double dx;
-      double dy;
-    };
-
-    std::vector<Pad> getPads(const MotifType& mt, double padsizex, double padsizey) {
-      std::vector<Pad> pads;
-      for (int i = 0; i < mt.getNofPads(); ++i) {
-        double padx = mt.getIx(i) * padsizex;
-        double pady = mt.getIy(i) * padsizey;
-        pads.push_back({padx,pady,padx+padsizex,pady+padsizey});
-      }
-      return pads;
-    }
-
-    std::vector<Pad> getPads(const MotifPosition& mp, const MotifTypeArray& motifTypes) {
-      std::vector<Pad> motifPads{getPads(motifTypes[mp.motifTypeId],mp.padSizeX,mp.padSizeY)};
+    std::vector<Pad> getPads(const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
+      std::vector<Pad> motifPads{mp.getPads(motifTypes[mp.motifTypeId()])};
       std::vector<Pad> pads;
       for (auto p: motifPads) {
-        pads.push_back(p.translate(mp.x,mp.y));
+        pads.push_back(p.translate(mp.positionX(),mp.positionY()));
       }
       return pads;
     }
 
-    void populatePadsForOneMotifPosition(int index, const MotifPosition& mp, const MotifTypeArray& motifTypes) {
-      const MotifType& mt = motifTypes[mp.motifTypeId];
+    void populatePadsForOneMotifPosition(int index, const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
+      const MotifType& mt = motifTypes[mp.motifTypeId()];
       auto pads = getPads(mp,motifTypes);
       for (auto i = 0; i < pads.size(); ++i) {
          int fecChannel = berg2channel(mt.getBerg(i));
@@ -306,8 +336,8 @@ class SegmentationImpl0 : public SegmentationInterface
 
     void populatePads(const MotifTypeArray& motifTypes) {
       for ( int index = 0; index < mMotifPositions.size(); ++index ) {
-        const MotifPosition& mp = mMotifPositions[index];
-        const MotifType& mt = motifTypes[mp.motifTypeId];
+        const MOTIFPOSITION& mp = mMotifPositions[index];
+        const MotifType& mt = motifTypes[mp.motifTypeId()];
         populatePadsForOneMotifPosition(index,mp,motifTypes);
         mNofPads += mt.getNofPads();
       }
@@ -339,7 +369,7 @@ class SegmentationImpl0 : public SegmentationInterface
     bool mIsBendingPlane;
     int mNofPads;
     std::array<Pad,NFEC*64> mPads;
-    std::array<MotifPosition,NFEC> mMotifPositions;
+    std::array<MOTIFPOSITION,NFEC> mMotifPositions;
     std::array<o2::mch::contour::Contour<double>,NFEC> mFEContours;
 };
 )***";
@@ -385,13 +415,15 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
       auto n = getMotifPositionArray(i, segmentations, b).Size();
       impl << "    if (isBendingPlane==" << (b ? "true" : "false") << " && type==" << i << ") {\n";
       impl << "      return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<" << i << ","
-           << (b ? "true" : "false") << "," << n << "," << bergToChannelFunctionName(i) << ">{arrayOfMotifTypes}};\n";
+           << (b ? "true" : "false") << "," << n << "," << bergToChannelFunctionName(i) << "," <<
+           (i ? "MotifPosition" : "MotifPositionTwoPadSizes")
+           << ">{arrayOfMotifTypes}};\n";
       impl << "    };\n";
     }
   }
 
   impl
-    << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr>{arrayOfMotifTypes}};\n";
+    << "  return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<-1,true,0,nullptr,MotifPosition>{arrayOfMotifTypes}};\n";
   impl << "}\n";
   impl << mappingNamespaceEnd();
 
@@ -447,7 +479,7 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
   outputCode(code.first, code.second, "genSegmentationFactory");
 }
 
-void generateCodeForDESegmentationFactory(const Value& segmentations, const Value& detection_elements)
+void generateCodeForDESegmentationFactory(const Value &segmentations, const Value &detection_elements)
 {
   std::ostringstream decl;
   std::ostringstream impl;
@@ -460,25 +492,32 @@ void generateCodeForDESegmentationFactory(const Value& segmentations, const Valu
 
   decl << R"(
 
-std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBendingPlane);
+int getSegTypeIndexFromDetElemIndex(int deIndex);
+
+std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane);
 
   )";
   decl << mappingNamespaceEnd();
 
   impl << R"(
 #include "genSegmentationFactory.h"
+#include <array>
 )";
   impl << mappingNamespaceBegin();
 
-  impl << "\n  std::array<int," << detection_elements.Size() << "> segTypeFromDEIndex{";
+  impl << R"(
+int getSegTypeIndexFromDetElemIndex(int deIndex) {
+)";
+
+  impl << "\n  static std::array<int," << detection_elements.Size() << "> segtype{";
 
   for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
-    const auto& de = detection_elements.GetArray()[ide];
-    for ( int i = 0; i < segmentations.Size(); ++i ) {
+    const auto &de = detection_elements.GetArray()[ide];
+    for (int i = 0; i < segmentations.Size(); ++i) {
       const auto &seg = segmentations.GetArray()[i];
-      if ( !strcmp(seg["segtype"].GetString(),de["segtype"].GetString()) ) {
+      if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
         impl << i;
-        if (ide<detection_elements.GetArray().Size()-1) impl << ",";
+        if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }
         break;
       }
     }
@@ -487,13 +526,16 @@ std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBen
   impl << "};\n";
 
   impl << R"(
-  std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBendingPlane) {
-      if (deindex >= segTypeFromDEIndex.size()) throw std::out_of_range("deindex is incorrect");
-      return getSegmentation(segTypeFromDEIndex[deindex],isBendingPlane);
+    if (deIndex >= segtype.size()) throw std::out_of_range("deIndex is incorrect");
+    return segtype[deIndex];
+  }
+
+  std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane) {
+      return getSegmentation(getSegTypeIndexFromDetElemIndex(deIndex),isBendingPlane);
   }
 )";
 
   impl << mappingNamespaceEnd();
 
-  outputCode(decl.str(),impl.str(), "genDESegmentationFactory");
+  outputCode(decl.str(), impl.str(), "genDESegmentationFactory");
 }

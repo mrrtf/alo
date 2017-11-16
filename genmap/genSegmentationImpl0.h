@@ -10,8 +10,10 @@
 #include <algorithm>
 #include <stdexcept>
 #include <ostream>
-#include "boost/format.hpp"
 #include "contourCreator.h"
+#include "motifPosition.h"
+#include "motifPositionTwoPadSizes.h"
+#include "pad.h"
 
 namespace o2
 {
@@ -20,7 +22,7 @@ namespace mch
 namespace mapping
 {
 
-template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int)>
+template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int), typename MOTIFPOSITION>
 class SegmentationImpl0 : public SegmentationInterface
 {
   public:
@@ -46,7 +48,7 @@ class SegmentationImpl0 : public SegmentationInterface
       if (dualSampaChannel < 0 || dualSampaChannel > 63) {
         throw std::out_of_range("dualSampaChannel should be between 0 and 63");
       }
-      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MotifPosition& mp) { return mp.fecId==dualSampaId; });
+      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MOTIFPOSITION& mp) { return mp.FECId()==dualSampaId; });
       if (it == mMotifPositions.end()) {
         throw std::out_of_range("dualSampaId is not there");
       }
@@ -76,77 +78,25 @@ class SegmentationImpl0 : public SegmentationInterface
       return o2::mch::contour::createContour(polygons);
     }
 
+    std::vector<o2::mch::contour::Contour<double>> getSampaContours() const override {
+      std::vector<o2::mch::contour::Contour<double>> contours;
+      contours.insert(contours.end(),mFEContours.begin(),mFEContours.end());
+      return contours;
+    }
+
   private:
 
-    struct Pad
-    {
-        Pad(double x1 = 0, double y1 = 0, double x2 = 0, double y2 = 0) :
-          xBottomLeft{x1}, yBottomLeft{y1},
-          xTopRight{x2}, yTopRight{y2}
-        {}
-
-        bool isValid() const
-        { return (xTopRight-xBottomLeft) > 0.1; }
-
-        friend std::ostream& operator<<(std::ostream& os, const Pad& pad)
-        {
-          if (pad.isValid()) {
-            os << boost::format("(%7.2f,%7.2f)->(%7.2f,%7.2f)") % pad.xBottomLeft % pad.yBottomLeft %
-                                                                  pad.xTopRight % pad.yTopRight;
-          }
-        else
-        {
-          os << " ( not existing pad )";
-        }
-        return os;
-        }
-
-        Pad translate(double x, double y) {
-          return { xBottomLeft+x, yBottomLeft+y, xTopRight+x, yTopRight+y };
-        }
-
-        double xBottomLeft;
-        double yBottomLeft;
-        double xTopRight;
-        double yTopRight;
-    };
-
-    struct MotifPosition
-    {
-      MotifPosition(int f=0, int m=0, double padsizex_=0, double padsizey_=0, double x_=0, double y_=0,
-       double dx_=0, double dy_=0) :
-        fecId(f), motifTypeId(m), padSizeX(padsizex_),padSizeY(padsizey_), x(x_), y(y_) {}
-      int fecId;
-      int motifTypeId;
-      double padSizeX;
-      double padSizeY;
-      double x;
-      double y;
-      double dx;
-      double dy;
-    };
-
-    std::vector<Pad> getPads(const MotifType& mt, double padsizex, double padsizey) {
-      std::vector<Pad> pads;
-      for (int i = 0; i < mt.getNofPads(); ++i) {
-        double padx = mt.getIx(i) * padsizex;
-        double pady = mt.getIy(i) * padsizey;
-        pads.push_back({padx,pady,padx+padsizex,pady+padsizey});
-      }
-      return pads;
-    }
-
-    std::vector<Pad> getPads(const MotifPosition& mp, const MotifTypeArray& motifTypes) {
-      std::vector<Pad> motifPads{getPads(motifTypes[mp.motifTypeId],mp.padSizeX,mp.padSizeY)};
+    std::vector<Pad> getPads(const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
+      std::vector<Pad> motifPads{mp.getPads(motifTypes[mp.motifTypeId()])};
       std::vector<Pad> pads;
       for (auto p: motifPads) {
-        pads.push_back(p.translate(mp.x,mp.y));
+        pads.push_back(p.translate(mp.positionX(),mp.positionY()));
       }
       return pads;
     }
 
-    void populatePadsForOneMotifPosition(int index, const MotifPosition& mp, const MotifTypeArray& motifTypes) {
-      const MotifType& mt = motifTypes[mp.motifTypeId];
+    void populatePadsForOneMotifPosition(int index, const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
+      const MotifType& mt = motifTypes[mp.motifTypeId()];
       auto pads = getPads(mp,motifTypes);
       for (auto i = 0; i < pads.size(); ++i) {
          int fecChannel = berg2channel(mt.getBerg(i));
@@ -157,8 +107,8 @@ class SegmentationImpl0 : public SegmentationInterface
 
     void populatePads(const MotifTypeArray& motifTypes) {
       for ( int index = 0; index < mMotifPositions.size(); ++index ) {
-        const MotifPosition& mp = mMotifPositions[index];
-        const MotifType& mt = motifTypes[mp.motifTypeId];
+        const MOTIFPOSITION& mp = mMotifPositions[index];
+        const MotifType& mt = motifTypes[mp.motifTypeId()];
         populatePadsForOneMotifPosition(index,mp,motifTypes);
         mNofPads += mt.getNofPads();
       }
@@ -190,7 +140,7 @@ class SegmentationImpl0 : public SegmentationInterface
     bool mIsBendingPlane;
     int mNofPads;
     std::array<Pad,NFEC*64> mPads;
-    std::array<MotifPosition,NFEC> mMotifPositions;
+    std::array<MOTIFPOSITION,NFEC> mMotifPositions;
     std::array<o2::mch::contour::Contour<double>,NFEC> mFEContours;
 };
 
@@ -336,8 +286,8 @@ int berg80ToManu(int berg) {
 }
   
 template<>
-SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(0),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
-  {1,6,2.52,0.42,80.64,0},
+SegmentationImpl0<0,true,226,berg80ToManu,MotifPositionTwoPadSizes>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(0),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+  {1,6,2.52,0.42,80.64,0,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {2,3,2.52,0.42,70.56,0},
   {3,3,1.26,0.42,65.52,0},
   {4,3,1.26,0.42,60.48,0},
@@ -357,7 +307,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {18,3,0.63,0.42,22.68,0},
   {19,3,0.63,0.42,20.16,0},
   {20,3,0.63,0.42,17.64,0},
-  {27,6,2.52,0.42,80.64,6.72},
+  {27,6,2.52,0.42,80.64,6.72,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {28,3,2.52,0.42,70.56,6.72},
   {29,3,1.26,0.42,65.52,6.72},
   {30,3,1.26,0.42,60.48,6.72},
@@ -378,7 +328,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {45,3,0.63,0.42,20.16,6.72},
   {46,3,0.63,0.42,17.64,6.72},
   {47,2,0.63,0.42,13.86,6.72},
-  {53,6,2.52,0.42,80.64,13.44},
+  {53,6,2.52,0.42,80.64,13.44,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {54,3,2.52,0.42,70.56,13.44},
   {55,3,1.26,0.42,65.52,13.44},
   {56,3,1.26,0.42,60.48,13.44},
@@ -402,7 +352,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {74,3,0.63,0.42,12.6,13.44},
   {75,1,0.63,0.42,9.45,13.44},
   {76,0,0.63,0.42,0,17.22},
-  {79,6,2.52,0.42,80.64,20.16},
+  {79,6,2.52,0.42,80.64,20.16,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {80,3,2.52,0.42,70.56,20.16},
   {81,3,1.26,0.42,65.52,20.16},
   {82,3,1.26,0.42,60.48,20.16},
@@ -428,7 +378,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {102,3,0.63,0.42,5.04,20.16},
   {103,3,0.63,0.42,2.52,20.16},
   {104,3,0.63,0.42,0,20.16},
-  {105,6,2.52,0.42,80.64,26.88},
+  {105,6,2.52,0.42,80.64,26.88,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {106,3,2.52,0.42,70.56,26.88},
   {107,3,1.26,0.42,65.52,26.88},
   {108,3,1.26,0.42,60.48,26.88},
@@ -454,7 +404,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {128,3,0.63,0.42,5.04,26.88},
   {129,3,0.63,0.42,2.52,26.88},
   {130,3,0.63,0.42,0,26.88},
-  {131,6,2.52,0.42,80.64,33.6},
+  {131,6,2.52,0.42,80.64,33.6,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {132,3,2.52,0.42,70.56,33.6},
   {133,3,2.52,0.42,60.48,33.6},
   {134,3,1.26,0.42,55.44,33.6},
@@ -478,7 +428,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   {152,3,0.63,0.42,5.04,33.6},
   {153,3,0.63,0.42,2.52,33.6},
   {154,3,0.63,0.42,0,33.6},
-  {157,6,2.52,0.42,80.64,40.32},
+  {157,6,2.52,0.42,80.64,40.32,0.84,0.42, {32,71,29,68,26,64,24,62,56,15,53,12,11,47,6,3}},
   {158,3,2.52,0.42,70.56,40.32},
   {159,3,2.52,0.42,60.48,40.32},
   {160,3,1.26,0.42,55.44,40.32},
@@ -567,7 +517,7 @@ SegmentationImpl0<0,true,226,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<0,false,225,berg80ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(0),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<0,false,225,berg80ToManu,MotifPositionTwoPadSizes>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(0),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,17,0.63,1.68,80.325,0.21},
   {1026,14,0.63,1.68,70.245,0.21},
   {1027,13,0.63,0.84,65.205,0.21},
@@ -788,16 +738,16 @@ SegmentationImpl0<0,false,225,berg80ToManu>::SegmentationImpl0(const MotifTypeAr
   {1260,14,0.63,1.68,19.845,74.13},
   {1261,14,0.63,1.68,9.765,74.13},
   {1262,14,0.63,1.68,-0.315,74.13},
-  {1263,16,0.63,1.68,40.005,80.85},
-  {1264,15,0.63,1.68,29.925,80.85},
-  {1265,15,0.63,1.68,19.845,80.85},
-  {1266,15,0.63,1.68,9.765,80.85},
-  {1267,15,0.63,1.68,-0.315,80.85}}}
+  {1263,16,0.63,1.68,40.005,80.85,0.63,3.36, {4,6,11,47,9,8,44,43,5,46,10,45}},
+  {1264,15,0.63,1.68,29.925,80.85,0.63,3.36, {4,6,11,47,9,8,44,43,5,46,10,45,7,42,3,2}},
+  {1265,15,0.63,1.68,19.845,80.85,0.63,3.36, {4,6,11,47,9,8,44,43,5,46,10,45,7,42,3,2}},
+  {1266,15,0.63,1.68,9.765,80.85,0.63,3.36, {4,6,11,47,9,8,44,43,5,46,10,45,7,42,3,2}},
+  {1267,15,0.63,1.68,-0.315,80.85,0.63,3.36, {4,6,11,47,9,8,44,43,5,46,10,45,7,42,3,2}}}}
 {  populatePads(motifTypes);
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<1,true,221,berg80ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(1),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<1,true,221,berg80ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(1),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,31,3,0.5,107,-0.75},
   {2,29,3,0.5,95,-0.75},
   {3,27,1.5,0.5,89,-0.75},
@@ -1023,7 +973,7 @@ SegmentationImpl0<1,true,221,berg80ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<1,false,222,berg80ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(1),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<1,false,222,berg80ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(1),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,77,0.75,2,105.125,-0.5},
   {1026,76,0.75,2,95.375,-0.5},
   {1027,70,0.75,1,89.375,-0.5},
@@ -1250,7 +1200,7 @@ SegmentationImpl0<1,false,222,berg80ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<2,true,46,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(2),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<2,true,46,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(2),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,127,2.5,0.5,50,2},
   {2,178,2.5,0.5,45,4},
   {3,178,2.5,0.5,40,4},
@@ -1301,7 +1251,7 @@ SegmentationImpl0<2,true,46,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<2,false,32,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(2),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<2,false,32,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(2),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1028,131,0.714286,2.5,40,2.5},
   {1029,130,0.714286,2.5,47.1429,5},
   {1040,169,0.714286,2.5,-3.9968e-15,0},
@@ -1338,7 +1288,7 @@ SegmentationImpl0<2,false,32,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<3,true,56,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(3),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<3,true,56,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(3),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {4,176,2.5,0.5,40,-20},
   {5,177,2.5,0.5,45,-20},
   {6,177,2.5,0.5,50,-20},
@@ -1399,7 +1349,7 @@ SegmentationImpl0<3,true,56,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<3,false,39,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(3),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<3,false,39,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(3),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,106,0.714286,2.5,51.4286,-20},
   {1026,174,0.714286,2.5,45.7143,-20},
   {1027,174,0.714286,2.5,40,-20},
@@ -1443,7 +1393,7 @@ SegmentationImpl0<3,false,39,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<4,true,49,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(4),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<4,true,49,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(4),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,2.5,0.5,-80,-20},
   {2,207,2.5,0.5,-77.5,-20},
   {3,170,2.5,0.5,-72.5,-20},
@@ -1497,7 +1447,7 @@ SegmentationImpl0<4,true,49,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<4,false,34,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(4),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<4,false,34,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(4),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1035,173,0.714286,2.5,-45.7143,-20},
   {1036,173,0.714286,2.5,-51.4286,-20},
   {1037,173,0.714286,2.5,-57.1429,-20},
@@ -1536,7 +1486,7 @@ SegmentationImpl0<4,false,34,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<5,true,30,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(5),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<5,true,30,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(5),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {4,166,5,0.5,20,-20},
   {5,207,5,0.5,25,-20},
   {6,170,5,0.5,35,-20},
@@ -1571,7 +1521,7 @@ SegmentationImpl0<5,true,30,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<5,false,21,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(5),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<5,false,21,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(5),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,160,0.714286,5,45.7143,-20},
   {1026,181,0.714286,5,34.2857,-20},
   {1027,156,0.714286,5,20,-20},
@@ -1597,7 +1547,7 @@ SegmentationImpl0<5,false,21,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<6,true,20,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(6),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<6,true,20,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(6),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {4,166,5,0.5,0,-20},
   {5,207,5,0.5,5,-20},
   {6,170,5,0.5,15,-20},
@@ -1622,7 +1572,7 @@ SegmentationImpl0<6,true,20,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<6,false,14,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(6),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<6,false,14,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(6),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,160,0.714286,5,25.7143,-20},
   {1026,181,0.714286,5,14.2857,-20},
   {1027,156,0.714286,5,-2.66454e-15,-20},
@@ -1641,7 +1591,7 @@ SegmentationImpl0<6,false,14,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<7,true,47,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(7),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<7,true,47,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(7),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,127,2.5,0.5,50,2},
   {2,178,2.5,0.5,45,4},
   {3,178,2.5,0.5,40,4},
@@ -1693,7 +1643,7 @@ SegmentationImpl0<7,true,47,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<7,false,33,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(7),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<7,false,33,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(7),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1028,131,0.714286,2.5,40,2.5},
   {1029,130,0.714286,2.5,47.1429,5},
   {1040,169,0.714286,2.5,-3.9968e-15,0},
@@ -1731,7 +1681,7 @@ SegmentationImpl0<7,false,33,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<8,true,57,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(8),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<8,true,57,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(8),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {4,176,2.5,0.5,40,-20},
   {5,177,2.5,0.5,45,-20},
   {6,177,2.5,0.5,50,-20},
@@ -1793,7 +1743,7 @@ SegmentationImpl0<8,true,57,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<8,false,40,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(8),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<8,false,40,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(8),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,106,0.714286,2.5,51.4286,-20},
   {1026,174,0.714286,2.5,45.7143,-20},
   {1027,174,0.714286,2.5,40,-20},
@@ -1838,7 +1788,7 @@ SegmentationImpl0<8,false,40,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<9,true,50,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(9),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<9,true,50,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(9),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,2.5,0.5,-80,-20},
   {2,207,2.5,0.5,-77.5,-20},
   {3,170,2.5,0.5,-72.5,-20},
@@ -1893,7 +1843,7 @@ SegmentationImpl0<9,true,50,berg100ToManu>::SegmentationImpl0(const MotifTypeArr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<9,false,35,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(9),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<9,false,35,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(9),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1035,173,0.714286,2.5,-45.7143,-20},
   {1036,173,0.714286,2.5,-51.4286,-20},
   {1037,173,0.714286,2.5,-57.1429,-20},
@@ -1933,7 +1883,7 @@ SegmentationImpl0<9,false,35,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<10,true,50,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(10),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<10,true,50,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(10),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,2.5,0.5,-100,-20},
   {2,207,2.5,0.5,-97.5,-20},
   {3,170,2.5,0.5,-92.5,-20},
@@ -1988,7 +1938,7 @@ SegmentationImpl0<10,true,50,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<10,false,36,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(10),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<10,false,36,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(10),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1035,173,0.714286,2.5,-65.7143,-20},
   {1036,173,0.714286,2.5,-71.4286,-20},
   {1037,173,0.714286,2.5,-77.1429,-20},
@@ -2029,7 +1979,7 @@ SegmentationImpl0<10,false,36,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<11,true,64,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(11),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<11,true,64,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(11),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,152,2.5,0.5,80,-20},
   {9,166,2.5,0.5,40,-20},
   {10,207,2.5,0.5,42.5,-20},
@@ -2098,7 +2048,7 @@ SegmentationImpl0<11,true,64,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<11,false,46,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(11),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<11,false,46,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(11),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1026,173,0.714286,2.5,74.2857,-20},
   {1027,173,0.714286,2.5,68.5714,-20},
   {1028,173,0.714286,2.5,62.8571,-20},
@@ -2149,7 +2099,7 @@ SegmentationImpl0<11,false,46,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<12,true,65,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(12),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<12,true,65,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(12),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,2.5,0.5,-100,-20},
   {2,207,2.5,0.5,-97.5,-20},
   {3,170,2.5,0.5,-92.5,-20},
@@ -2219,7 +2169,7 @@ SegmentationImpl0<12,true,65,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<12,false,46,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(12),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<12,false,46,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(12),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1035,173,0.714286,2.5,-65.7143,-20},
   {1036,173,0.714286,2.5,-71.4286,-20},
   {1037,173,0.714286,2.5,-77.1429,-20},
@@ -2270,7 +2220,7 @@ SegmentationImpl0<12,false,46,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<13,true,40,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(13),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<13,true,40,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(13),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,5,0.5,-100,-20},
   {2,207,5,0.5,-95,-20},
   {3,170,5,0.5,-85,-20},
@@ -2315,7 +2265,7 @@ SegmentationImpl0<13,true,40,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<13,false,29,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(13),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<13,false,29,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(13),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1030,191,0.714286,5,-70,-20},
   {1031,195,0.714286,5,-80,-20},
   {1032,194,0.714286,5,-91.4286,-20},
@@ -2349,7 +2299,7 @@ SegmentationImpl0<13,false,29,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<14,true,30,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(14),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<14,true,30,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(14),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,5,0.5,-80,-20},
   {2,207,5,0.5,-75,-20},
   {3,170,5,0.5,-65,-20},
@@ -2384,7 +2334,7 @@ SegmentationImpl0<14,true,30,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<14,false,22,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(14),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<14,false,22,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(14),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1030,191,0.714286,5,-50,-20},
   {1031,195,0.714286,5,-60,-20},
   {1032,194,0.714286,5,-71.4286,-20},
@@ -2411,7 +2361,7 @@ SegmentationImpl0<14,false,22,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<15,true,15,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(15),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<15,true,15,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(15),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {3,172,10,0.5,20,-20},
   {4,172,10,0.5,40,-20},
   {7,172,10,0.5,-20,-20},
@@ -2431,7 +2381,7 @@ SegmentationImpl0<15,true,15,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<15,false,12,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(15),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<15,false,12,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(15),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,186,0.714286,10,40,-20},
   {1026,185,0.714286,10,20,-20},
   {1029,186,0.714286,10,-8e-09,-20},
@@ -2448,7 +2398,7 @@ SegmentationImpl0<15,false,12,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<16,true,10,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(16),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<16,true,10,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(16),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {3,172,10,0.5,0,-20},
   {4,172,10,0.5,20,-20},
   {7,172,10,0.5,-40,-20},
@@ -2463,7 +2413,7 @@ SegmentationImpl0<16,true,10,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<16,false,8,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(16),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<16,false,8,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(16),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1025,186,0.714286,10,20,-20},
   {1026,185,0.714286,10,0,-20},
   {1029,186,0.714286,10,-20,-20},
@@ -2476,7 +2426,7 @@ SegmentationImpl0<16,false,8,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<17,true,70,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(17),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<17,true,70,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(17),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,2.5,0.5,-120,-20},
   {2,207,2.5,0.5,-117.5,-20},
   {3,170,2.5,0.5,-112.5,-20},
@@ -2551,7 +2501,7 @@ SegmentationImpl0<17,true,70,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<17,false,50,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(17),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<17,false,50,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(17),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1035,173,0.714286,2.5,-85.7143,-20},
   {1036,173,0.714286,2.5,-91.4286,-20},
   {1037,173,0.714286,2.5,-97.1429,-20},
@@ -2606,7 +2556,7 @@ SegmentationImpl0<17,false,50,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<18,true,45,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(18),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<18,true,45,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(18),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,5,0.5,-120,-20},
   {2,207,5,0.5,-115,-20},
   {3,170,5,0.5,-105,-20},
@@ -2656,7 +2606,7 @@ SegmentationImpl0<18,true,45,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<18,false,33,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(18),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<18,false,33,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(18),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1030,191,0.714286,5,-90,-20},
   {1031,195,0.714286,5,-100,-20},
   {1032,194,0.714286,5,-111.429,-20},
@@ -2694,7 +2644,7 @@ SegmentationImpl0<18,false,33,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<19,true,35,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(19),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<19,true,35,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(19),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,166,5,0.5,-100,-20},
   {2,207,5,0.5,-95,-20},
   {3,170,5,0.5,-85,-20},
@@ -2734,7 +2684,7 @@ SegmentationImpl0<19,true,35,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<19,false,26,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(19),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<19,false,26,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(19),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1030,191,0.714286,5,-70,-20},
   {1031,195,0.714286,5,-80,-20},
   {1032,194,0.714286,5,-91.4286,-20},
@@ -2765,7 +2715,7 @@ SegmentationImpl0<19,false,26,berg100ToManu>::SegmentationImpl0(const MotifTypeA
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<20,true,20,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(20),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<20,true,20,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(20),mIsBendingPlane(true), mNofPads{0},mMotifPositions{ {
   {1,159,10,0.5,-80,-20},
   {2,172,10,0.5,-70,-20},
   {3,161,10,0.5,-60,-20},
@@ -2790,7 +2740,7 @@ SegmentationImpl0<20,true,20,berg100ToManu>::SegmentationImpl0(const MotifTypeAr
   createContours(motifTypes);
 }
 template<>
-SegmentationImpl0<20,false,16,berg100ToManu>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(20),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
+SegmentationImpl0<20,false,16,berg100ToManu,MotifPosition>::SegmentationImpl0(const MotifTypeArray& motifTypes) : mId(20),mIsBendingPlane(false), mNofPads{0},mMotifPositions{ {
   {1028,186,0.714286,10,-60,-20},
   {1029,185,0.714286,10,-80,-20},
   {1125,186,0.714286,10,60,-20},

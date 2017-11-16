@@ -12,7 +12,9 @@ namespace mapping
 {
 
 
-std::unique_ptr<SegmentationInterface> getDESegmentation(int deindex, bool isBendingPlane);
+int getSegTypeIndexFromDetElemIndex(int deIndex);
+
+std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane);
 
   
 } // namespace mapping
