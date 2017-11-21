@@ -69,6 +69,7 @@ class MotifPositionTwoPadSizes
     std::vector<Pad> getPads(const MotifType &mt) const
     {
       std::vector<Pad> pads;
+      const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions
       double padsizex{mPadSizeX[0]};
       double padsizey{mPadSizeY[0]};
       double padx{0.0};
@@ -81,7 +82,7 @@ class MotifPositionTwoPadSizes
             int bergNumber = mt.getBerg(index);
             padsizex = padSizeX(bergNumber);
             padsizey = padSizeY(bergNumber);
-            pads.push_back({padx, pady, padx + padsizex, pady + padsizey});
+            pads.push_back({padx-eps, pady-eps, padx + padsizex + eps, pady + padsizey +eps});
           }
           padx += padsizex;
         }

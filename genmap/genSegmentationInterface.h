@@ -11,7 +11,6 @@ namespace mch
 namespace mapping
 {
 
-
 class SegmentationInterface {
   public:
     virtual bool isBendingPlane() const = 0;

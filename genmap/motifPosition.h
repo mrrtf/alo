@@ -63,13 +63,14 @@ class MotifPosition
 
     std::vector<Pad> getPads(const MotifType &mt) const
     {
+      const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions
       std::vector<Pad> pads;
       double padsizex{padSizeX()};
       double padsizey{padSizeY()};
       for (int i = 0; i < mt.getNofPads(); ++i) {
         double padx = mt.getIx(i) * padsizex;
         double pady = mt.getIy(i) * padsizey;
-        pads.push_back({padx, pady, padx + padsizex, pady + padsizey});
+        pads.push_back({padx-eps, pady-eps, padx + padsizex + eps, pady + padsizey +eps});
       }
       return pads;
     }

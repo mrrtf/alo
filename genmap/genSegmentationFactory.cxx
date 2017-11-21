@@ -8,6 +8,7 @@ namespace mch
 namespace mapping
 {
 
+  int getNumberOfSegmentations() {return 21;}
   std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
     if (isBendingPlane==true && type==0) {
       return std::unique_ptr<SegmentationInterface>{new SegmentationImpl0<0,true,226,berg80ToManu,MotifPositionTwoPadSizes>{arrayOfMotifTypes}};

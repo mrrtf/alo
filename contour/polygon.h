@@ -176,6 +176,7 @@ bool Polygon<T>::contains(T xp, T yp) const
   // (e.g. pre-computation)
   //
   if (!isClosed()) { throw std::invalid_argument("isInside can only work with closed polygons"); }
+
   auto j = mVertices.size() - 1;
   bool oddNodes{false};
   for (auto i = 0; i < mVertices.size(); i++) {

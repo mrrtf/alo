@@ -72,7 +72,7 @@ struct MotifPosition
 std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
 {
   os << "{" << position.mFECId << "," << position.mMotifTypeId << "," << position.mPadSizeX << ","
-     << position.mPadSizeY << "," << std::setprecision(8) << position.mPositionX << "," << position.mPositionY;
+     << position.mPadSizeY << "," << std::setprecision(10) << position.mPositionX << "," << position.mPositionY;
   if (position.hasTwoPadSizes()) {
     os << "," << position.mSecondPadSizeX << "," << position.mSecondPadSizeY << ", {";
     for (auto i = 0; i < position.mPadNumbers.size(); ++i) {
@@ -211,7 +211,6 @@ generateCodeForSegmentationInterface()
   decl << mappingNamespaceBegin();
 
   decl << R"(
-
 class SegmentationInterface {
   public:
     virtual bool isBendingPlane() const = 0;
@@ -412,6 +411,7 @@ std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Val
   decl << mappingNamespaceBegin();
 
   decl << R"(
+int getNumberOfSegmentations();
 std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
   )";
   decl << mappingNamespaceEnd();
@@ -421,6 +421,7 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
   impl << mappingNamespaceBegin();
 
   impl << R"(
+  int getNumberOfSegmentations() {return 21;}
   std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
 )";
 

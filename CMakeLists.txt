@@ -43,5 +43,5 @@ endif()
 
 add_subdirectory(contour)
 add_subdirectory(genmap)
-
+add_subdirectory(svgwriter)
 
