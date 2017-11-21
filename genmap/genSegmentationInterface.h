@@ -22,6 +22,7 @@ class SegmentationInterface {
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
     virtual o2::mch::contour::Contour<double> getEnvelop() const = 0;
     virtual std::vector<o2::mch::contour::Contour<double>> getSampaContours() const = 0;
+    virtual o2::mch::contour::Contour<double> getSampaPads(int dualSampaId) const = 0;
 };
 
 } // namespace mapping

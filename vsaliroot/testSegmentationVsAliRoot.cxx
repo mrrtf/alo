@@ -33,7 +33,6 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <random>
 #include <vector>
 #include <utility>
 #include "genSegmentationFactory.h"
@@ -68,18 +67,8 @@ AliMpSegmentation *MAPPING::mseg{nullptr};
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_FIXTURE_TEST_SUITE(segmentation, MAPPING)
 
-bool sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInterface &seg, double x, double y)
-{
-  bool aliroot = alseg.PadByPosition(x, y, false).IsValid();
-  bool o2 = seg.hasPadByPosition(x, y);
-  if (o2 != aliroot) {
-    std::cout << "o2=" << o2 << " and aliroot=" << aliroot << " for x=" << x << " and y=" << y << "\n";
-  }
-  return aliroot == o2;
-}
-
-void writeContour(std::ofstream &out, int scale, o2::mch::contour::Contour<double> &contour,
-                  o2::mch::contour::BBox<double>& box, bool highlight=false)
+void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour<double> &contour,
+                  o2::mch::contour::BBox<double> &box, const char* style="fill:none;stroke:black;stroke-width:0.5px")
 {
   for (auto i = 0; i < contour.size(); ++i) {
     out << "<polygon points=\"";
@@ -90,30 +79,101 @@ void writeContour(std::ofstream &out, int scale, o2::mch::contour::Contour<doubl
       v.y -= box.ymin();
       out << scale * v.x << "," << scale * v.y << ' ';
     }
-    if (!highlight) {
-      out << "\" style=\"fill:none;stroke:black;stroke-width:1\"/>\n";
-    }
-    else
-    {
-      out << "\" style=\"fill:none;stroke:red;stroke-width:1\"/>\n";
-    }
+    out << "\" style=\"" << style << "\"/>\n";
+
+//    if (!highlight) {
+//      out << "\" style=\"fill:none;stroke:black;stroke-width:0.5px\"/>\n";
+//    } else {
+//      out << "\" style=\"fill:none;stroke:red;stroke-width:0.5px\"/>\n";
+//    }
   }
 }
 
-void writeSVGHeader(std::ofstream& out, o2::mch::contour::BBox<double>& box, int scale) {
-  out << "<svg height=\"" << scale * box.height()+100 << "\" width=\"" << scale * box.width()+100 << "\">\n";
+void writeSVGHeader(std::ofstream &out, o2::mch::contour::BBox<double> &box, int scale)
+{
+  out << "<svg height=\"" << scale * box.height() + 100 << "\" width=\"" << scale * box.width() + 100 << "\">\n";
 }
 
-void writeContour(std::string filename, o2::mch::contour::Contour<double> &contour)
+void writeContour(std::string filename, const o2::mch::contour::Contour<double> &contour, int scale)
 {
   std::ofstream out(filename);
-  int scale = 5;
   out << "<html><body>\n";
   auto box = getBBox(contour);
-  writeSVGHeader(out,box,scale);
+  writeSVGHeader(out, box, scale);
   writeContour(out, scale, contour, box);
   out << "</svg>\n";
   out << "</body></html>\n";
+}
+
+void writeSVG(const SegmentationInterface& seg, const char *filename, double x, double y)
+{
+  auto contours = seg.getSampaContours();
+
+  std::ofstream out(filename);
+  int scale = 10;
+  out << "<html><body>\n";
+  auto env = seg.getEnvelop();
+  auto box = getBBox(env);
+
+  x -= box.xmin();
+  y -= box.ymin();
+
+  writeSVGHeader(out, box, scale);
+  writeContour(out, scale, env, box,"fill:#eeeeee;stroke:black;stroke-width:3px");
+  for (auto i = 0; i < contours.size(); ++i ) {
+    auto& c = contours[i];
+//  for (auto &&c: contours) {
+    writeContour(out, scale, c, box);
+    if (c.contains(x, y)) {
+      writeContour(out, scale, c, box, "fill:#aaaaaa;stroke:none");
+      writeContour(out,scale,seg.getSampaPads(i),box,"fill:yellow;stroke:blue");
+    }
+  }
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"5\"\n"
+    "style=\"fill:none;stroke:black;stroke-width:0.5px;\"/>";
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"1\"\n"
+    "style=\"fill:none;stroke:red;stroke-width:0.5px;\"/>";
+
+  out << "</svg>\n";
+  out << "</body></html>\n";
+}
+
+
+void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInterface &seg, double x, double y,
+                          double step, int ntimes, int& naliroot, int& no2)
+{
+  // Check whether aliroot and o2 implementations give the same answer to
+  // hasPadByPosition for a small box around (x,y)
+  //
+  // (the test is not done on one point only to avoid edge effects)
+
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::uniform_real_distribution<double> distX(x, x + step);
+  std::uniform_real_distribution<double> distY(y, y + step);
+
+  naliroot = no2 = 0;
+  int ndiff{0};
+
+  for (int i = 0; i < ntimes; ++i) {
+    double xs = distX(mt);
+    double ys = distY(mt);
+    bool aliroot = alseg.PadByPosition(xs, ys, false).IsValid();
+    bool o2 = seg.hasPadByPosition(xs, ys);
+
+    if (aliroot) ++naliroot;
+    if (o2) ++no2;
+
+    if (o2!=aliroot) {
+      std::ostringstream filename;
+      filename << "bug-" << seg.getId() << "-" << (seg.isBendingPlane() ? "B" : "NB") << "-" << ndiff << ".html";
+      ++ndiff;
+      writeSVG(seg, filename.str().c_str(), xs, ys);
+    }
+  }
+
 }
 
 std::pair<const AliMpVSegmentation *, SegmentationInterface *>
@@ -126,103 +186,69 @@ getSegmentations(AliMpSegmentation *mseg, int detElemId, int type, bool isBendin
 
   auto o2 = getSegmentation(type, isBendingPlane);
 
-  return {al, o2.get()};
+  return {al, o2.release()};
 }
 
-bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane, int ntimes)
+bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane, double step,
+int ntimes)
 {
   auto pair = getSegmentations(mseg, detElemId, type, isBendingPlane);
   auto al = pair.first;
   auto o2 = pair.second;
 
-  auto env = o2->getEnvelop();
-  auto bbox = getBBox(env);
+  auto bbox = getBBox(o2->getEnvelop());
 
   std::ostringstream filename;
-  filename << "toto-" << detElemId << "-" << type << ".html";
-  writeContour(filename.str(), env);
+
+  filename << "decontour-" << detElemId << "-" << type << "-" << (isBendingPlane ? "B" : "NB") << ".html";
+  writeSVG(*o2, filename.str().c_str(), 0, 0);
+
+  std::cout << filename.str() << " " << bbox << "\n";
 
   bool same{true};
-  std::random_device rd;  //Will be used to obtain a seed for the random number engine
-  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-  std::uniform_real_distribution<> disx(bbox.xmin(), bbox.xmax());
-  std::uniform_real_distribution<> disy(bbox.ymin(), bbox.ymax());
-  for (int i = 0; i < ntimes && same; ++i) {
-    double x = disx(gen);
-    double y = disy(gen);
-    same = sameHasPadByPosition(*al, *o2, x, y);
-  }
-  if (!same) {
-    std::cout << "detElemId=" << detElemId << "\n";
-    std::cout << "type=" << type << "\n";
-    std::cout << "isBendingPlane=" << isBendingPlane << "\n";
-    std::cout << "envelop=" << env << "\n";
-    std::cout << "bbox=" << bbox << "\n";
+
+  int ndiff{0};
+
+  std::cout << "# of positions to test = " << (bbox.width()/step)*(bbox.height()/step)*ntimes << "\n";
+  for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
+    for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
+      int naliroot, no2;
+      sameHasPadByPosition(*al, *o2, x, y, step,ntimes,naliroot,no2);
+      double diff{std::fabs(1.0*(no2-naliroot)/ntimes)};
+      if (diff>0.01 && no2 > ntimes/2.0 && naliroot > ntimes/2.0 ) {
+        same = false;
+      }
+      if (!same) {
+        std::cout << "diff(%)=" << diff*100.0 << " for x=" << x << " and y=" << y << "\n";
+        std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
+        std::cout << "detElemId=" << detElemId << "\n";
+        std::cout << "type=" << type << "\n";
+        std::cout << "isBendingPlane=" << isBendingPlane << "\n";
+      }
+    }
   }
   return same;
 }
 
-BOOST_AUTO_TEST_CASE(One)
+BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make({0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
+//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2,boost::unit_test::data::make({8}),deIndex)
+//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::xrange(1,2), deIndex)
 {
-  int detElemId{101};
-  int type{0};
-  bool isBendingPlane{1};
-  //double x{90.1511};
-  double x{89.04};
-  double y{28.4681};
-  auto pair = getSegmentations(mseg, detElemId, type, isBendingPlane);
-  BOOST_CHECK(sameHasPadByPosition(*(pair.first), *(pair.second), x, y));
-
-  auto o2 = getSegmentation(0, true);
-  auto contours = o2->getSampaContours();
-  //std::vector<o2::mch::contour::Contour<double>> contours;// = o2->getSampaContours();
-
-  std::ofstream out("bug.html");
-  int scale = 5;
-  out << "<html><body>\n";
-  auto env = o2->getEnvelop();
-  auto box = getBBox(env);
-  std::cout << "bbox=" << box << std::endl;
-  writeSVGHeader(out,box,scale);
-  writeContour(out, scale, env, box);
-  for (auto &&c: contours) {
-    writeContour(out,scale,c,box);
-    if (c.contains(x, y)) {
-      writeContour(out,scale,c,box,true);
-    }
-  }
-
-  out << "<circle cx=\"" << scale*x << "\" cy=\"" << scale*y << "\" r=\"5\"\n"
-    "style=\"fill:none;stroke:black;stroke-width:1px;\"/>";
-
-  out << "</svg>\n";
-  out << "</body></html>\n";
-
-
-  std::cout << pair.first->GetPositionX() <<  " " << pair.first->GetPositionY() << "\n";
-  std::cout << pair.first->GetDimensionX()*2 <<  " " << pair.first->GetDimensionY()*2 << "\n";
-  BOOST_CHECK(o2->hasPadByPosition(x, y) == true);
-}
-
-//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2,boost::unit_test::data::make({0,8,16,17,18,19,20,34,35,36,52,53,54,55,56,57,58,106,107,108,109}),deIndex)
-//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2,boost::unit_test::data::make({16,17,18,19,20,34,35,36,52,53,54,55,56,57,58,106,107,108,109}),deIndex)
-BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::xrange(0, 16), deIndex)
-{
-  int ntimes{100};
+  double step{2.0}; // cm
   int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
   int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-  BOOST_TEST_REQUIRE(checkHasPadByPosition(mseg, deId, segTypeIndex, true, ntimes));
-  BOOST_TEST_REQUIRE(checkHasPadByPosition(mseg, deId, segTypeIndex, false, ntimes));
+  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, true, step,10));
+  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, false, step,10));
 }
 
-void writeEnvelop(int type, bool bending)
+void writeEnvelop(int type, bool bending, int scale)
 {
   std::stringstream filename;
   filename << "envelop-" << type << "-" << bending << ".html";
   auto seg = getSegmentation(type, bending);
   std::cout << seg->nofDualSampas() << '\n';
   auto contour = seg->getEnvelop();
-  writeContour(filename.str(), contour);
+  writeContour(filename.str(), contour, scale);
 }
 
 //BOOST_AUTO_TEST_CASE(Envelop)
@@ -237,4 +263,5 @@ void writeEnvelop(int type, bool bending)
 //}
 
 BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_SUITE_END()

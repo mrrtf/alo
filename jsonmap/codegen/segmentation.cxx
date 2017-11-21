@@ -20,6 +20,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 
 using rapidjson::Value;
 
@@ -71,7 +72,7 @@ struct MotifPosition
 std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
 {
   os << "{" << position.mFECId << "," << position.mMotifTypeId << "," << position.mPadSizeX << ","
-     << position.mPadSizeY << "," << position.mPositionX << "," << position.mPositionY;
+     << position.mPadSizeY << "," << std::setprecision(8) << position.mPositionX << "," << position.mPositionY;
   if (position.hasTwoPadSizes()) {
     os << "," << position.mSecondPadSizeX << "," << position.mSecondPadSizeY << ", {";
     for (auto i = 0; i < position.mPadNumbers.size(); ++i) {
@@ -221,6 +222,7 @@ class SegmentationInterface {
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
     virtual o2::mch::contour::Contour<double> getEnvelop() const = 0;
     virtual std::vector<o2::mch::contour::Contour<double>> getSampaContours() const = 0;
+    virtual o2::mch::contour::Contour<double> getSampaPads(int dualSampaId) const = 0;
 };
 )";
 
@@ -307,6 +309,11 @@ class SegmentationImpl0 : public SegmentationInterface
       return o2::mch::contour::createContour(polygons);
     }
 
+    o2::mch::contour::Contour<double> getSampaPads(int dualSampaIndex) const override
+    {
+      return mPadContours[dualSampaIndex];
+    }
+
     std::vector<o2::mch::contour::Contour<double>> getSampaContours() const override {
       std::vector<o2::mch::contour::Contour<double>> contours;
       contours.insert(contours.end(),mFEContours.begin(),mFEContours.end());
@@ -361,7 +368,13 @@ class SegmentationImpl0 : public SegmentationInterface
     void createContours(const MotifTypeArray& motifTypes)
     {
       for (int index = 0; index < mMotifPositions.size(); ++index) {
-        mFEContours[index] = o2::mch::contour::createContour(padAsPolygons(getPads(mMotifPositions[index], motifTypes)));
+        auto pads = padAsPolygons(getPads(mMotifPositions[index], motifTypes));
+        o2::mch::contour::Contour<double> contour;
+        for (auto& p: pads) {
+          contour.addPolygon(p);
+        }
+        mPadContours[index] = contour;
+        mFEContours[index] = o2::mch::contour::createContour(pads);
       }
     }
 
@@ -370,6 +383,7 @@ class SegmentationImpl0 : public SegmentationInterface
     int mNofPads;
     std::array<Pad,NFEC*64> mPads;
     std::array<MOTIFPOSITION,NFEC> mMotifPositions;
+    std::array<o2::mch::contour::Contour<double>,NFEC> mPadContours;
     std::array<o2::mch::contour::Contour<double>,NFEC> mFEContours;
 };
 )***";

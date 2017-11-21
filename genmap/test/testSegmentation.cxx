@@ -173,6 +173,39 @@ BOOST_AUTO_TEST_CASE(HasPadByPosition) {
   BOOST_CHECK_EQUAL(getSegmentation(0,true)->hasPadByPosition(40.0,30.0),true);
 }
 
+//BOOST_DATA_TEST_CASE(HasByPadPositionAlwaysReturnsTrueIfWithinDEBoundaries, boost::unit_test::data::make({0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
+//BOOST_DATA_TEST_CASE(HasByPadPositionAlwaysReturnsTrueIfWithinDEBoundaries, boost::unit_test::data::make({53}), deIndex)
+//{
+//  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
+//  auto seg = getSegmentation(segTypeIndex,false);
+//  auto contour = seg->getEnvelop();
+//  auto sampaContours = seg->getSampaContours();
+//  auto bbox = getBBox(contour);
+//
+//  std::cout << bbox << "\n";
+//  BOOST_CHECK(segTypeIndex==11);
+////<circle cx="2342.86" cy="283.295" r="1" style="fill:none;stroke:red;stroke-width:0.5px;"></circle>
+//  double xstep{0.1};
+//  double ystep{0.1};
+//  int ndiff{0};
+//  int n{0};
+//  for ( double x = bbox.xmin(); x <= bbox.xmax(); x += xstep) {
+//    for (double y = bbox.ymin(); y <= bbox.ymax(); y += ystep) {
+//      bool within = contour.contains(x,y);
+//      bool sampa = seg->hasPadByPosition(x, y);
+//      ++n;
+//      if (within!=sampa) {
+//        ndiff++;
+//        std::cout << "x=" << x << "\n";
+//      }
+//    }
+//  }
+//  std::cout << "n=" << n << "\n";
+//  double x{2342.86/10.0};
+//  double y{283.295/10.0};
+//  std::cout << "within=" << contour.contains(x,y) << " sampa=" << seg->hasPadByPosition(x,y) << "\n";
+//  BOOST_CHECK_EQUAL(ndiff,0);
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
