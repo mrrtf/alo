@@ -1,5 +1,6 @@
 #include "genDetectionElement.h"
 #include <array>
+#include <algorithm>
 
 namespace o2
 {

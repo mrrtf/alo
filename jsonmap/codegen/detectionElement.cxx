@@ -42,6 +42,7 @@ std::pair<std::string, std::string> generateCodeForDetectionElements(const rapid
   std::sort(deids.begin(),deids.end());
 
   impl << "#include <array>\n";
+  impl << "#include <algorithm>\n";
   impl << mappingNamespaceBegin() << "\n";
   impl << "std::array<int," << deids.size() << "> deids = { ";
   for ( auto i = 0; i < deids.size(); ++i ) {
