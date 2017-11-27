@@ -28,7 +28,7 @@
 using namespace rapidjson;
 namespace po = boost::program_options;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   po::variables_map vm;
   po::options_description generic("Generic options");
@@ -68,9 +68,9 @@ int main(int argc, char* argv[])
   std::vector<std::string> inputfiles = vm["input-file"].as<std::vector<std::string>>();
   std::map<std::string, std::unique_ptr<InputWrapper> > documents;
 
-  for (auto&& file : inputfiles) {
+  for (auto &&file : inputfiles) {
 
-    for (const auto& opt: generic.options()) {
+    for (const auto &opt: generic.options()) {
       if (vm.count(opt->long_name())) {
         std::unique_ptr<InputWrapper> doc = std::make_unique<InputWrapper>(file.c_str());
         if (doc->document().HasMember(opt->long_name().c_str())) {
@@ -85,36 +85,40 @@ int main(int argc, char* argv[])
   }
 
   if (documents.count("detection_elements")) {
-    Document& deDocument = documents["detection_elements"]->document();
+    Document &deDocument = documents["detection_elements"]->document();
     std::pair<std::string, std::string> code = generateCodeForDetectionElements(deDocument["detection_elements"]);
     outputCode(code.first, code.second, "genDetectionElement");
   }
 
   if (documents.count("motiftypes")) {
-    Document& doc = documents["motiftypes"]->document();
+    Document &doc = documents["motiftypes"]->document();
     std::pair<std::string, std::string> code = generateCodeForMotifTypes(doc["motiftypes"]);
     outputCode(code.first, code.second, "genMotifType");
   }
 
   if (documents.count("padsizes")) {
-    Document& doc = documents["padsizes"]->document();
+    Document &doc = documents["padsizes"]->document();
     std::pair<std::string, std::string> code = generateCodeForPadSizes(doc["padsizes"]);
     outputCode(code.first, code.second, "genPadSize");
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
       && documents.count("bergs")) {
-    Document& segmentations = documents["segmentations"]->document();
-    Document& motiftypes = documents["motiftypes"]->document();
-    Document& padsizes = documents["padsizes"]->document();
-    Document& bergs = documents["bergs"]->document();
+    Document &segmentations = documents["segmentations"]->document();
+    Document &motiftypes = documents["motiftypes"]->document();
+    Document &padsizes = documents["padsizes"]->document();
+    Document &bergs = documents["bergs"]->document();
     generateCodeForSegmentations(segmentations["segmentations"],
                                  motiftypes["motiftypes"],
                                  padsizes["padsizes"],
                                  bergs["bergs"]);
-
   }
 
+  if (documents.count("segmentations") && documents.count("detection_elements")) {
+    Document &segmentations = documents["segmentations"]->document();
+    Document &detection_elements = documents["detection_elements"]->document();
+    generateCodeForDESegmentationFactory(segmentations["segmentations"],detection_elements["detection_elements"]);
+  }
   return 0;
 }
 

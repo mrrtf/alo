@@ -86,10 +86,10 @@ class Contour
       return *this;
     }
 
-    bool isInside(T x, T y) const
+    bool contains(T x, T y) const
     {
       for (const auto& p: mPolygons) {
-        if (p.isInside(x, y)) {
+        if (p.contains(x, y)) {
           return true;
         }
       }

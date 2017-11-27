@@ -35,7 +35,7 @@ bool CanTypeFitValue(const U value)
 
 inline bool areEqual(double a, double b)
 {
-  return std::fabs(b - a) < 1E-5; // 1E-5 cm = 0.1 micron
+  return std::fabs(b - a) < 1E-4; // 1E-4 cm = 1 micron
 }
 
 inline bool areEqual(int a, int b)

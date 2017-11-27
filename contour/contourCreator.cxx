@@ -123,8 +123,8 @@ verticalsToHorizontals(const std::vector<VerticalEdge<double>> &verticals) {
     const VerticalEdge<double> &refEdge = verticals[p1.second];
     auto e = p1.first.x;
     auto b = p2.first.x;
-    if ((p1.first.y == bottom(refEdge) && isLeftEdge(refEdge)) ||
-        (p1.first.y == top(refEdge) && isRightEdge(refEdge))) {
+    if ( (areEqual(p1.first.y,bottom(refEdge)) && isLeftEdge(refEdge)) ||
+      (areEqual(p1.first.y,top(refEdge)) && isRightEdge(refEdge))) {
       std::swap(b, e);
     }
     HorizontalEdge<double> h{p1.first.y, b, e};

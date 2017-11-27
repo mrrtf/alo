@@ -12,9 +12,8 @@ namespace mch
 namespace mapping
 {
 
-
+int getNumberOfSegmentations();
 std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
-
   
 } // namespace mapping
 } // namespace mch

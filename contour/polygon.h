@@ -91,7 +91,7 @@ class Polygon
       return mVertices.back() == mVertices.front();
     }
 
-    bool isInside(T x, T y) const;
+    bool contains(T x, T y) const;
 
     double signedArea() const
     {
@@ -166,11 +166,17 @@ bool operator==(const Polygon<T>& lhs, const Polygon<T>& rhs)
 }
 
 template<typename T>
-bool Polygon<T>::isInside(T xp, T yp) const
+bool Polygon<T>::contains(T xp, T yp) const
 {
+  // Note that this algorithm yields unpredicatable result if the point xp,yp
+  // is on one edge of the polygon. Should not generally matters, except when comparing
+  // two different implementations maybe.
+  //
   // TODO : look e.g. to http://alienryderflex.com/polygon/ for some possible optimizations
   // (e.g. pre-computation)
+  //
   if (!isClosed()) { throw std::invalid_argument("isInside can only work with closed polygons"); }
+
   auto j = mVertices.size() - 1;
   bool oddNodes{false};
   for (auto i = 0; i < mVertices.size(); i++) {

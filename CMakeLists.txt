@@ -27,6 +27,9 @@ include(CMakeALICE)
 
 set(CMAKE_CXX_STANDARD 14)
 
+find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+enable_testing()
+
 if(RAPIDJSON_FOUND)
   add_subdirectory(jsonmap)
 endif()
@@ -35,11 +38,10 @@ if(ROOT_FOUND AND AliRoot_FOUND)
 add_subdirectory(dhlt)
 add_subdirectory(r23)
 add_subdirectory(binmap)
+add_subdirectory(vsaliroot)
 endif()
 
 add_subdirectory(contour)
 add_subdirectory(genmap)
-
-find_package(Boost COMPONENTS REQUIRED unit_test_framework)
-enable_testing()
+add_subdirectory(svgwriter)
 

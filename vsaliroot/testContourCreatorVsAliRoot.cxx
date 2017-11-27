@@ -341,8 +341,8 @@ bool isInsideCheck(AliMUONContour* alirootContour, const Contour<double>& o2Cont
 
   std::random_device rd;
   std::mt19937 mt(rd());
-  std::uniform_real_distribution<double> distX{bbox.xmin(), bbox.xmax()};
-  std::uniform_real_distribution<double> distY{bbox.ymin(), bbox.ymax()};
+  std::uniform_real_distribution<double> distX{bbox.xmin()-offset, bbox.xmax()+offset};
+  std::uniform_real_distribution<double> distY{bbox.ymin()-offset, bbox.ymax()+offset};
 
   std::generate(testPoints.begin(), testPoints.end(),
                 [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
@@ -352,7 +352,7 @@ bool isInsideCheck(AliMUONContour* alirootContour, const Contour<double>& o2Cont
   for (const auto& tp: testPoints) {
 
     bool alirootInside = alirootContour->IsInside(tp.first, tp.second);
-    bool o2Inside = o2Contour.isInside(tp.first, tp.second);
+    bool o2Inside = o2Contour.contains(tp.first, tp.second);
     if (alirootInside != o2Inside) {
       std::cout << "Point " << tp.first << "," << tp.second << " is aliroot:" << alirootInside << " o2: " << o2Inside
                 << '\n';
