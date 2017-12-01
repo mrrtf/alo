@@ -30,6 +30,8 @@ std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Val
   decl << mappingNamespaceBegin();
   decl << "using PadSizeArray = std::array<std::pair<float,float>," << padsizes.Size() << ">;\n";
   decl << "extern PadSizeArray arrayOfPadSizes;\n";
+  decl << "inline double padSizeX(int i) { return arrayOfPadSizes[i].first; }\n";
+  decl << "inline double padSizeY(int i) { return arrayOfPadSizes[i].second; }\n";
   decl << mappingNamespaceEnd();
 
   std::ostringstream impl;
@@ -42,6 +44,7 @@ std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Val
     n++;
     if (n<padsizes.Size()) impl << ",";
   }
+
   impl << "};\n";
   impl << mappingNamespaceEnd();
 

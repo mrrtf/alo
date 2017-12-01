@@ -19,6 +19,7 @@
 #include "pad.h"
 #include <vector>
 #include "genMotifType.h"
+#include "genPadSize.h"
 #include <ostream>
 
 namespace o2 {
@@ -32,8 +33,8 @@ class MotifPosition
     MotifPosition()
     {}
 
-    MotifPosition(int f, int m, double padsizex, double padsizey, double x, double y) :
-      mFECId(f), mMotifTypeId(m), mPadSizeX(padsizex), mPadSizeY(padsizey), mPositionX(x), mPositionY(y)
+    MotifPosition(int f, int m, int p, double x, double y) :
+      mFECId(f), mMotifTypeId(m), mPadSizeId(p), mPositionX(x), mPositionY(y)
     {
 
     }
@@ -49,12 +50,6 @@ class MotifPosition
 
     friend std::ostream &operator<<(std::ostream &os, const MotifPosition &position);
 
-    double padSizeX() const
-    { return mPadSizeX; }
-
-    double padSizeY() const
-    { return mPadSizeY; }
-
     double positionX() const
     { return mPositionX; }
 
@@ -65,8 +60,8 @@ class MotifPosition
     {
       const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions
       std::vector<Pad> pads;
-      double padsizex{padSizeX()};
-      double padsizey{padSizeY()};
+      double padsizex{o2::mch::mapping::padSizeX(mPadSizeId)};
+      double padsizey{o2::mch::mapping::padSizeY(mPadSizeId)};
       for (int i = 0; i < mt.getNofPads(); ++i) {
         double padx = mt.getIx(i) * padsizex;
         double pady = mt.getIy(i) * padsizey;
@@ -78,8 +73,7 @@ class MotifPosition
   private:
     int mFECId;
     int mMotifTypeId;
-    double mPadSizeX;
-    double mPadSizeY;
+    int mPadSizeId;
     double mPositionX;
     double mPositionY;
 };

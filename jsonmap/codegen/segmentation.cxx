@@ -27,16 +27,16 @@ using rapidjson::Value;
 struct MotifPosition
 {
   public:
-    MotifPosition(int f, int m, double padsizex, double padsizey, double x, double y) :
-      mFECId(f), mMotifTypeId(m), mPadSizeX(padsizex), mPadSizeY(padsizey), mPositionX(x), mPositionY(y)
+    MotifPosition(int f, int m, int p, double x, double y) :
+      mFECId(f), mMotifTypeId(m), mPadSizeId(p), mPositionX(x), mPositionY(y)
     {
 
     }
 
-    MotifPosition(int f, int m, double padsizex, double padsizey, double x, double y,
-                  double x2, double y2, std::vector<int> list) :
-      mFECId(f), mMotifTypeId(m), mPadSizeX(padsizex), mPadSizeY(padsizey), mPositionX(x), mPositionY(y),
-      mSecondPadSizeX(x2), mSecondPadSizeY(y2), mPadNumbers(list)
+    MotifPosition(int f, int m, int p1, double x, double y,
+                  int p2, std::vector<int> list) :
+      mFECId(f), mMotifTypeId(m), mPadSizeId(p1), mPositionX(x), mPositionY(y),
+      mSecondPadSizeId(p2), mPadNumbers(list)
     {
 
     }
@@ -44,11 +44,10 @@ struct MotifPosition
     int FECId() const
     { return mFECId; }
 
-    void secondPadSize(double x2_, double y2_,
+    void secondPadSize(int p2,
                        std::vector<int> padnumbers_)
     {
-      mSecondPadSizeX = x2_;
-      mSecondPadSizeY = y2_;
+      mSecondPadSizeId = p2;
       mPadNumbers = padnumbers_;
     }
 
@@ -60,21 +59,19 @@ struct MotifPosition
   private:
     int mFECId;
     int mMotifTypeId;
-    double mPadSizeX;
-    double mPadSizeY;
+    int mPadSizeId;
     double mPositionX;
     double mPositionY;
-    double mSecondPadSizeX;
-    double mSecondPadSizeY;
+    int mSecondPadSizeId;
     std::vector<int> mPadNumbers;
 };
 
 std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
 {
-  os << "{" << position.mFECId << "," << position.mMotifTypeId << "," << position.mPadSizeX << ","
-     << position.mPadSizeY << "," << std::setprecision(10) << position.mPositionX << "," << position.mPositionY;
+  os << "{" << position.mFECId << "," << position.mMotifTypeId << ","
+     << position.mPadSizeId << "," << std::setprecision(10) << position.mPositionX << "," << position.mPositionY;
   if (position.hasTwoPadSizes()) {
-    os << "," << position.mSecondPadSizeX << "," << position.mSecondPadSizeY << ", {";
+    os << "," << position.mSecondPadSizeId << ", {";
     for (auto i = 0; i < position.mPadNumbers.size(); ++i) {
       os << position.mPadNumbers[i];
       if (i < position.mPadNumbers.size() - 1) {
@@ -123,8 +120,7 @@ getMotifPositions(int index, bool bending, const Value &segmentations, const Val
     MotifPosition pos{
       mp["fec"].GetInt(),
       mp["motiftype"].GetInt(),
-      static_cast<double>(psArray[padSizeId]["x"].GetDouble()),
-      static_cast<double>(psArray[padSizeId]["y"].GetDouble()),
+      padSizeId,
       static_cast<double>(mp["x"].GetDouble()),
       static_cast<double>(mp["y"].GetDouble())
     };
@@ -136,8 +132,7 @@ getMotifPositions(int index, bool bending, const Value &segmentations, const Val
         padnumbers.push_back(pn[i].GetInt());
       }
       pos.secondPadSize(
-        psArray[secondPadSizeId]["x"].GetDouble(),
-        psArray[secondPadSizeId]["y"].GetDouble(),
+        secondPadSizeId,
         padnumbers
       );
     }

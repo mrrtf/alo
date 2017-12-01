@@ -95,12 +95,6 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
     if (aliroot) { ++naliroot; }
     if (o2) { ++no2; }
 
-    if (o2 != aliroot) {
-      std::ostringstream filename;
-      filename << "bug-" << seg.getId() << "-" << (seg.isBendingPlane() ? "B" : "NB") << "-" << ndiff << ".html";
-      ++ndiff;
-      o2::mch::svg::writeSegmentationInterface(seg, filename.str().c_str(), xs, ys);
-    }
   }
 }
 
@@ -144,14 +138,21 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
         std::cout << "detElemId=" << detElemId << "\n";
         std::cout << "type=" << type << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
+        std::ostringstream filename;
+        filename << "bug-" << type << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        ++ndiff;
+        auto seg = getSegmentation(type, isBendingPlane);
+        o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
       }
     }
   }
   return same;
 }
 
+//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
+//  {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
 BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
-  {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
+  {0}), deIndex)
 {
   double step{1}; // cm
   int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
@@ -160,88 +161,6 @@ BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test:
   BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, false, step, 100));
 }
 
-BOOST_AUTO_TEST_SUITE_END()
-BOOST_FIXTURE_TEST_SUITE(TimeHasPadBy, MAPPING,*boost::unit_test::disabled())
-
-BOOST_DATA_TEST_CASE(TimeHasPadByPosition, boost::unit_test::data::make(
-  {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
-//BOOST_DATA_TEST_CASE(TimeHasPadByPosition, boost::unit_test::data::make({0}), deIndex)
-{
-  int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
-  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-
-  auto bending = getSegmentation(segTypeIndex, true);
-  auto bbox = getBBox(bending->getEnvelop());
-
-  double offset{0.0};
-
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::uniform_real_distribution<double> distX{bbox.xmin() - offset, bbox.xmax() + offset};
-  std::uniform_real_distribution<double> distY{bbox.ymin() - offset, bbox.ymax() + offset};
-
-  const int n{100000};
-
-  std::vector<std::pair<double, double>> testPoints(n);
-
-  std::generate(testPoints.begin(), testPoints.end(),
-                [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
-
-  auto nonBending = getSegmentation(segTypeIndex, false);
-  auto benv = bending->getEnvelop();
-  auto nbenv = nonBending->getEnvelop();
-
-  std::cout << "benv npol=" << benv.size() << " nbenv npol=" << nbenv.size() << "\n";
-
-  auto start = std::chrono::high_resolution_clock::now();
-
-  for (const auto &tp: testPoints) {
-    benv.contains(tp.first,tp.second);
-    //bending->hasPadByPosition(tp.first, tp.second);
-  }
-
-  auto stop = std::chrono::high_resolution_clock::now();
-  auto tbending = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-
-  start = std::chrono::high_resolution_clock::now();
-
-  for (const auto &tp: testPoints) {
-    nbenv.contains(tp.first,tp.second);
-    //nonBending->hasPadByPosition(tp.first, tp.second);
-  }
-
-  stop = std::chrono::high_resolution_clock::now();
-  auto tnonbending = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-
-  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(deId);
-  auto alBending = mseg->GetMpSegmentation(deId, detElement->GetCathodType(AliMp::kBendingPlane));
-  auto alnonBending = mseg->GetMpSegmentation(deId, detElement->GetCathodType(AliMp::kNonBendingPlane));
-
-  start = std::chrono::high_resolution_clock::now();
-
-  for (const auto &tp: testPoints) {
-    alBending->PadByPosition(tp.first, tp.second,false);
-  }
-
-  stop = std::chrono::high_resolution_clock::now();
-  auto altbending = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-
-  start = std::chrono::high_resolution_clock::now();
-
-  for (const auto &tp: testPoints) {
-    alnonBending->PadByPosition(tp.first, tp.second,false);
-  }
-
-  stop = std::chrono::high_resolution_clock::now();
-  auto altnonbending = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-
-  std::cout
-    << boost::format("O2      DE %4d B %5d NB %5d ms to query %8d points\n") % deId % tbending % tnonbending % n;
-  std::cout
-    << boost::format("ALIROOT DE %4d B %5d NB %5d ms to query %8d points\n\n") % deId % altbending % altnonbending % n;
-
-  BOOST_CHECK(tbending / n < 6E-2);
-}
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
