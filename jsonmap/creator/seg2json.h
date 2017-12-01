@@ -65,13 +65,19 @@ void motifposition2json(const AliMpMotifPosition &motifPosition, std::string mot
   w.Key("x");
   w.Double(motifPosition.GetPositionX());
   w.Key("y");
-  w.Double(motifPosition.GetPositionY());
+  AliMpVMotif *motif = motifPosition.GetMotif();
+  if ( motifLabel.find("2Bn1") != std::string::npos ||
+    motifLabel.find("2Nn1") != std::string::npos ) {
+    w.Double(motifPosition.GetPositionY() + motif->GetPadDimensionY(0) * 2.0);
+  }
+  else {
+    w.Double(motifPosition.GetPositionY());
+  }
   w.Key("motif(TBR)");
   w.Int(motifId);
   w.Key("motiftype");
   w.Int(motifTypeId);
   w.Key("padsize");
-  AliMpVMotif *motif = motifPosition.GetMotif();
   float px = motif->GetPadDimensionX(0) * 2.0;
   float py = motif->GetPadDimensionY(0) * 2.0;
   int padSizeIndex = get_padsize_index(px, py, padsizes);

@@ -24,6 +24,13 @@
 #include "motifType.h"
 #include "seg.h"
 #include "AliMpMotifType.h"
+#include <boost/test/data/test_case.hpp>
+#include <boost/test/data/monomorphic.hpp>
+#include <boost/test/data/monomorphic/generators/xrange.hpp>
+#include <AliMpPad.h>
+#include "AliMpVPadIterator.h"
+#include "AliMpConnection.h"
+#include <limits>
 
 std::array<std::string, 210> motifTypeNames{
   "1BA", "1BB", "1BC", "1BD", "1BE", "1BF", "1BG", "1BH", "1BI", "1NA", "1NB", "1NC", "1ND", "1NE", "1NF", "1NG", "1NH",
@@ -46,16 +53,16 @@ struct MOTIFTYPES
     MOTIFTYPES()
     {
       Mapping m;
-      std::vector<AliMpPCB*> pcbs = get_allpcbs(m.ddlStore(), m.mseg());
+      std::vector<AliMpPCB *> pcbs = get_allpcbs(m.ddlStore(), m.mseg());
       slatmt = get_allslatmotiftypes(pcbs);
-      std::vector<const AliMpSector*> sectors = get_allsectors(m.mseg());
+      std::vector<const AliMpSector *> sectors = get_allsectors(m.mseg());
       sectormt = get_allsectormotiftypes(sectors);
       mt = get_allmotiftypes(pcbs, sectors);
     }
 
-    std::vector<AliMpMotifType*> slatmt;
-    std::vector<AliMpMotifType*> sectormt;
-    std::vector<AliMpMotifType*> mt;
+    std::vector<AliMpMotifType *> slatmt;
+    std::vector<AliMpMotifType *> sectormt;
+    std::vector<AliMpMotifType *> mt;
 };
 
 BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, MOTIFTYPES)
@@ -79,30 +86,38 @@ BOOST_AUTO_TEST_CASE(NumberOfMotifTypes)
 
 BOOST_AUTO_TEST_CASE(MotifTypeNames)
 {
-  for ( auto i = 0; i < mt.size(); ++i ) {
-    BOOST_TEST_CHECK((mt[i]->GetID()==motifTypeNames[i].c_str()));
+  for (auto i = 0; i < mt.size(); ++i) {
+    BOOST_TEST_CHECK((mt[i]->GetID() == motifTypeNames[i].c_str()));
   }
 }
 
-BOOST_AUTO_TEST_CASE(MotifTypeClone) {
+BOOST_AUTO_TEST_CASE(MotifTypeClone)
+{
   std::string newname = "toto";
-  AliMpMotifType* m = mt[0];
-  AliMpMotifType* c = static_cast<AliMpMotifType*>(m->Clone(newname.c_str()));
-  BOOST_TEST_CHECK((newname==c->GetID().Data()));
-  BOOST_TEST_CHECK((m->GetID()!=newname.c_str()));
+  AliMpMotifType *m = mt[0];
+  AliMpMotifType *c = static_cast<AliMpMotifType *>(m->Clone(newname.c_str()));
+  BOOST_TEST_CHECK((newname == c->GetID().Data()));
+  BOOST_TEST_CHECK((m->GetID() != newname.c_str()));
+}
+
+BOOST_DATA_TEST_CASE(IxAndIyShouldStartAtZero, boost::unit_test::data::xrange(0, 210), i)
+{
+  AliMpMotifType *m = mt[i];
+  AliMpPad pad;
+  std::unique_ptr<AliMpVPadIterator> it(m->CreateIterator());
+  it->First();
+  int ixmin{std::numeric_limits<int>::max()};
+  int iymin{std::numeric_limits<int>::max()};
+  while (!it->IsDone()) {
+    pad = it->CurrentItem();
+    it->Next();
+    ixmin = std::min(ixmin, pad.GetIx());
+    iymin = std::min(iymin, pad.GetIy());
+  }
+  BOOST_TEST(ixmin == 0, "ixmin=" << ixmin << " > 0 for motif " << m->GetID());
+  BOOST_TEST(iymin == 0, "iymin=" << iymin << " > 0 for motif " << m->GetID());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 
-//  std::ofstream out("motiftypes.aliroot.txt");
-//
-//  for ( const auto& mt : motifTypes ) {
-//    int n = 0;
-//    for ( int i = 1; i <= 100; ++i ) {
-//      if ( mt->FindConnectionByPadNum(i)) ++n;
-//    }
-//    out << mt->GetID().Data() << " " << n << " " << mt->GetNofPadsX() << " " << mt->GetNofPadsY() << std::endl;
-//  }
-//
-//  out.close();

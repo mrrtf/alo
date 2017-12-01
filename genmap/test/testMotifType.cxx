@@ -105,9 +105,7 @@ BOOST_AUTO_TEST_CASE(NumberOfPads)
   }
 }
 
-//BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_test::data::xrange(0,1), i)
-
-BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_test::data::make({58}),i)
+BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_test::data::xrange(0,210), i)
 {
   const MotifType &mt = arrayOfMotifTypes[i];
   int npads{0};
@@ -119,8 +117,6 @@ BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_t
     for (int iy = 0; iy < mt.getNofPadsY(); ++iy) {
       int index = mt.padIdByIndices(ix, iy);
       if (index >= 0) {
-        std::cout << npads << " ix=" << ix << " iy=" << iy << " index=" << index << " berg="
-                  << mt.getBerg(index) << "\n";
         ixmax = std::max(ix, ixmax);
         iymax = std::max(iy, iymax);
         ixmin = std::min(ix, ixmin);
@@ -129,12 +125,11 @@ BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_t
       }
     }
   }
-  if (npads != mt.getNofPads()) {
-    std::cout << "i=" << i << "\n";
-  }
+  BOOST_CHECK_EQUAL(ixmin,0);
+  BOOST_CHECK_EQUAL(iymin,0);
   BOOST_CHECK_EQUAL(npads, mt.getNofPads());
-  int nx{ixmax - ixmin + 1};
-  int ny{iymax - iymin + 1};
+  int nx{ixmax + 1};
+  int ny{iymax + 1};
   BOOST_CHECK_EQUAL(nx, mt.getNofPadsX());
   BOOST_CHECK_EQUAL(ny, mt.getNofPadsY());
 }
