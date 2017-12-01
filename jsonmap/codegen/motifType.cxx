@@ -95,11 +95,11 @@ class MotifType {
       mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {}
     int getNofPads() const { return mNofPads; }
     int getNofPadsX() const {
-      auto result = std::minmax_element(mIx.begin(),mIx.begin()+mNofPads);
+      auto result = std::minmax_element(begin(mIx),end(mIx));
       return 1+*result.second - *result.first;
     }
     int getNofPadsY() const {
-      auto result = std::minmax_element(begin(mIy), end(mIy)+mNofPads);
+      auto result = std::minmax_element(begin(mIy), end(mIy));
       return 1+*result.second - *result.first;
     }
     int getBerg(int i) const { return mBerg[i]; }

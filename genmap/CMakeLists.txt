@@ -9,8 +9,8 @@ add_library(genmap SHARED genMotifType.h genMotifType.cxx genDetectionElement.h 
         motifPositionTwoPadSizes.h
         pad.h)
 
-target_include_directories(genmap PUBLIC ${Boost_INCLUDE_DIR} ../contour)
-target_link_libraries(genmap contour)
+target_include_directories(genmap PUBLIC .)
+target_link_libraries(genmap PUBLIC contour Boost::boost)
 
 install(TARGETS genmap LIBRARY DESTINATION lib)
 install(FILES genSegmentationInterface.h genSegmentationFactory.h DESTINATION include)
