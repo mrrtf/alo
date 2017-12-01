@@ -20,7 +20,7 @@ class MotifType {
       mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {}
     int getNofPads() const { return mNofPads; }
     int getNofPadsX() const {
-      auto result = std::minmax_element(mIx.begin(),mIx.end());
+      auto result = std::minmax_element(begin(mIx),end(mIx));
       return 1+*result.second - *result.first;
     }
     int getNofPadsY() const {
@@ -40,7 +40,7 @@ class MotifType {
     /// Return the index of the pad with indices = (ix,iy)
     /// or -1 if not found
     int padIdByIndices(int ix, int iy) const {
-      for ( auto i = 0; i < mIx.size(); ++i ) {
+      for ( auto i = 0; i < mNofPads; ++i ) {
         if (mIx[i]==ix && mIy[i]==iy) {
           return i;
         }
