@@ -12,5 +12,7 @@ add_library(contour STATIC
         segmentTree.h
         vertex.h)
 
+target_include_directories(contour PUBLIC .)
+
 add_subdirectory(test)
 

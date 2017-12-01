@@ -9,23 +9,23 @@
 #include "AliMpSector.h"
 #include "AliMpMotifMap.h"
 #include "AliMpMotifSpecial.h"
+#include "AliMpConnection.h"
+#include "AliMpEncodePair.h"
 
-
-
-std::vector<AliMpMotifType*> get_allslatmotiftypes(const std::vector<AliMpPCB*>& pcbs)
+std::vector<AliMpMotifType *> get_allslatmotiftypes(const std::vector<AliMpPCB *> &pcbs)
 {
 
-  std::vector<AliMpMotifType*> motifTypes;
+  std::vector<AliMpMotifType *> motifTypes;
 
-  for (auto& pcb: pcbs) {
+  for (auto &pcb: pcbs) {
     for (int i = 0; i < pcb->GetSize(); ++i) {
-      AliMpMotifType* mt = pcb->GetMotifPosition(i)->GetMotif()->GetMotifType();
+      AliMpMotifType *mt = pcb->GetMotifPosition(i)->GetMotif()->GetMotifType();
       if (std::find_if(motifTypes.begin(), motifTypes.end(),
-                       [&mt](AliMpMotifType* a) {
+                       [&mt](AliMpMotifType *a) {
                          return strcmp(a->GetID(), mt->GetID()) == 0;
                        }
       ) == motifTypes.end()) {
-        motifTypes.push_back(static_cast<AliMpMotifType*>(mt->Clone()));
+        motifTypes.push_back(static_cast<AliMpMotifType *>(mt->Clone()));
       }
     }
   }
@@ -33,25 +33,49 @@ std::vector<AliMpMotifType*> get_allslatmotiftypes(const std::vector<AliMpPCB*>&
   return motifTypes;
 }
 
-
-std::vector<AliMpMotifType*> get_allsectormotiftypes(const std::vector<const AliMpSector*>& sectors)
+AliMpMotifType *patchMotifType(const AliMpMotifType &mt, const std::string newname)
 {
-  std::vector<AliMpMotifType*> motifTypes;
+  if ((newname != "2Bn1") && (newname != "2Nn1")) {
+    return static_cast<AliMpMotifType *>(mt.Clone(newname.c_str()));
+  }
 
-  for (auto& s: sectors) {
+  AliMpMotifType *m = new AliMpMotifType(newname);
+  AliMpPad pad;
+  std::unique_ptr<AliMpVPadIterator> it(mt.CreateIterator());
+  it->First();
+  int ixmin{std::numeric_limits<int>::max()};
+  int iymin{std::numeric_limits<int>::max()};
+  while (!it->IsDone()) {
+    pad = it->CurrentItem();
+    it->Next();
+    AliMpConnection *c = mt.FindConnectionByLocalIndices(pad.GetIx(), pad.GetIy());
+    AliMpConnection *patchedConnection = new AliMpConnection(c->GetPadNum(), c->GetBergNum(), c->GetKaptonNum(),
+                                                             c->GetManuChannel(),
+                                                             AliMp::Pair(c->GetLocalIx(), c->GetLocalIy() - 1));
+    m->AddConnection(patchedConnection);
+  }
+  m->SetNofPads(mt.GetNofPadsX(), mt.GetNofPadsY());
+  return m;
+}
+
+std::vector<AliMpMotifType *> get_allsectormotiftypes(const std::vector<const AliMpSector *> &sectors)
+{
+  std::vector<AliMpMotifType *> motifTypes;
+
+  for (auto &s: sectors) {
     std::string prefix = get_sector_plane_prefix(*s);
 
-    AliMpMotifMap* motifMap = s->GetMotifMap();
+    AliMpMotifMap *motifMap = s->GetMotifMap();
 
     for (int i = 0; i < motifMap->GetNofMotifPositions(); ++i) {
-      AliMpMotifType* mt = motifMap->GetMotifPosition(i)->GetMotif()->GetMotifType();
+      AliMpMotifType *mt = motifMap->GetMotifPosition(i)->GetMotif()->GetMotifType();
       std::string newname = prefix + mt->GetID().Data();
       if (std::find_if(motifTypes.begin(), motifTypes.end(),
-                       [&](AliMpMotifType* a) {
+                       [&](AliMpMotifType *a) {
                          return newname == a->GetID();
                        }
       ) == motifTypes.end()) {
-        motifTypes.push_back(static_cast<AliMpMotifType*>(mt->Clone(newname.c_str())));
+        motifTypes.push_back(patchMotifType(*mt, newname));
       }
     }
   }
@@ -59,8 +83,8 @@ std::vector<AliMpMotifType*> get_allsectormotiftypes(const std::vector<const Ali
 }
 
 
-std::vector<AliMpMotifType*>
-get_allmotiftypes(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors)
+std::vector<AliMpMotifType *>
+get_allmotiftypes(const std::vector<AliMpPCB *> &pcbs, const std::vector<const AliMpSector *> &sectors)
 {
   /// get all the motif types, ordered alphabetically by (string) ID
 
@@ -68,19 +92,19 @@ get_allmotiftypes(const std::vector<AliMpPCB*>& pcbs, const std::vector<const Al
   auto sectormt = get_allsectormotiftypes(sectors);
   auto mt = slatmt;
   mt.insert(mt.end(), sectormt.begin(), sectormt.end());
-  std::sort(mt.begin(), mt.end(), [](AliMpMotifType* a, AliMpMotifType* b) { return a->GetID() < b->GetID(); });
+  std::sort(mt.begin(), mt.end(), [](AliMpMotifType *a, AliMpMotifType *b) { return a->GetID() < b->GetID(); });
 
   return mt;
 }
 
 
-int get_motiftype_index(std::string motifID, const std::vector<AliMpMotifType*>& motifTypes)
+int get_motiftype_index(std::string motifID, const std::vector<AliMpMotifType *> &motifTypes)
 {
   auto i = motifID.find_first_of('-');
 
   std::string motifTypeId = motifID.substr(0, i);
 
-  auto index = std::find_if(motifTypes.begin(), motifTypes.end(), [&](AliMpMotifType* mt) {
+  auto index = std::find_if(motifTypes.begin(), motifTypes.end(), [&](AliMpMotifType *mt) {
     return motifTypeId == mt->GetID();
   });
 

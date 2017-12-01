@@ -15,9 +15,11 @@
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
-
+#include <boost/test/data/monomorphic.hpp>
+#include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include "genMotifType.h"
 #include <array>
+#include <limits>
 
 using namespace o2::mch::mapping;
 
@@ -91,17 +93,45 @@ BOOST_AUTO_TEST_CASE(NumberOfNon64Motifs)
 
 BOOST_AUTO_TEST_CASE(NumberOfPads)
 {
-
   for (auto i = 0; i < arrayOfMotifTypes.size(); ++i) {
-    const MotifType& mt = arrayOfMotifTypes[i];
+    const MotifType &mt = arrayOfMotifTypes[i];
     auto f = std::find_if(Non64Motifs.begin(), Non64Motifs.end(),
-                          [&](const std::pair<int, int>& p) { return p.first == i; });
+                          [&](const std::pair<int, int> &p) { return p.first == i; });
     if (f == Non64Motifs.end()) {
       BOOST_CHECK_EQUAL(mt.getNofPads(), 64);
     } else {
       BOOST_CHECK_EQUAL(mt.getNofPads(), f->second);
     }
   }
+}
+
+BOOST_DATA_TEST_CASE(NofPadsInXAndYAreCompatibleWithIxAndIyRanges, boost::unit_test::data::xrange(0,210), i)
+{
+  const MotifType &mt = arrayOfMotifTypes[i];
+  int npads{0};
+  int ixmin{std::numeric_limits<int>::max()};
+  int iymin{std::numeric_limits<int>::max()};
+  int ixmax{0};
+  int iymax{0};
+  for (int ix = 0; ix < mt.getNofPadsX(); ++ix) {
+    for (int iy = 0; iy < mt.getNofPadsY(); ++iy) {
+      int index = mt.padIdByIndices(ix, iy);
+      if (index >= 0) {
+        ixmax = std::max(ix, ixmax);
+        iymax = std::max(iy, iymax);
+        ixmin = std::min(ix, ixmin);
+        iymin = std::min(iy, iymin);
+        ++npads;
+      }
+    }
+  }
+  BOOST_CHECK_EQUAL(ixmin,0);
+  BOOST_CHECK_EQUAL(iymin,0);
+  BOOST_CHECK_EQUAL(npads, mt.getNofPads());
+  int nx{ixmax + 1};
+  int ny{iymax + 1};
+  BOOST_CHECK_EQUAL(nx, mt.getNofPadsX());
+  BOOST_CHECK_EQUAL(ny, mt.getNofPadsY());
 }
 
 BOOST_FIXTURE_TEST_SUITE(PadBy, MT)
@@ -154,7 +184,7 @@ BOOST_AUTO_TEST_CASE(IntegerRangesAreShort)
   int maxIx{0};
   int maxIy{0};
   for (auto i = 0; i < arrayOfMotifTypes.size(); ++i) {
-    const MotifType& mt = arrayOfMotifTypes[i];
+    const MotifType &mt = arrayOfMotifTypes[i];
     for (auto p = 0; p < mt.getNofPads(); ++p) {
       maxBerg = std::max(maxBerg, static_cast<int>(mt.getBerg(p)));
       maxIx = std::max(maxIx, static_cast<int>(mt.getIx(p)));
