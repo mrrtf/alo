@@ -11,6 +11,7 @@
 #include "AliMpMotifSpecial.h"
 #include "AliMpConnection.h"
 #include "AliMpEncodePair.h"
+#include <memory>
 
 std::vector<AliMpMotifType *> get_allslatmotiftypes(const std::vector<AliMpPCB *> &pcbs)
 {
