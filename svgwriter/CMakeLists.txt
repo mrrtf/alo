@@ -4,7 +4,7 @@ add_library(svgwriterlib
         svgSegmentationInterface.h
         svgSegmentationInterface.cxx)
 
-target_include_directories(svgwriterlib PUBLIC ${Boost_INCLUDE_DIR} ../contour ../genmap)
+target_include_directories(svgwriterlib PUBLIC .)
 target_link_libraries(svgwriterlib genmap contour)
 
 add_executable(svgwriter svgWriter.cxx)

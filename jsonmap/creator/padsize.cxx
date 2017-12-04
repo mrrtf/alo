@@ -26,6 +26,7 @@
 
 std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 
+  // return an array of pad sizes (pairs of size in x-direction, size in y-direction)
   std::vector<int> deids = get_deids(ddlStore);
   std::vector<AliMpVSegmentation*> segs = get_segs(mseg,deids,AliMp::kBendingPlane);
   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
@@ -61,6 +62,11 @@ std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpS
   std::vector<std::pair<float,float>> padsizes;
 
   padsizes.insert(padsizes.end(),padSize.begin(),padSize.end());
+
+  // sort the pad sizes per pad area
+  std::sort(std::begin(padsizes),std::end(padsizes),[](const std::pair<float,float>& p1, const std::pair<float,float>& p2) {
+    return p1.first*p1.second < p2.first*p2.second;
+  });
 
   return padsizes;
 }

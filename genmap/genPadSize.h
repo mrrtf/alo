@@ -12,6 +12,8 @@ namespace mapping
 {
 using PadSizeArray = std::array<std::pair<float,float>,18>;
 extern PadSizeArray arrayOfPadSizes;
+inline double padSizeX(int i) { return arrayOfPadSizes[i].first; }
+inline double padSizeY(int i) { return arrayOfPadSizes[i].second; }
 
 } // namespace mapping
 } // namespace mch

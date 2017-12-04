@@ -36,6 +36,7 @@ std::vector<AliMpMotifType *> get_allslatmotiftypes(const std::vector<AliMpPCB *
 
 AliMpMotifType *patchMotifType(const AliMpMotifType &mt, const std::string newname)
 {
+  // decrease iy by one for all connetions of motifTypes 2Bn1 and 2Nn1
   if ((newname != "2Bn1") && (newname != "2Nn1")) {
     return static_cast<AliMpMotifType *>(mt.Clone(newname.c_str()));
   }
