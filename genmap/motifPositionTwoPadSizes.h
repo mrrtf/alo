@@ -37,7 +37,6 @@ class MotifPositionTwoPadSizes
     MotifPositionTwoPadSizes(int f, int m, int p, double x, double y) :
       mFECId(f), mMotifTypeId(m), mPadSizeId({p}), mPositionX(x), mPositionY(y)
     {
-
     }
 
     MotifPositionTwoPadSizes(int f, int m, int p1, double x, double y,
@@ -45,10 +44,6 @@ class MotifPositionTwoPadSizes
       mFECId(f), mMotifTypeId(m), mPadSizeId({p1, p2}),
       mPositionX(x), mPositionY(y), mBergNumbers(bergnumbers)
     {
-//      if (o2::mch::mapping::padSizeX(mPadSizeId[0]) > o2::mch::mapping::padSizeX(mPadSizeId[1])
-//          || o2::mch::mapping::padSizeX(mPadSizeId[0]) > o2::mch::mapping::padSizeX(mPadSizeId[1])) {
-//        std::swap(mPadSizeId[0], mPadSizeId[1]);
-//      }
     }
 
     int FECId() const
@@ -77,23 +72,21 @@ class MotifPositionTwoPadSizes
     std::vector<Pad> getPads(const MotifType &mt) const
     {
       if (hasTwoPadSizes()) {
-        std::cout << "nx=" << mt.getNofPadsX() << " ny=" << mt.getNofPadsY() << "\n";
         std::vector<Pad> pads;
         const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions
         double padx{0.0};
         double pady{0.0};
-        double padsizey{0.0};
-        double padsizex{0.0};
+        double padsizey{o2::mch::mapping::padSizeY(mPadSizeId[0])};
+        double padsizex{o2::mch::mapping::padSizeX(mPadSizeId[1])};
         for (int iy = 0; iy < mt.getNofPadsY(); ++iy) {
           padx = 0.0;
           for (int ix = 0; ix < mt.getNofPadsX(); ++ix) {
             int index = mt.padIdByIndices(ix, iy);
-            if (1==1) { //index >= 0) {
+            if (index >= 0) {
               int bergNumber = mt.getBerg(index);
               padsizex = padSizeX(bergNumber);
               padsizey = padSizeY(bergNumber);
               pads.push_back({padx - eps, pady - eps, padx + padsizex + eps, pady + padsizey + eps});
-              std::cout << "ix=" << ix << " iy=" << iy << " padx=" << padx << " pady=" << pady << "\n";
             }
             padx += padsizex;
           }
@@ -112,10 +105,10 @@ class MotifPositionTwoPadSizes
     {
       if (mPadSizeId.size() > 1) {
         if (std::find(mBergNumbers.begin(), mBergNumbers.end(), bergNumber) != mBergNumbers.end()) {
-          return 1;
+          return mPadSizeId[1];
         }
       }
-      return 0;
+      return mPadSizeId[0];
     }
 
   private:
