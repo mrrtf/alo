@@ -20,11 +20,9 @@
 #include "genSegmentationFactory.h"
 #include "contour.h"
 #include "AliMpDetElement.h"
-#include "AliMpDDLStore.h"
 #include "AliMpVSegmentation.h"
 #include "AliMpSegmentation.h"
-#include "AliMpDataProcessor.h"
-#include "AliMpDataStreams.h"
+#include "commonBench.h"
 
 namespace {
 constexpr int NTESTPOINTS{1000};
@@ -90,25 +88,6 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
 }
 
 BENCHMARK_REGISTER_F(BenchO2, hasPadByPosition)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);
-
-class BenchAliRoot : public benchmark::Fixture
-{
-  public:
-    BenchAliRoot()
-    {
-      if (!ddlStore) {
-        AliMpDataProcessor mp;
-        AliMpDataMap *dataMap = mp.CreateDataMap("data");
-        AliMpDataStreams dataStreams(dataMap);
-        ddlStore = AliMpDDLStore::ReadData(dataStreams);
-        mseg = AliMpSegmentation::Instance();
-      }
-    }
-
-    AliMpDDLStore *ddlStore;
-    AliMpSegmentation *mseg;
-};
-
 
 BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
 {

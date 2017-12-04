@@ -1,7 +1,9 @@
 find_package(benchmark REQUIRED)
 
 add_executable(testContourCreatorVsAliRoot
-        testContourCreatorVsAliRoot.cxx)
+        testContourCreatorVsAliRoot.cxx
+        commonContour.cxx
+        commonContour.h)
 target_include_directories(testContourCreatorVsAliRoot PUBLIC contour::contour ${BOOST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIR})
 target_link_libraries(testContourCreatorVsAliRoot PUBLIC contour MUONmapping STEERBase Core MUONgraphics Boost::unit_test_framework)
 add_test(NAME testContourCreatorVsAliRoot COMMAND testContourCreatorVsAliRoot)
@@ -12,7 +14,11 @@ target_link_libraries(testSegmentationVsAliroot PUBLIC genmap MUONmapping STEERB
 add_test(NAME testSegmentationVsAliroot COMMAND testSegmentationVsAliroot)
 
 if(benchmark_FOUND)
-    add_executable(benchSegmentation benchSegmentation.cxx)
+    add_executable(benchSegmentation benchSegmentation.cxx commonBench.h commonContour.cxx commonBench.cxx)
     target_include_directories(benchSegmentation PRIVATE ${ROOT_INCLUDE_DIR})
-    target_link_libraries(benchSegmentation PRIVATE benchmark::benchmark genmap MUONmapping STEERBase Core)
+    target_link_libraries(benchSegmentation PRIVATE benchmark::benchmark genmap MUONmapping MUONgraphics STEERBase Core)
+
+    add_executable(benchContour benchContour.cxx commonBench.h commonContour.cxx commonBench.cxx)
+    target_include_directories(benchContour PRIVATE ${ROOT_INCLUDE_DIR})
+    target_link_libraries(benchContour PRIVATE benchmark::benchmark contour MUONmapping MUONgraphics STEERBase Core)
 endif()
