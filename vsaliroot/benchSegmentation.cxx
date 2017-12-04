@@ -51,9 +51,7 @@ std::vector<std::pair<double, double>> generateTestPoints(int n, int deIndex)
 
 static void segmentationList(benchmark::internal::Benchmark *b)
 {
-
-  //for (auto i  : {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}) {
-  for (auto i  : {0, 8}) {
+  for (auto i  : {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}) {
     b->Args({i, true});
     b->Args({i, false});
   }
