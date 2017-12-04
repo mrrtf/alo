@@ -40,9 +40,10 @@ std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Val
   impl << "PadSizeArray arrayOfPadSizes {\n";
   int n{0};
   for (auto& ps: padsizes.GetArray()) {
-    impl << "std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << "," << static_cast<float>(ps["y"].GetDouble()) << ")";
+    impl << "/* " << n << " */ std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << "," << static_cast<float>(ps["y"].GetDouble()) << ")";
     n++;
     if (n<padsizes.Size()) impl << ",";
+    impl << "\n";
   }
 
   impl << "};\n";
