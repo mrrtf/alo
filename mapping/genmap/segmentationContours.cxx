@@ -12,23 +12,24 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-#ifndef O2_MCH_SVG_SEGMENTATIONINTERFACE_H
-#define O2_MCH_SVG_SEGMENTATIONINTERFACE_H
-
+#include "segmentationContours.h"
 #include "segmentationInterface.h"
-#include "contour.h"
-#include <vector>
+#include "motifPositionContours.h"
 
 namespace o2 {
 namespace mch {
-namespace svg {
+namespace mapping {
 
-void writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &seg, const char *filename, double x,
-                                double y);
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::SegmentationInterface &seg)
+{
+  std::vector<o2::mch::contour::Contour<double>> contours;
+  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
+    auto pads = seg.getPads(seg.getSampaId(i));
+    contours.push_back(o2::mch::contour::createContour(padAsPolygons(pads)));
+  }
+  return contours;
+}
 
 }
 }
 }
-
-#endif

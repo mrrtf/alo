@@ -8,13 +8,27 @@
 // In applying this license CERN does not waive the privileges and immunities
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
-#ifndef ALO_JSONMAP_READER_DETECTIONELEMENT_H
-#define ALO_JSONMAP_READER_DETECTIONELEMENT_H
 
-#include <utility>
-#include <string>
-#include "rapidjson/document.h"
+///
+/// @author  Laurent Aphecetche
 
-std::string generateCodeForDetectionElements(const rapidjson::Value& des);
+
+#ifndef O2_MCH_MAPPING_SEGMENTATIONCONTOURS_H
+#define O2_MCH_MAPPING_SEGMENTATIONCONTOURS_H
+
+#include <vector>
+#include "contour.h"
+
+namespace o2 {
+namespace mch {
+namespace mapping {
+
+class SegmentationInterface;
+
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::SegmentationInterface &seg);
+
+}
+}
+}
 
 #endif

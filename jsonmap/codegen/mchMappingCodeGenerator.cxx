@@ -86,8 +86,7 @@ int main(int argc, char *argv[])
 
   if (documents.count("detection_elements")) {
     Document &deDocument = documents["detection_elements"]->document();
-    std::pair<std::string, std::string> code = generateCodeForDetectionElements(deDocument["detection_elements"]);
-    outputCode(code.first, code.second, "genDetectionElement");
+    outputCode("", generateCodeForDetectionElements(deDocument["detection_elements"]), "genDetectionElement");
   }
 
   if (documents.count("motiftypes")) {

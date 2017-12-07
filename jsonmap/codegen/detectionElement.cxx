@@ -19,7 +19,7 @@
 
 using namespace rapidjson;
 
-std::pair<std::string, std::string> generateCodeForDetectionElements(const rapidjson::Value& des)
+std::string generateCodeForDetectionElements(const rapidjson::Value& des)
 {
   assert(des.IsArray());
   std::vector<int> deids;
@@ -28,14 +28,6 @@ std::pair<std::string, std::string> generateCodeForDetectionElements(const rapid
     assert(de["id"].IsInt());
     deids.push_back(de["id"].GetInt());
   }
-
-  std::ostringstream decl;
-
-  decl << "#include <array>\n";
-  decl << mappingNamespaceBegin() << "\n";
-  decl << "int getDetElemIdFromDetElemIndex(int deIndex);\n";
-  decl << "int getDetElemIndexFromDetElemId(int deId);\n";
-  decl << mappingNamespaceEnd();
 
   std::ostringstream impl;
 
@@ -62,6 +54,6 @@ int getDetElemIndexFromDetElemId(int deId) {
 )";
   impl << mappingNamespaceEnd();
 
-  return std::make_pair<std::string,std::string>(decl.str(),impl.str());
+  return impl.str();
 }
 

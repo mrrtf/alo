@@ -105,6 +105,21 @@ std::vector<T> getXPositions(const std::vector<Polygon<T>>& polygons)
   xpos.erase(last, xpos.end());
   return xpos;
 }
+
+template<typename T>
+o2::mch::contour::Contour<double> getEnvelop(const T& list)
+{
+  /// get the envelop of a collection of contours
+  std::vector<o2::mch::contour::Polygon<double>> polygons;
+  for ( const auto& c: list )
+  {
+    for (auto j = 0; j < c.size(); ++j) {
+      polygons.push_back(c[j]);
+    }
+  }
+  return createContour(polygons);
+}
+
 }
 }
 }

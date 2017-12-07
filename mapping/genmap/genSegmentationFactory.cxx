@@ -1,5 +1,5 @@
-#include "genSegmentationFactory.h"
-#include "genSegmentationImpl0.h"
+#include "segmentationInterface.h"
+#include "segmentationImpl0.h"
 
 namespace o2
 {
@@ -7,7 +7,6 @@ namespace mch
 {
 namespace mapping
 {
-
   int getNumberOfSegmentations() {return 21;}
   std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
     if (isBendingPlane==true && type==0) {

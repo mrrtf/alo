@@ -18,7 +18,7 @@
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
 
-#include "genDetectionElement.h"
+#include "segmentationInterface.h"
 #include <array>
 
 using namespace o2::mch::mapping;

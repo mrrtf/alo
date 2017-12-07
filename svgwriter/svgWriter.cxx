@@ -12,18 +12,22 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include "genSegmentationFactory.h"
+#include "segmentationInterface.h"
 #include "svgSegmentationInterface.h"
+#include "contourCreator.h"
+#include "segmentationContours.h"
+
+using namespace o2::mch::svg;
 
 int main()
 {
   for ( int i = 0; i < o2::mch::mapping::getNumberOfSegmentations(); ++i ) {
     for ( auto isBendingPlane : { true, false} ) {
       auto o2 = o2::mch::mapping::getSegmentation(i, isBendingPlane);
-      auto bbox = o2::mch::contour::getBBox(o2->getEnvelop());
+      auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(o2::mch::mapping::getSampaContours(*(o2.get()))));
       std::ostringstream filename;
       filename << "segmentation-contour-" << i << "-" << (isBendingPlane ? "B" : "NB") << ".html";
-      o2::mch::svg::writeSegmentationInterface(*o2, filename.str().c_str(), 0, 0);
+      writeSegmentationInterface(*o2, filename.str().c_str(), 0, 0);
     }
   }
 

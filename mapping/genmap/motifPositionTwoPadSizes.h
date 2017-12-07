@@ -69,6 +69,8 @@ class MotifPositionTwoPadSizes
     bool hasTwoPadSizes() const
     { return mPadSizeId.size() > 1; }
 
+    int padSizeId() const { return mPadSizeId[0]; }
+
     std::vector<Pad> getPads(const MotifType &mt) const
     {
       if (hasTwoPadSizes()) {

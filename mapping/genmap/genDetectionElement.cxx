@@ -1,4 +1,4 @@
-#include "genDetectionElement.h"
+#include "segmentationInterface.h"
 #include <array>
 #include <algorithm>
 

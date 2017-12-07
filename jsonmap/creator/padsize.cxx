@@ -14,15 +14,17 @@
 
 
 #include "padsize.h"
-#include <vector>
-#include <utility>
-#include "seg.h"
-#include <set>
-#include "de.h"
+
 #include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
+#include "de.h"
+#include "seg.h"
+#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <set>
+#include <utility>
+#include <vector>
 
 std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 

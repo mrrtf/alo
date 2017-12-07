@@ -56,6 +56,8 @@ class MotifPosition
     double positionY() const
     { return mPositionY; }
 
+    int padSizeId() const { return mPadSizeId; }
+
     std::vector<Pad> getPads(const MotifType &mt) const
     {
       const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions

@@ -46,13 +46,14 @@ std::string includeGuardEnd(const std::string& filename)
 
 void outputCode(const std::string& decl, const std::string& impl, const std::string& outputFileName)
 {
-
   std::string includeFileName = outputFileName + ".h";
 
-  std::ofstream declFile(includeFileName);
-  declFile << includeGuardBegin(outputFileName);
-  declFile << decl;
-  declFile << includeGuardEnd(outputFileName);
+  if ( ! decl.empty()) {
+    std::ofstream declFile(includeFileName);
+    declFile << includeGuardBegin(outputFileName);
+    declFile << decl;
+    declFile << includeGuardEnd(outputFileName);
+  }
 
   if (impl.empty()) {
     return;

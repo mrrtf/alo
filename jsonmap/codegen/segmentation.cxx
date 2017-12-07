@@ -193,197 +193,6 @@ std::string generateCodeForOneSegmentation(int index, bool isBending,
   return code.str();
 }
 
-std::pair<std::string, std::string>
-generateCodeForSegmentationInterface()
-{
-  std::ostringstream decl;
-  std::ostringstream impl;
-
-  decl << R"(
-#include "contour.h"
-)";
-
-  decl << mappingNamespaceBegin();
-
-  decl << R"(
-class SegmentationInterface {
-  public:
-    virtual bool isBendingPlane() const = 0;
-    virtual int getId() const = 0;
-    virtual int nofDualSampas() const = 0;
-    virtual int nofPads() const = 0;
-    virtual bool hasPadByPosition(double x, double y) const = 0;
-    virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
-    virtual o2::mch::contour::Contour<double> getEnvelop() const = 0;
-    virtual std::vector<o2::mch::contour::Contour<double>> getSampaContours() const = 0;
-    virtual o2::mch::contour::Contour<double> getSampaPads(int dualSampaId) const = 0;
-};
-)";
-
-  decl << mappingNamespaceEnd();
-  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
-}
-
-std::string
-generateCodeForSegmentationCommon()
-{
-  std::ostringstream decl;
-
-  decl << R"(
-#include <array>
-#include "genMotifType.h"
-#include <tuple>
-#include "genSegmentationInterface.h"
-#include <sstream>
-#include <algorithm>
-#include <stdexcept>
-#include <ostream>
-#include "contourCreator.h"
-#include "motifPosition.h"
-#include "motifPositionTwoPadSizes.h"
-#include "pad.h"
-)";
-
-  decl << mappingNamespaceBegin();
-
-  decl << R"***(
-template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int), typename MOTIFPOSITION>
-class SegmentationImpl0 : public SegmentationInterface
-{
-  public:
-    SegmentationImpl0(const MotifTypeArray& motifTypes)
-    { throw std::out_of_range("Invalid segmentation initialization. Only specific specializations are allowed."); }
-
-    int getId() const override
-    { return mId; }
-
-    bool isBendingPlane() const override
-    { return mIsBendingPlane; }
-
-    int nofDualSampas() const override
-    { return NFEC; }
-
-    int nofPads() const override
-    {
-      return mNofPads;
-    }
-
-    bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const override
-    {
-      if (dualSampaChannel < 0 || dualSampaChannel > 63) {
-        throw std::out_of_range("dualSampaChannel should be between 0 and 63");
-      }
-      auto it = std::find_if(begin(mMotifPositions), end(mMotifPositions), [&](const MOTIFPOSITION& mp) { return mp.FECId()==dualSampaId; });
-      if (it == mMotifPositions.end()) {
-        throw std::out_of_range("dualSampaId is not there");
-      }
-      int index = std::distance(mMotifPositions.begin(), it);
-      int padIndex = index * 64 + dualSampaChannel;
-      return mPads[padIndex].isValid();
-    }
-
-    bool hasPadByPosition(double x, double y) const override {
-      for ( auto i = 0; i < mFEContours.size(); ++i ){
-        if (mFEContours[i].contains(x,y)) {
-          return true;
-        }
-      }
-       return false;
-    }
-
-    o2::mch::contour::Contour<double> getEnvelop() const override
-    {
-      std::vector<o2::mch::contour::Polygon<double>> polygons;
-      for (auto i = 0; i < mFEContours.size(); ++i) {
-        auto c = mFEContours[i];
-        for (auto j = 0; j < c.size(); ++j) {
-          polygons.push_back(c[j]);
-        }
-      }
-      return o2::mch::contour::createContour(polygons);
-    }
-
-    o2::mch::contour::Contour<double> getSampaPads(int dualSampaIndex) const override
-    {
-      return mPadContours[dualSampaIndex];
-    }
-
-    std::vector<o2::mch::contour::Contour<double>> getSampaContours() const override {
-      std::vector<o2::mch::contour::Contour<double>> contours;
-      contours.insert(contours.end(),mFEContours.begin(),mFEContours.end());
-      return contours;
-    }
-
-  private:
-
-    std::vector<Pad> getPads(const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
-      std::vector<Pad> motifPads{mp.getPads(motifTypes[mp.motifTypeId()])};
-      std::vector<Pad> pads;
-      for (auto p: motifPads) {
-        pads.push_back(p.translate(mp.positionX(),mp.positionY()));
-      }
-      return pads;
-    }
-
-    void populatePadsForOneMotifPosition(int index, const MOTIFPOSITION& mp, const MotifTypeArray& motifTypes) {
-      const MotifType& mt = motifTypes[mp.motifTypeId()];
-      auto pads = getPads(mp,motifTypes);
-      for (auto i = 0; i < pads.size(); ++i) {
-         int fecChannel = berg2channel(mt.getBerg(i));
-         int padIndex = index*64 + fecChannel;
-         mPads[padIndex] = pads[i];
-      }
-    }
-
-    void populatePads(const MotifTypeArray& motifTypes) {
-      for ( int index = 0; index < mMotifPositions.size(); ++index ) {
-        const MOTIFPOSITION& mp = mMotifPositions[index];
-        const MotifType& mt = motifTypes[mp.motifTypeId()];
-        populatePadsForOneMotifPosition(index,mp,motifTypes);
-        mNofPads += mt.getNofPads();
-      }
-    }
-
-    std::vector<o2::mch::contour::Polygon<double>> padAsPolygons(const std::vector<Pad>& pads)
-    {
-      std::vector<o2::mch::contour::Polygon<double>> cpads;
-      for (auto&& p: pads) {
-        cpads.push_back({
-                         { p.xBottomLeft, p.yBottomLeft},
-                         { p.xTopRight, p.yBottomLeft},
-                         { p.xTopRight, p.yTopRight},
-                         { p.xBottomLeft, p.yTopRight},
-                         { p.xBottomLeft, p.yBottomLeft}
-                       });
-      }
-      return cpads;
-    }
-
-    void createContours(const MotifTypeArray& motifTypes)
-    {
-      for (int index = 0; index < mMotifPositions.size(); ++index) {
-        auto pads = padAsPolygons(getPads(mMotifPositions[index], motifTypes));
-        o2::mch::contour::Contour<double> contour;
-        for (auto& p: pads) {
-          contour.addPolygon(p);
-        }
-        mPadContours[index] = contour;
-        mFEContours[index] = o2::mch::contour::createContour(pads);
-      }
-    }
-
-    int mId;
-    bool mIsBendingPlane;
-    int mNofPads;
-    std::array<Pad,NFEC*64> mPads;
-    std::array<MOTIFPOSITION,NFEC> mMotifPositions;
-    std::array<o2::mch::contour::Contour<double>,NFEC> mPadContours;
-    std::array<o2::mch::contour::Contour<double>,NFEC> mFEContours;
-};
-)***";
-  return decl.str();
-}
-
 std::string
 generateCodeForSegmentationType(int index, const Value &segmentations, const Value &motiftypes,
                                 const Value &padsizes)
@@ -393,25 +202,11 @@ generateCodeForSegmentationType(int index, const Value &segmentations, const Val
   return code;
 }
 
-std::pair<std::string, std::string> generateCodeForSegmentationFactory(const Value &segmentations)
+std::string generateCodeForSegmentationFactory(const Value &segmentations)
 {
-  std::ostringstream decl;
   std::ostringstream impl;
 
-  decl << R"(#include "genSegmentationInterface.h"
-#include "genMotifType.h"
-#include <memory>
-)";
-
-  decl << mappingNamespaceBegin();
-
-  decl << R"(
-int getNumberOfSegmentations();
-std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
-  )";
-  decl << mappingNamespaceEnd();
-
-  impl << R"(#include "genSegmentationImpl0.h"
+  impl << R"(#include "segmentationImpl0.h"
 )";
   impl << mappingNamespaceBegin();
 
@@ -437,7 +232,7 @@ std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingP
   impl << "}\n";
   impl << mappingNamespaceEnd();
 
-  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+  return impl.str();
 }
 
 std::string generateCodeForBerg2Manu(const Value &bergs, int id)
@@ -471,10 +266,7 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
                                   const Value &padsizes,
                                   const Value &bergs)
 {
-  std::pair<std::string, std::string> code = generateCodeForSegmentationInterface();
-  outputCode(code.first, code.second, "genSegmentationInterface");
-
-  std::string decl = generateCodeForSegmentationCommon();
+  std::string decl;
   decl += "\n";
   decl += generateCodeForBerg2Manu(bergs, 0);
   decl += generateCodeForBerg2Manu(bergs, 1);
@@ -482,32 +274,14 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
   for (int i = 0; i < segmentations.GetArray().Size(); ++i) {
     decl += generateCodeForSegmentationType(i, segmentations, motiftypes, padsizes);
   }
-  decl += mappingNamespaceEnd();
   outputCode(decl, "", "genSegmentationImpl0");
 
-  code = generateCodeForSegmentationFactory(segmentations);
-  outputCode(code.first, code.second, "genSegmentationFactory");
+  outputCode("", generateCodeForSegmentationFactory(segmentations), "genSegmentationFactory");
 }
 
 void generateCodeForDESegmentationFactory(const Value &segmentations, const Value &detection_elements)
 {
-  std::ostringstream decl;
   std::ostringstream impl;
-
-  decl << R"(#include "genSegmentationInterface.h"
-#include <memory>
-)";
-
-  decl << mappingNamespaceBegin();
-
-  decl << R"(
-
-int getSegTypeIndexFromDetElemIndex(int deIndex);
-
-std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane);
-
-  )";
-  decl << mappingNamespaceEnd();
 
   impl << R"(
 #include "genSegmentationFactory.h"
@@ -547,5 +321,5 @@ int getSegTypeIndexFromDetElemIndex(int deIndex) {
 
   impl << mappingNamespaceEnd();
 
-  outputCode(decl.str(), impl.str(), "genDESegmentationFactory");
+  outputCode("", impl.str(), "genDESegmentationFactory");
 }

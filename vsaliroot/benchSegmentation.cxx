@@ -15,14 +15,14 @@
 
 #include <random>
 #include "benchmark/benchmark.h"
-#include "genDetectionElement.h"
-#include "genDESegmentationFactory.h"
-#include "genSegmentationFactory.h"
+#include "segmentationInterface.h"
 #include "contour.h"
 #include "AliMpDetElement.h"
 #include "AliMpVSegmentation.h"
 #include "AliMpSegmentation.h"
 #include "commonBench.h"
+#include "contourCreator.h"
+#include "segmentationContours.h"
 
 namespace {
 constexpr int NTESTPOINTS{1000};
@@ -32,7 +32,7 @@ std::vector<std::pair<double, double>> generateTestPoints(int n, int deIndex)
 {
   int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
   auto seg = o2::mch::mapping::getSegmentation(segTypeIndex, true);
-  auto bbox = o2::mch::contour::getBBox(seg->getEnvelop());
+  auto bbox = o2::mch::contour::getBBox(getEnvelop(o2::mch::mapping::getSampaContours(*(seg.get()))));
 
   double offset{0.0};
 

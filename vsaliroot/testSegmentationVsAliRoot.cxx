@@ -28,10 +28,9 @@
 #include "AliMpSegmentation.h"
 #include "AliMpVSegmentation.h"
 #include "contour.h"
-#include "genDESegmentationFactory.h"
-#include "genDetectionElement.h"
-#include "genSegmentationFactory.h"
-#include "genSegmentationInterface.h"
+#include "contourCreator.h"
+#include "segmentationInterface.h"
+#include "segmentationContours.h"
 #include "svgSegmentationInterface.h"
 #include <TArrayD.h>
 #include <algorithm>
@@ -118,7 +117,8 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
   auto al = pair.first;
   auto o2 = pair.second;
 
-  auto bbox = getBBox(o2->getEnvelop());
+  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(
+    o2::mch::mapping::getSampaContours(*o2)));
 
   bool same{true};
 
