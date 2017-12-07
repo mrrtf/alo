@@ -20,8 +20,27 @@
 #include <utility>
 
 class AliMpDDLStore;
+
 class AliMpSegmentation;
 
-std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg);
+struct PadSize
+{
+    double x;
+    double y;
+};
+
+bool operator==(const PadSize &lhs, const PadSize &rhs);
+
+bool operator!=(const PadSize &lhs, const PadSize &rhs);
+
+bool operator<(const PadSize &lhs, const PadSize &rhs);
+
+bool operator>(const PadSize &lhs, const PadSize &rhs);
+
+bool operator<=(const PadSize &lhs, const PadSize &rhs);
+
+bool operator>=(const PadSize &lhs, const PadSize &rhs);
+
+std::vector<PadSize> get_padsizes(AliMpDDLStore *ddlStore, AliMpSegmentation *mseg);
 
 #endif

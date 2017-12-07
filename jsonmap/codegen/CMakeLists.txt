@@ -1,17 +1,21 @@
 
-add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx)
+add_executable(mch-mapping-generate-code mch-mapping-generate-code.cxx
+        jsonReader.h
+        writer.h writer.cxx
+        chamber.h chamber.cxx
+        motifType.h motifType.cxx
+        padSize.h padSize.cxx
+        segmentationCommon.h segmentationCommon.cxx
+        segmentation1.h segmentation1.cxx
+        segmentation2.h segmentation2.cxx
+        motifPosition.h motifPosition.cxx
+        motifPosition1.h motifPosition1.cxx
+        motifPosition2.h motifPosition2.cxx
+        padGroupType.h padGroupType.cxx
+        padGroup.h padGroup.cxx
+        report.cxx report.h)
 
-target_sources(mchMappingCodeGenerator PUBLIC jsonReader.h jsonReader.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC detectionElement.h detectionElement.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC codeWriter.h codeWriter.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC chamber.h chamber.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC motifType.h motifType.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC padSize.h padSize.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC segmentation.h segmentation.cxx)
+target_link_libraries(mch-mapping-generate-code Boost::program_options RapidJSON)
 
-target_link_libraries(mchMappingCodeGenerator Boost::program_options)
-
-target_include_directories(mchMappingCodeGenerator PUBLIC ${CMAKE_SOURCE_DIR} ${Boost_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
-
-install(TARGETS mchMappingCodeGenerator RUNTIME DESTINATION bin)
+install(TARGETS mch-mapping-generate-code RUNTIME DESTINATION bin)
 

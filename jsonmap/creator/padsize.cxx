@@ -14,17 +14,42 @@
 
 
 #include "padsize.h"
-#include <vector>
-#include <utility>
-#include "seg.h"
-#include <set>
-#include "de.h"
+
 #include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
+#include "de.h"
+#include "seg.h"
+#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <set>
+#include <utility>
+#include <vector>
+#include <cmath>
 
-std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
+std::set<PadSize> get_padsizes(const AliMpVSegmentation& seg)
+{
+  std::set<PadSize> padsizes;
+  std::unique_ptr<AliMpVPadIterator> padIterator(seg.CreateIterator());
+  const double scale = 2.0;
+  padIterator->First();
+  do {
+    AliMpPad pad = padIterator->CurrentItem();
+    auto x = scale*pad.GetDimensionX();
+    auto y = scale*pad.GetDimensionY();
+    if (x < 0) {
+      seg.Print();
+      pad.Print();
+    }
+    padsizes.insert(PadSize{x,y});
+    padIterator->Next();
+  }
+  while (!padIterator->IsDone());
+
+  return padsizes;
+}
+
+std::vector<PadSize> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 
   // return an array of pad sizes (pairs of size in x-direction, size in y-direction)
   std::vector<int> deids = get_deids(ddlStore);
@@ -32,41 +57,57 @@ std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpS
   std::vector<AliMpVSegmentation*> nb = get_segs(mseg,deids,AliMp::kNonBendingPlane);
   segs.insert(segs.end(),nb.begin(),nb.end());
 
-  //FIXME: should not really use set with floats, or should define what comparison
-  //means for those really...
-  int n = 0;
-  std::set<float> padSizeX, padSizeY;
-  std::set<std::pair<float,float>> padSize;
-  float scale = 2;
+  std::vector<PadSize> padsizes;
+  std::set<PadSize> padSizeSet;
 
-  for ( const auto& s : segs ){
-    std::unique_ptr<AliMpVPadIterator> padIterator(s->CreateIterator());
-    padIterator->First();
-    do {
-      AliMpPad pad = padIterator->CurrentItem();
-      auto x = static_cast<float>(scale*pad.GetDimensionX());
-      auto y = static_cast<float>(scale*pad.GetDimensionY());
-      padSizeX.insert(x);
-      padSizeY.insert(y);
-      if (x < 0) {
-        s->Print();
-        pad.Print();
-      }
-      padSize.insert(std::make_pair(x, y));
-      ++n;
-      padIterator->Next();
-    }
-    while (!padIterator->IsDone());
+  for ( const auto& s : segs ) {
+    auto ps = get_padsizes(*s);
+    padSizeSet.insert(ps.begin(),ps.end());
   }
 
-  std::vector<std::pair<float,float>> padsizes;
-
-  padsizes.insert(padsizes.end(),padSize.begin(),padSize.end());
+  padsizes.insert(padsizes.end(),padSizeSet.begin(),padSizeSet.end());
 
   // sort the pad sizes per pad area
-  std::sort(std::begin(padsizes),std::end(padsizes),[](const std::pair<float,float>& p1, const std::pair<float,float>& p2) {
-    return p1.first*p1.second < p2.first*p2.second;
-  });
+  std::sort(std::begin(padsizes),std::end(padsizes));
 
   return padsizes;
+}
+
+bool operator<(const PadSize &lhs, const PadSize &rhs)
+{
+  auto lhsArea = lhs.x*lhs.y;
+  auto rhsArea = rhs.x*rhs.y;
+
+  if ( lhsArea < rhsArea ) {
+    return true;
+  }
+  if ( rhsArea < lhsArea ) {
+    return false;
+  }
+  return lhs.y < rhs.y;
+}
+
+bool operator>(const PadSize &lhs, const PadSize &rhs)
+{
+  return rhs < lhs;
+}
+
+bool operator<=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(rhs < lhs);
+}
+
+bool operator>=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(lhs < rhs);
+}
+
+bool operator==(const PadSize &lhs, const PadSize &rhs)
+{
+  return std::fabs(lhs.x - rhs.x) < 1E-4 && std::fabs(lhs.y- rhs.y) < 1E-4;
+}
+
+bool operator!=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(rhs == lhs);
 }

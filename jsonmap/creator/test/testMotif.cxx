@@ -15,44 +15,37 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
+#include "AliMpVMotif.h"
 #include "mapping.h"
-#include <array>
-#include <string>
-#include <iostream>
-#include <pcb.h>
-#include <padsize.h>
 #include "motif.h"
 #include "seg.h"
-#include "AliMpVMotif.h"
-
-//  motifs.insert(motifs.end(),sectorMotifs.begin(),sectorMotifs.end());
-//
-//  out.open("motifs.list.txt");
-//  for ( const auto& m: motifs ) {
-//    out << m->GetID() << std::endl;
-//  }
-//  std::cout << motifs.size() << " different motifs in total" << std::endl;
+#include <algorithm>
+#include <array>
+#include <iostream>
+#include <padsize.h>
+#include <pcb.h>
+#include <string>
 
 std::array<std::string, 222> motifNames{
-  "L7-13", "Z3-13", "O10-13", "Z4-13", "L8-13", "L6-13", "Z2-13", "O9-13", "Z1-13", "L5-13", "L7-16", "Z3-16", "O10-16",
-  "Z4-16", "L8-16", "L6-16", "Z2-16", "O9-16", "Z1-16", "L5-16", "L19-17", "O12-17", "L20-17", "O11-17", "L10-17",
-  "L9-17", "O2-4", "O1-4", "P3-5", "Q3-5", "Q4-5", "P4-5", "L4-5", "O4-5", "L3-5", "L1-5", "O3-5", "L2-5", "Q2-5",
-  "P2-5", "P1-5", "Q1-5", "O7-6", "O8-6", "O6-6", "O5-6", "C6-13", "C7-13", "C8-13", "C9-13", "C10-13", "O25-13",
-  "C1-4", "C2-4", "C3-4", "C4-4", "C5-4", "O23-13", "O24-13", "A8-13", "A9-13", "A10-13", "A11-13", "A12-13", "A13-13",
-  "A14-13", "A15-13", "A16-13", "A17-13", "A18-13", "A20-13", "A19-13", "O21-4", "A1-4", "A7-4", "A6-4", "A5-4", "A4-4",
-  "A3-4", "A2-4", "O22-4", "E7-13", "E8-13", "E9-13", "E10-13", "E11-13", "E12-13", "E13-13", "E14-13", "E15-13",
-  "E16-13", "E17-13", "E18-13", "E19-13", "O27-4", "E6-4", "E5-4", "E4-4", "E3-4", "E2-4", "E1-4", "O26-4", "S0-16",
-  "S1-16", "S2-16", "S3-16", "S4-16", "S5-16", "S6-16", "S7-16", "S8-16", "I1-16", "L18-16", "Z5-16", "1BD-0", "1BD-11",
-  "1BD-14", "1BG-14", "1BE-14", "1BC-0", "1BF-14", "1BB-0", "1BH-14", "1BA-0", "1BI-14", "2BB-7", "2BF-12", "2BD-15",
-  "2BO-15", "2BA-7", "2BJ-15", "2BM-12", "2BU-15", "2Bd1-15", "2Be1-15", "2BV-15", "2BR-15", "2Bb1-15", "2Bi1-15",
-  "2Bv4-7", "2Bg1-15", "2BY-15", "2BH-15", "2Bv2-7", "2BC-12", "2BE-12", "2Bu1-7", "2Ba1-15", "2Bt1-7", "2Bc1-15",
-  "2BI-15", "2BT-15", "2BL-15", "2BP-15", "2Bh1-15", "2BQ-15", "2BW-15", "2Bv5-7", "2BS-15", "2BX-15", "2Bv3-7",
-  "2Bm1-7", "2Bf1-15", "2Bv1-7", "2BK-15", "2BG-15", "2Bn1-7", "2BN-15", "2Bp1-7", "1NA-0", "1NE-1", "1NG-2", "1NF-2",
-  "1NC-0", "1NL-0", "1NI-2", "1NM-0", "1NH-2", "1NB-0", "1NK-2", "1NN-0", "1NJ-2", "1ND-0", "2NF-8", "2NC-8", "2NE-8",
-  "2NB-7", "2NI-9", "2Nt1-7", "2Nd1-9", "2Nl1-9", "2NL-9", "2NM-9", "2NA-7", "2NK-9", "2NG-9", "2NJ-9", "2Nr1-9",
-  "2NH-9", "2Nv5-7", "2No1-9", "2Nw1-9", "2Nv3-7", "2Ni1-9", "2Nm1-7", "2Nv1-7", "2Nb1-9", "2NN-9", "2Ne1-9", "2Nn1-7",
-  "2Nk1-9", "2Np1-7", "2Nf1-9", "2Ns1-9", "2Nq1-9", "2Nc1-9", "2Nv4-7", "2Nj1-9", "2Ng1-9", "2Nv2-7", "2Nu1-7",
-  "2Na1-9"
+  "L7-9", "Z3-9", "O10-9", "Z4-9", "L8-9", "L6-9", "Z2-9", "O9-9", "Z1-9", "L5-9", "L7-14", "Z3-14", "O10-14", "Z4-14",
+  "L8-14", "L6-14", "Z2-14", "O9-14", "Z1-14", "L5-14", "L19-16", "O12-16", "L20-16", "O11-16", "L10-16", "L9-16",
+  "O2-12", "O1-12", "P3-15", "Q3-15", "Q4-15", "P4-15", "L4-15", "O4-15", "L3-15", "L1-15", "O3-15", "L2-15", "Q2-15",
+  "P2-15", "P1-15", "Q1-15", "O7-17", "O8-17", "O6-17", "O5-17", "C6-9", "C7-9", "C8-9", "C9-9", "C10-9", "O25-9",
+  "C1-12", "C2-12", "C3-12", "C4-12", "C5-12", "O23-9", "O24-9", "A8-9", "A9-9", "A10-9", "A11-9", "A12-9", "A13-9",
+  "A14-9", "A15-9", "A16-9", "A17-9", "A18-9", "A20-9", "A19-9", "O21-12", "A1-12", "A7-12", "A6-12", "A5-12", "A4-12",
+  "A3-12", "A2-12", "O22-12", "E7-9", "E8-9", "E9-9", "E10-9", "E11-9", "E12-9", "E13-9", "E14-9", "E15-9", "E16-9",
+  "E17-9", "E18-9", "E19-9", "O27-12", "E6-12", "E5-12", "E4-12", "E3-12", "E2-12", "E1-12", "O26-12", "S0-14", "S1-14",
+  "S2-14", "S3-14", "S4-14", "S5-14", "S6-14", "S7-14", "S8-14", "I1-14", "L18-14", "Z5-14", "1BD-0", "1BD-3", "1BD-7",
+  "1BG-7", "1BE-7", "1BC-0", "1BF-7", "1BB-0", "1BH-7", "1BA-0", "1BI-7", "2BB-2", "2BF-5", "2BD-10", "2BO-10", "2BA-2",
+  "2BJ-10", "2BM-5", "2BU-10", "2Bd1-10", "2Be1-10", "2BV-10", "2BR-10", "2Bb1-10", "2Bi1-10", "2Bv4-2", "2Bg1-10",
+  "2BY-10", "2BH-10", "2Bv2-2", "2BC-5", "2BE-5", "2Bu1-2", "2Ba1-10", "2Bt1-2", "2Bc1-10", "2BI-10", "2BT-10",
+  "2BL-10", "2BP-10", "2Bh1-10", "2BQ-10", "2BW-10", "2Bv5-2", "2BS-10", "2BX-10", "2Bv3-2", "2Bm1-2", "2Bf1-10",
+  "2Bv1-2", "2BK-10", "2BG-10", "2Bn1-2", "2BN-10", "2Bp1-2", "1NA-0", "1NE-4", "1NG-8", "1NF-8", "1NC-0", "1NL-0",
+  "1NI-8", "1NM-0", "1NH-8", "1NB-0", "1NK-8", "1NN-0", "1NJ-8", "1ND-0", "2NF-6", "2NC-6", "2NE-6", "2NB-2", "2NI-11",
+  "2Nt1-2", "2Nd1-11", "2Nl1-11", "2NL-11", "2NM-11", "2NA-2", "2NK-11", "2NG-11", "2NJ-11", "2Nr1-11", "2NH-11",
+  "2Nv5-2", "2No1-11", "2Nw1-11", "2Nv3-2", "2Ni1-11", "2Nm1-2", "2Nv1-2", "2Nb1-11", "2NN-11", "2Ne1-11", "2Nn1-2",
+  "2Nk1-11", "2Np1-2", "2Nf1-11", "2Ns1-11", "2Nq1-11", "2Nc1-11", "2Nv4-2", "2Nj1-11", "2Ng1-11", "2Nv2-2", "2Nu1-2",
+  "2Na1-11"
 };
 
 struct MOTIFS
@@ -60,17 +53,17 @@ struct MOTIFS
     MOTIFS()
     {
       Mapping m;
-      std::vector<AliMpPCB*> pcbs = get_allpcbs(m.ddlStore(), m.mseg());
-      std::vector<std::pair<float, float>> padsizes = get_padsizes(m.ddlStore(), m.mseg());
+      std::vector<AliMpPCB *> pcbs = get_allpcbs(m.ddlStore(), m.mseg());
+      auto padsizes = get_padsizes(m.ddlStore(), m.mseg());
       slatMotif = get_allslatmotifs(pcbs, padsizes);
-      std::vector<const AliMpSector*> sectors = get_allsectors(m.mseg());
+      std::vector<const AliMpSector *> sectors = get_allsectors(m.mseg());
       sectorMotif = get_allsectormotifs(sectors, padsizes);
       motif = get_allmotifs(pcbs, sectors, padsizes);
     }
 
-    std::vector<AliMpVMotif*> slatMotif;
-    std::vector<AliMpVMotif*> sectorMotif;
-    std::vector<AliMpVMotif*> motif;
+    std::vector<AliMpVMotif *> slatMotif;
+    std::vector<AliMpVMotif *> sectorMotif;
+    std::vector<AliMpVMotif *> motif;
 };
 
 BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, MOTIFS)
@@ -89,42 +82,47 @@ BOOST_AUTO_TEST_CASE(NumberOfMotifForSectors)
 
 BOOST_AUTO_TEST_CASE(NumberOfMotifs)
 {
-  BOOST_TEST_CHECK((motif.size() == 222), "motif.size()=" << motif.size() << " vs expected 222");
+  BOOST_TEST_CHECK((motif.size() == motifNames.size()), "motif.size()=" << motif.size() << " vs expected 222");
 }
 
 BOOST_AUTO_TEST_CASE(MotifNames)
 {
+  std::vector<std::string> test;
   for (auto i = 0; i < motif.size(); ++i) {
-    BOOST_TEST_CHECK((motif[i]->GetID() == motifNames[i].c_str()),
-                     motif[i]->GetID().Data() << " vs expected " << motifNames[i]);
+    test.push_back(motif[i]->GetID().Data());
   }
+  BOOST_TEST(std::is_permutation(test.begin(), test.end(), motifNames.begin()));
 }
 
 BOOST_AUTO_TEST_CASE(MotifClone)
 {
   std::string newname = "toto";
-  AliMpVMotif* c = static_cast<AliMpVMotif*>(motif[0]->Clone(newname.c_str()));
+  AliMpVMotif *c = static_cast<AliMpVMotif *>(motif[0]->Clone(newname.c_str()));
   BOOST_TEST_CHECK(newname == c->GetID().Data());
   BOOST_TEST_CHECK(newname != motif[0]->GetID().Data());
 }
 
-BOOST_AUTO_TEST_CASE(NoSpecialMotifInSlats) {
-  for (const auto& m : slatMotif) {
-    BOOST_TEST_CHECK(m->GetNofPadDimensions()==1);
+BOOST_AUTO_TEST_CASE(NoSpecialMotifInSlats)
+{
+  for (const auto &m : slatMotif) {
+    BOOST_TEST_CHECK(m->GetNofPadDimensions() == 1);
   }
 }
 
-BOOST_AUTO_TEST_CASE(NumberOfSpecialMotifsInSectors) {
-  auto n = std::count_if(sectorMotif.begin(),sectorMotif.end(),[](AliMpVMotif* m) { return m->GetNofPadDimensions()>1; });
-  BOOST_TEST_CHECK(n==3);
+BOOST_AUTO_TEST_CASE(NumberOfSpecialMotifsInSectors)
+{
+  auto n = std::count_if(sectorMotif.begin(), sectorMotif.end(),
+                         [](AliMpVMotif *m) { return m->GetNofPadDimensions() > 1; });
+  BOOST_TEST_CHECK(n == 3);
 }
 
-BOOST_AUTO_TEST_CASE(MaxNumberOfPadSizesInSpecialMotifs) {
+BOOST_AUTO_TEST_CASE(MaxNumberOfPadSizesInSpecialMotifs)
+{
   int n = 0;
-  for (const auto&m : sectorMotif) {
-     n = std::max(n,m->GetNofPadDimensions());
+  for (const auto &m : sectorMotif) {
+    n = std::max(n, m->GetNofPadDimensions());
   }
-  BOOST_TEST_CHECK(n==2);
+  BOOST_TEST_CHECK(n == 2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

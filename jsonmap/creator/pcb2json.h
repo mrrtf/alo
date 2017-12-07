@@ -7,6 +7,7 @@
 #include "AliMpVMotif.h"
 #include "json.h"
 #include "pcb2json.h"
+#include "padsize.h"
 #include "legacyseg2json.h"
 #include <algorithm>
 #include <cassert>
@@ -15,7 +16,7 @@
 #include <vector>
 
 template<typename WRITER>
-void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<PadSize>& padsizes, WRITER& w)
 {
   w.StartObject();
   w.Key("id");
@@ -40,7 +41,7 @@ void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<std::pair<float, floa
     w.Int(iy);
     w.EndObject();
     w.Key("padsize");
-    auto r = std::find(padsizes.begin(), padsizes.end(), std::make_pair<float, float>(pcb.PadSizeX(), pcb.PadSizeY()));
+    auto r = std::find(padsizes.begin(), padsizes.end(), PadSize{pcb.PadSizeX(),pcb.PadSizeY()});
     w.Int(r - padsizes.begin());
     w.EndObject();
   }
@@ -50,7 +51,7 @@ void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<std::pair<float, floa
 
 template<typename WRITER>
 void all_pcb2json(std::string topkey, const std::vector<AliMpPCB*>& pcbs,
-                  const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+                  const std::vector<PadSize>& padsizes, WRITER& w)
 {
 
   w.StartObject();

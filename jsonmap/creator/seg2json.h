@@ -21,6 +21,7 @@
 #include "AliMpSlat.h"
 #include "AliMpVSegmentation.h"
 #include "json.h"
+#include "padsize.h"
 #include "sector2json.h"
 #include "seg.h"
 #include "slat2json.h"
@@ -57,7 +58,7 @@ void WritePadBergNumbers(int i, const AliMpVMotif &motif, WRITER &w)
 
 template<typename WRITER>
 void motifposition2json(const AliMpMotifPosition &motifPosition, std::string motifLabel, int motifId, int motifTypeId,
-                        const std::vector<std::pair<float, float>> &padsizes, WRITER &w)
+                        const std::vector<PadSize> &padsizes, WRITER &w)
 {
   w.StartObject();
   w.Key("fec");
@@ -78,8 +79,8 @@ void motifposition2json(const AliMpMotifPosition &motifPosition, std::string mot
   w.Key("motiftype");
   w.Int(motifTypeId);
   w.Key("padsize");
-  float px = motif->GetPadDimensionX(0) * 2.0;
-  float py = motif->GetPadDimensionY(0) * 2.0;
+  auto px = motif->GetPadDimensionX(0) * 2.0;
+  auto py = motif->GetPadDimensionY(0) * 2.0;
   int padSizeIndex = get_padsize_index(px, py, padsizes);
   if (motif->GetNofPadDimensions() == 1) {
     w.Int(padSizeIndex);
@@ -88,8 +89,8 @@ void motifposition2json(const AliMpMotifPosition &motifPosition, std::string mot
     if (motif->GetNofPadDimensions() != 2) {
       throw std::out_of_range("this code assumes a maximum of two pad sizes per motif");
     }
-    float px = motif->GetPadDimensionX(1) * 2.0;
-    float py = motif->GetPadDimensionY(1) * 2.0;
+    auto px = motif->GetPadDimensionX(1) * 2.0;
+    auto py = motif->GetPadDimensionY(1) * 2.0;
     int secondPadSizeIndex = get_padsize_index(px, py, padsizes);
     w.Int(padSizeIndex);
     w.Int(secondPadSizeIndex);
@@ -111,7 +112,7 @@ template<typename WRITER>
 void segplane2json(std::string stype, std::string prefix, const std::vector<AliMpMotifPosition *> &mp,
                    const std::vector<AliMpVMotif *> &motifs,
                    const std::vector<AliMpMotifType *> &motiftypes,
-                   const std::vector<std::pair<float, float>> &padsizes, WRITER &w)
+                   const std::vector<PadSize> &padsizes, WRITER &w)
 {
   if (prefix == '1' || prefix == '2') {
     // sectors
@@ -142,7 +143,7 @@ void seg2json(std::string segname,
               const std::vector<AliMpMotifPosition *> &nb,
               const std::vector<AliMpVMotif *> &motifs,
               const std::vector<AliMpMotifType *> &motiftypes,
-              const std::vector<std::pair<float, float>> &padsizes,
+              const std::vector<PadSize> &padsizes,
               WRITER &w)
 {
   w.StartObject();
@@ -165,7 +166,7 @@ void all_seg2json(std::string topkey,
                     std::vector<AliMpMotifPosition *>>> &motifPositions,
                   const std::vector<AliMpVMotif *> &motifs,
                   const std::vector<AliMpMotifType *> &motiftypes,
-                  const std::vector<std::pair<float, float>> &padsizes,
+                  const std::vector<PadSize> &padsizes,
                   WRITER &w)
 {
   w.StartObject();
