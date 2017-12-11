@@ -17,7 +17,7 @@
 #define O2_MCH_MAPPING_MOTIFPOSITIONCONTOURS_H
 
 #include "pad.h"
-#include "genMotifType.h"
+#include "motifType.h"
 #include "polygon.h"
 #include <vector>
 #include <array>

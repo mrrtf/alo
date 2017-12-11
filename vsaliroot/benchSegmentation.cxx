@@ -28,32 +28,51 @@ namespace {
 constexpr int NTESTPOINTS{1000};
 }
 
-std::vector<std::pair<double, double>> generateTestPoints(int n, int deIndex)
+std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent)
 {
-  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-  auto seg = o2::mch::mapping::getSegmentation(segTypeIndex, true);
+  auto seg = o2::mch::mapping::getSegmentation(detElemId, true);
   auto bbox = o2::mch::contour::getBBox(getEnvelop(o2::mch::mapping::getSampaContours(*(seg.get()))));
 
   double offset{0.0};
 
   std::random_device rd;
   std::mt19937 mt(rd());
-  std::uniform_real_distribution<double> distX{bbox.xmin() - offset, bbox.xmax() + offset};
-  std::uniform_real_distribution<double> distY{bbox.ymin() - offset, bbox.ymax() + offset};
+  std::vector<std::pair<double, double>> testPoints;
 
-  std::vector<std::pair<double, double>> testPoints(n);
+  if (extent == 0) {
 
-  std::generate(testPoints.begin(), testPoints.end(),
-                [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
+    testPoints.resize(n);
+
+    std::uniform_real_distribution<double> distX{bbox.xmin() - offset, bbox.xmax() + offset};
+    std::uniform_real_distribution<double> distY{bbox.ymin() - offset, bbox.ymax() + offset};
+
+    std::generate(testPoints.begin(), testPoints.end(),
+                  [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
+
+  } else {
+    std::normal_distribution<double> dist(0.0, extent * 1.0);
+    while (testPoints.size() < n) {
+      double x = dist(mt);
+      double y = dist(mt);
+      if (x >= bbox.xmin() - offset && x <= bbox.xmax() + offset &&
+          y >= bbox.ymin() - offset && y <= bbox.ymax() + offset) {
+        testPoints.push_back({x, y});
+      }
+    }
+  }
 
   return testPoints;
 }
 
 static void segmentationList(benchmark::internal::Benchmark *b)
 {
-  for (auto i  : {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}) {
-    b->Args({i, true});
-    b->Args({i, false});
+  for (auto detElemId : o2::mch::mapping::getOneDetElemIdPerSegmentation())
+  {
+    for (auto bending : {true /*, false*/}) {
+      for (auto extent : {0 /*, 10*/}) {
+        b->Args({detElemId, bending, extent});
+      }
+    }
   }
 }
 
@@ -63,13 +82,13 @@ class BenchO2 : public benchmark::Fixture
 
 BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
 {
-  int deIndex = state.range(0);
+  int detElemId = state.range(0);
   bool isBendingPlane = state.range(1);
+  int extent = state.range(2);
 
-  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-  auto seg = o2::mch::mapping::getSegmentation(segTypeIndex, isBendingPlane);
+  auto seg = o2::mch::mapping::getSegmentation(detElemId, isBendingPlane);
 
-  auto testPoints = generateTestPoints(NTESTPOINTS, deIndex);
+  auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
   double nin{0};
   double n{0};
@@ -81,23 +100,23 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
     }
   }
 
-  state.counters["nin"] = benchmark::Counter(nin,benchmark::Counter::kIsRate);
-  state.counters["n"] = benchmark::Counter(n,benchmark::Counter::kIsRate);
+  state.counters["nin"] = benchmark::Counter(nin, benchmark::Counter::kIsRate);
+  state.counters["n"] = benchmark::Counter(n, benchmark::Counter::kIsRate);
 }
 
 BENCHMARK_REGISTER_F(BenchO2, hasPadByPosition)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
 {
-  int deIndex = state.range(0);
+  int detElemId = state.range(0);
   bool isBendingPlane = state.range(1);
+  int extent = state.range(2);
 
-  int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
-  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(deId);
-  auto seg = mseg->GetMpSegmentation(deId, detElement->GetCathodType(
+  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
+  auto seg = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
     isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
 
-  auto testPoints = generateTestPoints(NTESTPOINTS, deIndex);
+  auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
   double nin{0};
   double n{0};
@@ -109,8 +128,8 @@ BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
     }
   }
 
-  state.counters["nin"] = benchmark::Counter(nin,benchmark::Counter::kIsRate);
-  state.counters["n"] = benchmark::Counter(n,benchmark::Counter::kIsRate);
+  state.counters["nin"] = benchmark::Counter(nin, benchmark::Counter::kIsRate);
+  state.counters["n"] = benchmark::Counter(n, benchmark::Counter::kIsRate);
 }
 
 BENCHMARK_REGISTER_F(BenchAliRoot, PadByPosition)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);

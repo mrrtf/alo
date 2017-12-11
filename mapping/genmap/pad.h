@@ -44,6 +44,22 @@ struct Pad
       return os;
     }
 
+    double positionX() const {
+      return (xBottomLeft+xTopRight)/2.0;
+    }
+
+    double positionY() const {
+      return (yBottomLeft+yTopRight)/2.0;
+    }
+
+    double dimensionX() const {
+      return (xTopRight - xBottomLeft);
+    }
+
+    double dimensionY() const {
+      return (yTopRight - yBottomLeft);
+    }
+
     Pad translate(double x, double y)
     {
       return {xBottomLeft + x, yBottomLeft + y, xTopRight + x, yTopRight + y};

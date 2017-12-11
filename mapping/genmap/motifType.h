@@ -1,5 +1,5 @@
-#ifndef O2_MCH_MAPPING_GENMOTIFTYPE_H
-#define O2_MCH_MAPPING_GENMOTIFTYPE_H
+#ifndef O2_MCH_MAPPING_MOTIFTYPE_H
+#define O2_MCH_MAPPING_MOTIFTYPE_H
 
 #include <array>
 #include <algorithm>
@@ -64,4 +64,4 @@ extern MotifTypeArray arrayOfMotifTypes;
 } // namespace mch
 } // namespace o2
 
-#endif // O2_MCH_MAPPING_GENMOTIFTYPE_H
+#endif

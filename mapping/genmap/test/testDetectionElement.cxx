@@ -17,9 +17,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
-
-#include "segmentationInterface.h"
-#include <array>
+#include <vector>
+#include "segmentationFactory.cxx"
 
 using namespace o2::mch::mapping;
 
@@ -37,6 +36,32 @@ BOOST_DATA_TEST_CASE(CircularTest,boost::unit_test::data::xrange(0,156),deIndex)
 {
   int deId = getDetElemIdFromDetElemIndex(deIndex);
   BOOST_TEST(deIndex==getDetElemIndexFromDetElemId(deId));
+}
+
+BOOST_AUTO_TEST_CASE(SegmentationByDetElemIdThrowsIfDEIndexIsIncorrect)
+{
+  BOOST_CHECK_THROW(getSegmentationByDetElemIndex(-1, true), std::out_of_range);
+  BOOST_CHECK_THROW(getSegmentationByDetElemIndex(156, true), std::out_of_range);
+  BOOST_CHECK_NO_THROW(getSegmentationByDetElemIndex(16, true));
+}
+
+BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
+{
+  BOOST_CHECK_THROW(getSegmentationByType(-1, true), std::out_of_range);
+  BOOST_CHECK_THROW(getSegmentationByType(21, true), std::out_of_range);
+  BOOST_CHECK_NO_THROW(getSegmentationByType(2, true));
+}
+
+BOOST_AUTO_TEST_CASE(GetOneDetElemIdPerSegmentation) {
+
+  std::vector<int>
+    firstDetElemIdOfEachSegmentationType{
+    100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701,
+    702, 703, 704, 705, 706, 902, 903, 904, 905
+  };
+
+  auto deids = getOneDetElemIdPerSegmentation();
+  BOOST_TEST(deids==firstDetElemIdOfEachSegmentationType);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

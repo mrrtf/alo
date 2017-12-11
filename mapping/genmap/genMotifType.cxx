@@ -1,4 +1,4 @@
-#include "genMotifType.h"
+#include "motifType.h"
 
 namespace o2
 {

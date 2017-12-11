@@ -2,7 +2,7 @@
 #define O2_MCH_MAPPING_SEGMENTATIONIMPL0_H
 
 #include "contourCreator.h"
-#include "genMotifType.h"
+#include "motifType.h"
 #include "segmentationInterface.h"
 #include "motifPosition.h"
 #include "motifPositionContours.h"
@@ -10,7 +10,6 @@
 #include "pad.h"
 #include "segmentationContours.h"
 #include "zone.h"
-#include "../interface/pad.h"
 #include <algorithm>
 #include <array>
 #include <ostream>
@@ -75,27 +74,43 @@ class SegmentationImpl0 : public SegmentationInterface
 
     bool hasPadByPosition(double x, double y) const override
     {
-//      for (auto i = 0; i < mFEContours.size(); ++i) {
-//        if (mFEContours[i].contains(x, y)) {
-//          return true;
-//        }
-//      }
-//      return false;
-      for ( const auto& z : mZones) {
-        if ( z.contains(x,y) ) {
+      for (const auto &z : mZones) {
+        if (z.contains(x, y)) {
           return true;
         }
       }
       return false;
     }
 
-    std::vector<Pad> getPads(int dualSampaId) const override
+    void getPadPosition(int ph, double &x, double &y) const override
+    {
+      if ( ph < mPads.size() ) {
+        x = mPads[ph].positionX();
+        y = mPads[ph].positionY();
+      }
+      else {
+        throw std::range_error("incorrect pad handle");
+      }
+    }
+
+    void getPadDimension(int ph, double &dx, double &dy) const override
+    {
+      if ( ph < mPads.size() ) {
+        dx = mPads[ph].dimensionX();
+        dy = mPads[ph].dimensionY();
+      }
+      else {
+        throw std::range_error("incorrect pad handle");
+      }
+    }
+
+    std::vector<int> getPads(int dualSampaId) const override
     {
       int index = getSampaIndex(dualSampaId);
-      std::vector<Pad> pads;
+      std::vector<int> pads;
       for (int i = index * 64; i < (index + 1) * 64; ++i) {
         if (mPads[i].isValid()) {
-          pads.push_back(mPads[i]);
+          pads.push_back(i);
         }
       }
       return pads;

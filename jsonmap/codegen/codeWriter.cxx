@@ -23,7 +23,7 @@ std::string mappingNamespaceEnd()
   return "\n} // namespace mapping\n} // namespace mch\n} // namespace o2\n";
 }
 
-std::string includeGuardName(const std::string& filename)
+std::string includeGuardName(const std::string &filename)
 {
   std::string rv = "O2_MCH_MAPPING_" + filename;
   std::transform(rv.begin(), rv.end(), rv.begin(), [](unsigned char c) { return std::toupper(c); });
@@ -31,7 +31,7 @@ std::string includeGuardName(const std::string& filename)
   return rv;
 }
 
-std::string includeGuardBegin(const std::string& filename)
+std::string includeGuardBegin(const std::string &filename)
 {
   std::ostringstream s;
   s << "#ifndef " << includeGuardName(filename) << "\n";
@@ -39,27 +39,70 @@ std::string includeGuardBegin(const std::string& filename)
   return s.str();
 }
 
-std::string includeGuardEnd(const std::string& filename)
+std::string includeGuardEnd(const std::string &filename)
 {
   return "\n#endif // " + includeGuardName(filename);
 }
 
-void outputCode(const std::string& decl, const std::string& impl, const std::string& outputFileName)
+std::string generateNotice(bool standalone)
+{
+  std::string notice{
+    R"(//
+// This file has been generated. Do not modify it by hand or your changes might be lost.
+//)"
+  };
+
+  if (!standalone) {
+    notice += R"(
+// This implementation file cannot be used standalone, i.e. it is intended to be included
+// into another implementation file.
+//)";
+  }
+  notice += "\n";
+  return notice;
+}
+
+void outputCode(const std::string &decl, const std::string &impl, const std::string &outputFileName,
+                bool withIncludeGuards, bool standalone)
 {
   std::string includeFileName = outputFileName + ".h";
 
-  if ( ! decl.empty()) {
+  if (!decl.empty()) {
     std::ofstream declFile(includeFileName);
-    declFile << includeGuardBegin(outputFileName);
+    if (withIncludeGuards) {
+      declFile << includeGuardBegin(outputFileName);
+    }
+    declFile << generateNotice(standalone);
     declFile << decl;
-    declFile << includeGuardEnd(outputFileName);
+    if (withIncludeGuards) {
+      declFile << includeGuardEnd(outputFileName);
+    }
   }
 
   if (impl.empty()) {
     return;
   }
   std::ofstream implFile(outputFileName + ".cxx");
-  implFile << "#include \"" << includeFileName << "\"\n";
+  if (!decl.empty()) {
+    implFile << "#include \"" << includeFileName << "\"\n";
+  }
+  implFile << generateNotice(standalone);
   implFile << impl;
+}
+
+std::string generateInclude(std::initializer_list<std::string> list)
+{
+  std::ostringstream code;
+
+  for (auto h: list) {
+    if (h.find('.')!=std::string::npos) {
+      code << "#include \"" << h << "\"\n";
+    }
+    else {
+      code << "#include <" << h << ">\n";
+    }
+  }
+
+  return code.str();
 }
 

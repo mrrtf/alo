@@ -98,22 +98,22 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
 }
 
 std::pair<const AliMpVSegmentation *, SegmentationInterface *>
-getSegmentations(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane)
+getSegmentations(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
 {
   AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
 
   auto al = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
     isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
 
-  auto o2 = getSegmentation(type, isBendingPlane);
+  auto o2 = getSegmentation(detElemId, isBendingPlane);
 
   return {al, o2.release()};
 }
 
-bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane, double step,
+bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
                            int ntimes)
 {
-  auto pair = getSegmentations(mseg, detElemId, type, isBendingPlane);
+  auto pair = getSegmentations(mseg, detElemId, isBendingPlane);
   auto al = pair.first;
   auto o2 = pair.second;
 
@@ -136,12 +136,11 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
         std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
         std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
         std::cout << "detElemId=" << detElemId << "\n";
-        std::cout << "type=" << type << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
         std::ostringstream filename;
-        filename << "bug-" << type << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        filename << "bug-" << o2->getId() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
         ++ndiff;
-        auto seg = getSegmentation(type, isBendingPlane);
+        auto seg = getSegmentation(detElemId, isBendingPlane);
         o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
       }
     }
@@ -149,16 +148,12 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
   return same;
 }
 
-//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
-//  {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
 BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
-  {0}), deIndex)
+  {100}), detElemId)
 {
   double step{1}; // cm
-  int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
-  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, true, step, 100));
-  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, false, step, 100));
+  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, true, step, 100));
+  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, false, step, 100));
 }
 
 

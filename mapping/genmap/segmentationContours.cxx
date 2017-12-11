@@ -24,7 +24,16 @@ std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::m
 {
   std::vector<o2::mch::contour::Contour<double>> contours;
   for (auto i = 0; i < seg.nofDualSampas(); ++i) {
-    auto pads = seg.getPads(seg.getSampaId(i));
+    auto padIndices = seg.getPads(seg.getSampaId(i));
+    std::vector<Pad> pads;
+    pads.reserve(padIndices.size());
+    for (auto ph: padIndices) {
+      double x,y;
+      double dx, dy;
+      seg.getPadPosition(ph,x, y);
+      seg.getPadDimension(ph,dx,dy);
+      pads.push_back({x - dx/2.0, y - dy/2.0, x + dx/2.0, y + dy/2.0});
+    };
     contours.push_back(o2::mch::contour::createContour(padAsPolygons(pads)));
   }
   return contours;

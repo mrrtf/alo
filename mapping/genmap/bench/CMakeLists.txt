@@ -1,0 +1,2 @@
+add_executable(benchPadAccess benchPadAccess.cxx)
+target_link_libraries(benchPadAccess benchmark::benchmark)

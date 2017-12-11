@@ -17,7 +17,7 @@
 #define O2_MCH_MAPPING_MOTIFPOSITIONTWOPADSIZES_H
 
 #include <vector>
-#include "genMotifType.h"
+#include "motifType.h"
 #include "pad.h"
 #include <ostream>
 #include "motifPosition.h"

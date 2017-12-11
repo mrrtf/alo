@@ -2,7 +2,6 @@
 add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx)
 
 target_sources(mchMappingCodeGenerator PUBLIC jsonReader.h jsonReader.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC detectionElement.h detectionElement.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC codeWriter.h codeWriter.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC chamber.h chamber.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC motifType.h motifType.cxx)

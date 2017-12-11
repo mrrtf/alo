@@ -17,9 +17,8 @@
 #define ALO_JSONMAP_READER_MOTIFTYPE_H
 
 #include <string>
-#include <utility>
 #include "rapidjson/document.h"
 
-std::pair<std::string, std::string> generateCodeForMotifTypes(const rapidjson::Value& motifs);
+std::string generateCodeForMotifTypes(const rapidjson::Value& motifs);
 
 #endif

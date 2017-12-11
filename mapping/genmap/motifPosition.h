@@ -18,7 +18,7 @@
 
 #include "pad.h"
 #include <vector>
-#include "genMotifType.h"
+#include "motifType.h"
 #include "genPadSize.h"
 #include <ostream>
 

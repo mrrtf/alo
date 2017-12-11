@@ -1,12 +1,16 @@
 #ifndef O2_MCH_MAPPING_GENSEGMENTATIONINTERFACE_H
 #define O2_MCH_MAPPING_GENSEGMENTATIONINTERFACE_H
 
-#include "pad.h"
+#include <vector>
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
+///
+/// SegmentationInterface is able to retrieve pad information
+/// (position, sizes, etc...) within a plane of a detection element
+///
 class SegmentationInterface
 {
   public:
@@ -24,27 +28,43 @@ class SegmentationInterface
 
     virtual bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
 
-    virtual std::vector<Pad> getPads(int dualSampaId) const = 0;
+    virtual std::vector<int> getPads(int dualSampaId) const = 0;
+
+    virtual void getPadPosition(int ph, double& x, double& y) const = 0;
+
+    virtual void getPadDimension(int ph, double& dx, double& dy) const = 0;
 
     /* TODO
-    virtual Pad getPad(double x, double y) const = 0
-    virtual Pad getPad(int dualSampaId, int dualSampaChannel) const = 0
-    virtual std::vector<Pad> getPads(Area area) const = 0;
+    virtual int getPad(double x, double y) const = 0
+    virtual int getPad(int dualSampaId, int dualSampaChannel) const = 0
+    virtual std::vector<int> getPads(Area area) const = 0;
      */
 };
 
-int getNumberOfSegmentations();
+/// Get the segmentation for the given plane of a detection element
+std::unique_ptr<SegmentationInterface> getSegmentation(int detElemId, bool isBendingPlane);
 
-std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane);
+/// Return the list of valid detection element ids
+std::vector<int> getDetElemIds();
 
-int getSegTypeIndexFromDetElemIndex(int deIndex);
-
-int getDetElemIdFromDetElemIndex(int deIndex);
-
-int getDetElemIndexFromDetElemId(int deId);
-
-std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane);
-
+/// Return a vector of detection element id
+/// where each detection element corresponds to a different segmentation
+/// Mostly needed by tests.
+inline std::vector<int> getOneDetElemIdPerSegmentation()
+{
+  std::vector<int> des;
+  std::vector<int> segtypes;
+  for (auto deid : getDetElemIds()) {
+    for ( auto bending : {true,false}) {
+      auto seg = getSegmentation(deid, bending);
+      if (std::find(cbegin(segtypes),cend(segtypes),seg->getId())==segtypes.end()) {
+        segtypes.push_back(seg->getId());
+        des.push_back(deid);
+      }
+    }
+  }
+  return des;
+}
 
 } // namespace mapping
 } // namespace mch

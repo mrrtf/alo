@@ -170,7 +170,7 @@ std::string generateCodeForOneSegmentation(int index, bool isBending,
   code << "template<>\n";
   code << "SegmentationImpl0<" << index << "," << bendingString
        << "," << motifpositions.size() << "," << bergToChannelFunctionName(index)
-       << "," << (index ? "MotifPosition":"MotifPositionTwoPadSizes")
+       << "," << (index ? "MotifPosition" : "MotifPositionTwoPadSizes")
        << ">::SegmentationImpl0(const MotifTypeArray& motifTypes)"
        << " : mId(" << index << "),mIsBendingPlane(" << bendingString << "), "
        << "mNofPads{0},"
@@ -197,22 +197,76 @@ std::string
 generateCodeForSegmentationType(int index, const Value &segmentations, const Value &motiftypes,
                                 const Value &padsizes)
 {
-  std::string code = generateCodeForOneSegmentation(index, true, segmentations, motiftypes, padsizes);
-  code += generateCodeForOneSegmentation(index, false, segmentations, motiftypes, padsizes);
+  std::string code;
+  for (auto bending: {true, false}) {
+    code += generateCodeForOneSegmentation(index, bending, segmentations, motiftypes, padsizes);
+  }
   return code;
 }
 
-std::string generateCodeForSegmentationFactory(const Value &segmentations)
+std::string generateCodeForSegTypeArray(const Value &segmentations, const Value &detection_elements)
 {
   std::ostringstream impl;
 
-  impl << R"(#include "segmentationImpl0.h"
-)";
+  impl << "namespace {";
+
+  impl << "\n  std::array<int," << detection_elements.Size() << "> segtype{";
+
+  for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
+    const auto &de = detection_elements.GetArray()[ide];
+    for (int i = 0; i < segmentations.Size(); ++i) {
+      const auto &seg = segmentations.GetArray()[i];
+      if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
+        impl << i;
+        if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }
+        break;
+      }
+    }
+  }
+
+  impl << "};\n}";
+
+  return impl.str();
+}
+
+std::string generateCodeForDetectionElements(const rapidjson::Value &detection_elements)
+{
+  assert(detection_elements.IsArray());
+  std::vector<int> deids;
+  for (const auto &de: detection_elements.GetArray()) {
+    assert(de.IsObject());
+    assert(de["id"].IsInt());
+    deids.push_back(de["id"].GetInt());
+  }
+
+  std::ostringstream impl;
+
+  std::sort(deids.begin(), deids.end());
+
+  impl << "std::vector<int> getDetElemIds() { \n";
+  impl << "return {\n";
+  for (auto i = 0; i < deids.size(); ++i) {
+    impl << deids[i];
+    if (i < deids.size() - 1) { impl << ","; }
+  }
+  impl << "};\n}\n";
+  return impl.str();
+}
+
+std::string generateCodeForSegmentationFactory(const Value &segmentations, const Value &detection_elements)
+{
+  std::ostringstream impl;
+
+  impl << generateInclude({"array", "iterator", "stdexcept", "vector"});
+
   impl << mappingNamespaceBegin();
 
+  impl << generateCodeForDetectionElements(detection_elements);
+
+  impl << generateCodeForSegTypeArray(segmentations, detection_elements);
+
   impl << R"(
-  int getNumberOfSegmentations() {return 21;}
-  std::unique_ptr<SegmentationInterface> getSegmentation(int type, bool isBendingPlane) {
+  std::unique_ptr<SegmentationInterface> getSegmentationByType(int type, bool isBendingPlane) {
 )";
 
   for (int i = 0; i < 21; ++i) {
@@ -264,7 +318,8 @@ std::string generateCodeForBerg2Manu(const Value &bergs, int id)
 
 void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
                                   const Value &padsizes,
-                                  const Value &bergs)
+                                  const Value &bergs,
+                                  const Value &detection_elements)
 {
   std::string decl;
   decl += "\n";
@@ -274,52 +329,10 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
   for (int i = 0; i < segmentations.GetArray().Size(); ++i) {
     decl += generateCodeForSegmentationType(i, segmentations, motiftypes, padsizes);
   }
-  outputCode(decl, "", "genSegmentationImpl0");
-
-  outputCode("", generateCodeForSegmentationFactory(segmentations), "genSegmentationFactory");
+  bool includeGuards{true};
+  bool standalone{true};
+  outputCode(decl, "", "genSegmentationImpl0", !includeGuards, standalone);
+  outputCode("", generateCodeForSegmentationFactory(segmentations, detection_elements), "genSegmentationFactory",
+             includeGuards, !standalone);
 }
 
-void generateCodeForDESegmentationFactory(const Value &segmentations, const Value &detection_elements)
-{
-  std::ostringstream impl;
-
-  impl << R"(
-#include "genSegmentationFactory.h"
-#include <array>
-)";
-  impl << mappingNamespaceBegin();
-
-  impl << R"(
-int getSegTypeIndexFromDetElemIndex(int deIndex) {
-)";
-
-  impl << "\n  static std::array<int," << detection_elements.Size() << "> segtype{";
-
-  for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
-    const auto &de = detection_elements.GetArray()[ide];
-    for (int i = 0; i < segmentations.Size(); ++i) {
-      const auto &seg = segmentations.GetArray()[i];
-      if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
-        impl << i;
-        if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }
-        break;
-      }
-    }
-  }
-
-  impl << "};\n";
-
-  impl << R"(
-    if (deIndex >= segtype.size()) throw std::out_of_range("deIndex is incorrect");
-    return segtype[deIndex];
-  }
-
-  std::unique_ptr<SegmentationInterface> getDESegmentation(int deIndex, bool isBendingPlane) {
-      return getSegmentation(getSegTypeIndexFromDetElemIndex(deIndex),isBendingPlane);
-  }
-)";
-
-  impl << mappingNamespaceEnd();
-
-  outputCode("", impl.str(), "genDESegmentationFactory");
-}

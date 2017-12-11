@@ -12,7 +12,6 @@
 #include "boost/program_options.hpp"
 #include "chamber.h"
 #include "codeWriter.h"
-#include "detectionElement.h"
 #include "jsonReader.h"
 #include "motifType.h"
 #include "padSize.h"
@@ -84,15 +83,10 @@ int main(int argc, char *argv[])
     readChambers(documents["chambers"]->document());
   }
 
-  if (documents.count("detection_elements")) {
-    Document &deDocument = documents["detection_elements"]->document();
-    outputCode("", generateCodeForDetectionElements(deDocument["detection_elements"]), "genDetectionElement");
-  }
-
   if (documents.count("motiftypes")) {
     Document &doc = documents["motiftypes"]->document();
-    std::pair<std::string, std::string> code = generateCodeForMotifTypes(doc["motiftypes"]);
-    outputCode(code.first, code.second, "genMotifType");
+    auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
+    outputCode("", impl, "genMotifType");
   }
 
   if (documents.count("padsizes")) {
@@ -102,22 +96,22 @@ int main(int argc, char *argv[])
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
-      && documents.count("bergs")) {
+      && documents.count("bergs") && documents.count("detection_elements")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
     Document &bergs = documents["bergs"]->document();
+    Document &detection_elements = documents["detection_elements"]->document();
     generateCodeForSegmentations(segmentations["segmentations"],
                                  motiftypes["motiftypes"],
                                  padsizes["padsizes"],
-                                 bergs["bergs"]);
+                                 bergs["bergs"],
+                                 detection_elements["detection_elements"]);
   }
 
-  if (documents.count("segmentations") && documents.count("detection_elements")) {
-    Document &segmentations = documents["segmentations"]->document();
-    Document &detection_elements = documents["detection_elements"]->document();
-    generateCodeForDESegmentationFactory(segmentations["segmentations"],detection_elements["detection_elements"]);
-  }
+//    generateCodeForDESegmentationFactory(segmentations["segmentations"],detection_elements["detection_elements"]);
+//    outputCode("", generateCodeForDetectionElements(deDocument["detection_elements"]), "genDetectionElement");
+
   return 0;
 }
 
