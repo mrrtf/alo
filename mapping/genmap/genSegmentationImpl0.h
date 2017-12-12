@@ -1,3 +1,7 @@
+//
+// This file has been generated. Do not modify it by hand or your changes might be lost.
+//
+
 int berg80ToManu(int berg) {
   if (berg==2) return 15;
   if (berg==3) return 14;
@@ -2614,4 +2618,3 @@ SegmentationImpl0<20,false,16,berg100ToManu,MotifPosition>::SegmentationImpl0(co
 {  populatePads(motifTypes);
   createContours(motifTypes);
 }
-

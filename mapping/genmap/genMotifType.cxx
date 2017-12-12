@@ -1,11 +1,14 @@
+//
+// This file has been generated. Do not modify it by hand or your changes might be lost.
+//
+// This implementation file cannot be used standalone, i.e. it is intended to be included
+// into another implementation file.
+//
 #include "motifType.h"
 
-namespace o2
-{
-namespace mch
-{
-namespace mapping
-{
+namespace o2 {
+namespace mch {
+namespace mapping {
 MotifTypeArray arrayOfMotifTypes{
 /* index: 0 */ /* 1BA */  MotifType(
   std::array<int,64>{49, 7, 5, 2,48,45,42,43, 8, 4,44, 3, 9,46, 6,47,51,11,52,50,55,54,14,12,17,57,21,53,63,23,64,15,67,27,29,62,31,72,32,24,73,35,74,68,76,36,33,71,10,13,16,56,61,66,69,30,75,22,25,65,70,34,26,28},
