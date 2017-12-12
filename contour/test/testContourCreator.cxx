@@ -153,16 +153,16 @@ BOOST_AUTO_TEST_CASE(GetVertexFromVertical)
 {
   VerticalEdge<int> e{12, 20, 100};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<int>(12, 20));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<int>(12, 100));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<int>{ 12, 20 }));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<int>{ 12, 100 }));
 }
 
 BOOST_AUTO_TEST_CASE(GetVertexFromHorizontal)
 {
   HorizontalEdge<int> e{12, 20, 100};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<int>(20, 12));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<int>(100, 12));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<int>{ 20, 12 }));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<int>{ 100, 12 }));
 }
 
 BOOST_AUTO_TEST_CASE(FinalizeContourThrowsIfNumberOfVerticalsDifferFromNumberOfHorizontals)
