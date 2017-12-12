@@ -27,7 +27,7 @@ include(CMakeALICE)
 set(CMAKE_CXX_STANDARD 14)
 
 find_package(Boost COMPONENTS REQUIRED unit_test_framework)
-enable_testing()
+include(CTest)
 
 find_package(RapidJSON)
 if (RAPIDJSON_FOUND)

@@ -19,7 +19,9 @@ target_link_libraries(genmap PUBLIC mapping_interface contour Boost::boost)
 
 install(TARGETS genmap ARCHIVE DESTINATION lib)
 
-add_subdirectory(test)
+if (BUILD_TESTING)
+    add_subdirectory(test)
+endif ()
 
 find_package(benchmark)
 if (benchmark_FOUND)

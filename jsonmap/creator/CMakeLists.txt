@@ -1,5 +1,4 @@
-
-add_library(mchjsoncreator STATIC
+add_library(mchjsoncreator SHARED
         berg2json.h
         bp.cxx
         bp2json.h
@@ -44,5 +43,6 @@ target_include_directories(mchjsoncreator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS mch-mapping-convert-to-json RUNTIME DESTINATION bin)
 
-add_subdirectory(test)
-
+if (BUILD_TESTING)
+    add_subdirectory(test)
+endif ()
