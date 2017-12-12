@@ -16,28 +16,18 @@
 #include <sstream>
 #include "codeWriter.h"
 
-std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Value& padsizes)
+std::string generateCodeForPadSizes(const rapidjson::Value& padsizes)
 {
   assert(padsizes.IsArray());
 
-  std::ostringstream decl;
-
-  std::ostringstream returnType;
-
-
-  decl << "#include <array>\n";
-  decl << "#include <utility>\n";
-  decl << mappingNamespaceBegin();
-  decl << "using PadSizeArray = std::array<std::pair<float,float>," << padsizes.Size() << ">;\n";
-  decl << "extern PadSizeArray arrayOfPadSizes;\n";
-  decl << "inline double padSizeX(int i) { return arrayOfPadSizes[i].first; }\n";
-  decl << "inline double padSizeY(int i) { return arrayOfPadSizes[i].second; }\n";
-  decl << mappingNamespaceEnd();
-
   std::ostringstream impl;
 
+  impl << generateInclude({"padSize.h","utility","array"});
+
   impl << mappingNamespaceBegin();
-  impl << "PadSizeArray arrayOfPadSizes {\n";
+  impl << R"(namespace {
+std::array<std::pair<float, float>, 18> arrayOfPadSizes{
+)";
   int n{0};
   for (auto& ps: padsizes.GetArray()) {
     impl << "/* " << n << " */ std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << "," << static_cast<float>(ps["y"].GetDouble()) << ")";
@@ -46,9 +36,17 @@ std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Val
     impl << "\n";
   }
 
-  impl << "};\n";
+  impl << R"(
+};
+}
+double padSizeX(int i)
+{ return arrayOfPadSizes[i].first; }
+
+double padSizeY(int i)
+{ return arrayOfPadSizes[i].second; }
+)";
   impl << mappingNamespaceEnd();
 
-  return std::make_pair<std::string,std::string>(decl.str(),impl.str());
+  return impl.str();
 
 }

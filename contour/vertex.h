@@ -27,9 +27,6 @@ namespace contour {
 template<typename T>
 struct Vertex
 {
-    Vertex(T abscissa, T ordinate) : x(abscissa), y(ordinate)
-    {}
-
     T x;
     T y;
 };

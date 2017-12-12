@@ -50,21 +50,7 @@ std::vector<int> getDetElemIds();
 /// Return a vector of detection element id
 /// where each detection element corresponds to a different segmentation
 /// Mostly needed by tests.
-inline std::vector<int> getOneDetElemIdPerSegmentation()
-{
-  std::vector<int> des;
-  std::vector<int> segtypes;
-  for (auto deid : getDetElemIds()) {
-    for ( auto bending : {true,false}) {
-      auto seg = getSegmentation(deid, bending);
-      if (std::find(cbegin(segtypes),cend(segtypes),seg->getId())==segtypes.end()) {
-        segtypes.push_back(seg->getId());
-        des.push_back(deid);
-      }
-    }
-  }
-  return des;
-}
+std::vector<int> getOneDetElemIdPerSegmentation();
 
 } // namespace mapping
 } // namespace mch

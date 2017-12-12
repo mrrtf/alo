@@ -84,22 +84,20 @@ class SegmentationImpl0 : public SegmentationInterface
 
     void getPadPosition(int ph, double &x, double &y) const override
     {
-      if ( ph < mPads.size() ) {
+      if (ph < mPads.size()) {
         x = mPads[ph].positionX();
         y = mPads[ph].positionY();
-      }
-      else {
+      } else {
         throw std::range_error("incorrect pad handle");
       }
     }
 
     void getPadDimension(int ph, double &dx, double &dy) const override
     {
-      if ( ph < mPads.size() ) {
+      if (ph < mPads.size()) {
         dx = mPads[ph].dimensionX();
         dy = mPads[ph].dimensionY();
-      }
-      else {
+      } else {
         throw std::range_error("incorrect pad handle");
       }
     }
@@ -143,10 +141,6 @@ class SegmentationImpl0 : public SegmentationInterface
     {
       mFEContours = o2::mch::mapping::createMotifPositionContours<MOTIFPOSITION, NFEC>(mMotifPositions, motifTypes);
       mZones = o2::mch::mapping::createZones<MOTIFPOSITION, NFEC>(mMotifPositions, motifTypes);
-//      std::cout << boost::format("SEG %2d Bending %d nof zones %d\n") % mId % mIsBendingPlane % mZones.size();
-//      for (auto& z: mZones) {
-//        std::cout << z << "\n";
-//      }
     }
 
     int mId;
@@ -159,6 +153,7 @@ class SegmentationImpl0 : public SegmentationInterface
 };
 
 #include "genSegmentationImpl0.h"
+
 
 }}}
 

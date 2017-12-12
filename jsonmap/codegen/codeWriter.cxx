@@ -15,7 +15,7 @@
 
 std::string mappingNamespaceBegin()
 {
-  return "\nnamespace o2\n{\nnamespace mch\n{\nnamespace mapping\n{\n";
+  return "\nnamespace o2 {\nnamespace mch {\nnamespace mapping {\n";
 }
 
 std::string mappingNamespaceEnd()

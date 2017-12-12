@@ -138,6 +138,32 @@ BOOST_AUTO_TEST_CASE(NofBendingFEC)
   BOOST_CHECK_EQUAL(getSegmentation(905, true)->nofDualSampas(), 20);
 }
 
+BOOST_AUTO_TEST_CASE(CountPadsInSegmentations) {
+  int n{0};
+  for (auto detElemId : getOneDetElemIdPerSegmentation()) {
+    for (auto plane : {true, false}) {
+      auto seg = getSegmentation(detElemId, plane);
+      for (int i = 0; i < seg->nofDualSampas(); ++i) {
+        auto pads = seg->getPads(seg->getSampaId(i));
+        n += pads.size();
+      }
+    }
+  }
+  BOOST_CHECK_EQUAL(n,143469);
+}
+
+BOOST_AUTO_TEST_CASE(LoopOnSegmentations) {
+  int n{0};
+  auto des{getOneDetElemIdPerSegmentation()};
+  for (auto detElemId : des) {
+    for (auto plane : {true, false}) {
+      auto seg = getSegmentation(detElemId, plane);
+      ++n;
+    }
+  }
+  BOOST_CHECK_EQUAL(n,42);
+}
+
 BOOST_AUTO_TEST_CASE(DualSampasWithLessThan64Pads)
 {
   std::map<int, int> non64;

@@ -92,13 +92,6 @@ createZones(const std::array<MOTIFPOSITION, N> &motifPositions, const MotifTypeA
   return zones;
 }
 
-//template<typename MOTIFPOSITION>
-//struct Zone
-//{
-//    o2::mch::contour::Contour<double> envelop;
-//    std::vector<o2::mch::contour::Contour<double>> contours;
-//    std::vector<MOTIFPOSITION> motifPositions;
-//};
 }
 }
 }

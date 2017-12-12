@@ -19,7 +19,7 @@
 #include "pad.h"
 #include <vector>
 #include "motifType.h"
-#include "genPadSize.h"
+#include "padSize.h"
 #include <ostream>
 
 namespace o2 {
@@ -62,6 +62,7 @@ class MotifPosition
     {
       const double eps{1E-4}; // artificially increase pad size by 1micron to avoid gaps between motifpositions
       std::vector<Pad> pads;
+      pads.reserve(mt.getNofPads());
       double padsizex{o2::mch::mapping::padSizeX(mPadSizeId)};
       double padsizey{o2::mch::mapping::padSizeY(mPadSizeId)};
       for (int i = 0; i < mt.getNofPads(); ++i) {

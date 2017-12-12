@@ -91,8 +91,7 @@ int main(int argc, char *argv[])
 
   if (documents.count("padsizes")) {
     Document &doc = documents["padsizes"]->document();
-    std::pair<std::string, std::string> code = generateCodeForPadSizes(doc["padsizes"]);
-    outputCode(code.first, code.second, "genPadSize");
+    outputCode("", generateCodeForPadSizes(doc["padsizes"]), "genPadSize");
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
