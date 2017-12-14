@@ -9,11 +9,12 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
+
 #include "boost/program_options.hpp"
 #include "chamber.h"
 #include "codeWriter.h"
-#include "detectionElement.h"
 #include "jsonReader.h"
+#include "motifPosition.h"
 #include "motifType.h"
 #include "padSize.h"
 #include "rapidjson/document.h"
@@ -84,41 +85,42 @@ int main(int argc, char *argv[])
     readChambers(documents["chambers"]->document());
   }
 
-  if (documents.count("detection_elements")) {
-    Document &deDocument = documents["detection_elements"]->document();
-    std::pair<std::string, std::string> code = generateCodeForDetectionElements(deDocument["detection_elements"]);
-    outputCode(code.first, code.second, "genDetectionElement");
-  }
-
   if (documents.count("motiftypes")) {
     Document &doc = documents["motiftypes"]->document();
-    std::pair<std::string, std::string> code = generateCodeForMotifTypes(doc["motiftypes"]);
-    outputCode(code.first, code.second, "genMotifType");
+    auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
+    outputCode("", impl, "genMotifType");
   }
 
   if (documents.count("padsizes")) {
     Document &doc = documents["padsizes"]->document();
-    std::pair<std::string, std::string> code = generateCodeForPadSizes(doc["padsizes"]);
-    outputCode(code.first, code.second, "genPadSize");
+    outputCode("", generateCodeForPadSizes(doc["padsizes"]), "genPadSize");
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
-      && documents.count("bergs")) {
+      && documents.count("detection_elements")) {
+    Document &segmentations = documents["segmentations"]->document();
+    Document &motiftypes = documents["motiftypes"]->document();
+    Document &padsizes = documents["padsizes"]->document();
+    Document &detection_elements = documents["detection_elements"]->document();
+    generateCodeForSegmentations(segmentations["segmentations"],
+                                 motiftypes["motiftypes"],
+                                 padsizes["padsizes"],
+                                 detection_elements["detection_elements"]);
+  }
+
+  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&
+      documents.count("bergs")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
     Document &bergs = documents["bergs"]->document();
-    generateCodeForSegmentations(segmentations["segmentations"],
-                                 motiftypes["motiftypes"],
-                                 padsizes["padsizes"],
-                                 bergs["bergs"]);
+    generateCodeForMotifPositions(segmentations["segmentations"],
+                                  motiftypes["motiftypes"],
+                                  padsizes["padsizes"],
+                                  bergs["bergs"]
+    );
   }
 
-  if (documents.count("segmentations") && documents.count("detection_elements")) {
-    Document &segmentations = documents["segmentations"]->document();
-    Document &detection_elements = documents["detection_elements"]->document();
-    generateCodeForDESegmentationFactory(segmentations["segmentations"],detection_elements["detection_elements"]);
-  }
   return 0;
 }
 

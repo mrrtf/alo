@@ -14,9 +14,16 @@
 #include <string>
 
 std::string mappingNamespaceBegin();
+
 std::string mappingNamespaceEnd();
-void outputCode(const std::string& decl,
-                const std::string& impl,
-                const std::string& outputFileName);
+
+void outputCode(const std::string decl,
+                const std::string impl,
+                const std::string outputFileName,
+                bool withIncludeGuards=true,
+                bool standalone=false,
+                const std::string includeFileNameIfDifferentFromImplementation="");
+
+std::string generateInclude(std::initializer_list<std::string> list);
 
 #endif

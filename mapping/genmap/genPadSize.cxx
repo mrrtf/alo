@@ -1,12 +1,18 @@
-#include "genPadSize.h"
+//
+// This file has been generated. Do not modify it by hand or your changes might be lost.
+//
+// This implementation file cannot be used standalone, i.e. it is intended to be included
+// into another implementation file.
+//
+#include "padSize.h"
+#include <utility>
+#include <array>
 
-namespace o2
-{
-namespace mch
-{
-namespace mapping
-{
-PadSizeArray arrayOfPadSizes {
+namespace o2 {
+namespace mch {
+namespace mapping {
+namespace {
+std::array<std::pair<float, float>, 18> arrayOfPadSizes{
 /* 0 */ std::make_pair<float,float>(0.63,0.42),
 /* 1 */ std::make_pair<float,float>(0.84,0.42),
 /* 2 */ std::make_pair<float,float>(0.75,0.5),
@@ -25,7 +31,14 @@ PadSizeArray arrayOfPadSizes {
 /* 15 */ std::make_pair<float,float>(0.714286,5),
 /* 16 */ std::make_pair<float,float>(10,0.5),
 /* 17 */ std::make_pair<float,float>(0.714286,10)
+
 };
+}
+double padSizeX(int i)
+{ return arrayOfPadSizes[i].first; }
+
+double padSizeY(int i)
+{ return arrayOfPadSizes[i].second; }
 
 } // namespace mapping
 } // namespace mch

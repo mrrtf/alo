@@ -1,5 +1,4 @@
-
-set(SOURCE_FILES
+add_library(mchjsoncreator SHARED
         berg2json.h
         bp.cxx
         bp2json.h
@@ -30,18 +29,20 @@ set(SOURCE_FILES
         sector2json.h
         seg.cxx
         seg2json.h
+        segnumbers.h
+        segnumbers.cxx
         slat2json.h
         )
-add_library(mchjsoncreator STATIC ${SOURCE_FILES})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
 
-target_link_libraries(mchjsoncreator MUONmapping STEERBase Core MUONgraphics)
+target_link_libraries(mchjsoncreator PUBLIC MUONmapping STEERBase ROOT::Core MUONgraphics RapidJSON)
 target_link_libraries(mch-mapping-convert-to-json mchjsoncreator)
 
-target_include_directories(mchjsoncreator PUBLIC ${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS})
+target_include_directories(mchjsoncreator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS mch-mapping-convert-to-json RUNTIME DESTINATION bin)
 
-add_subdirectory(test)
-
+if (BUILD_TESTING)
+    add_subdirectory(test)
+endif ()

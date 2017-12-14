@@ -13,19 +13,24 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_SVG_SEGMENTATIONINTERFACE_H
-#define O2_MCH_SVG_SEGMENTATIONINTERFACE_H
+#ifndef O2_MCH_MAPPING_SEGMENTATIONFACTORY_H
+#define O2_MCH_MAPPING_SEGMENTATIONFACTORY_H
 
 #include "segmentationInterface.h"
-#include "contour.h"
-#include <vector>
 
 namespace o2 {
 namespace mch {
-namespace svg {
+namespace mapping {
 
-void writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &seg, const char *filename, double x,
-                                double y);
+int getSegTypeIndexFromDetElemIndex(int deIndex);
+
+int getDetElemIdFromDetElemIndex(int deIndex);
+
+int getDetElemIndexFromDetElemId(int deId);
+
+std::unique_ptr<SegmentationInterface> getSegmentationByDetElemIndex(int deIndex, bool isBendingPlane);
+
+std::unique_ptr<SegmentationInterface> getSegmentationByType(int segtype, bool isBendingPlane);
 
 }
 }

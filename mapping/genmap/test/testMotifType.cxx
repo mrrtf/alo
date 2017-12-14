@@ -17,7 +17,7 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
-#include "genMotifType.h"
+#include "motifType.h"
 #include <array>
 #include <limits>
 

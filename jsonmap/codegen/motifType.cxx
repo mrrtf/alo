@@ -75,70 +75,14 @@ void generateCode(const Value& motif, std::ostringstream& code)
 }
 
 
-std::pair<std::string, std::string> generateCodeForMotifTypes(const rapidjson::Value& motifs)
+std::string generateCodeForMotifTypes(const rapidjson::Value& motifs)
 {
   assert(motifs.IsArray());
 
-  std::ostringstream decl, impl;
-
-  decl << "#include <array>\n";
-  decl << "#include <algorithm>\n";
-  decl << "#include <iostream>\n";
-  decl << "#include <vector>\n";
-  decl << "#include <array>\n";
-
-  decl << mappingNamespaceBegin();
-  decl << R"(
-class MotifType {
-  public:
-    MotifType(const std::array<int,64>& berg, const std::array<int,64>& ix, const std::array<int,64>& iy, int nofPads) :
-      mBerg(berg), mIx(ix), mIy(iy), mNofPads(nofPads) {}
-    int getNofPads() const { return mNofPads; }
-    int getNofPadsX() const {
-      auto result = std::minmax_element(begin(mIx),end(mIx));
-      return 1+*result.second - *result.first;
-    }
-    int getNofPadsY() const {
-      auto result = std::minmax_element(begin(mIy), end(mIy));
-      return 1+*result.second - *result.first;
-    }
-    int getBerg(int i) const { return mBerg[i]; }
-    int getIx(int i) const { return mIx[i]; }
-    int getIy(int i) const { return mIy[i]; }
-
-    /// Return the index of the pad with connector number = berg
-    /// or -1 if not found
-    int padIdByBerg(int berg) const { int r = std::distance(begin(mBerg),std::find(begin(mBerg),end(mBerg),berg)); if (r<getNofPads()) return r; else return -1; }
-
-    bool hasPadByBerg(int berg) const { int f = padIdByBerg(berg); return f>=0 && f < getNofPads(); }
-
-    /// Return the index of the pad with indices = (ix,iy)
-    /// or -1 if not found
-    int padIdByIndices(int ix, int iy) const {
-      for ( auto i = 0; i < mNofPads; ++i ) {
-        if (mIx[i]==ix && mIy[i]==iy) {
-          return i;
-        }
-      }
-      return -1;
-    }
-
-    bool hasPadByIndices(int ix, int iy) const { int f = padIdByIndices(ix,iy); return f>=0 && f < getNofPads(); }
-
-  private:
-   std::array<int,64> mBerg;
-   std::array<int,64> mIx;
-   std::array<int,64> mIy;
-   int mNofPads;
-};
-
-using MotifTypeArray = std::array<MotifType,)";
-  decl << motifs.Size() << ">;\n";
-  decl << "extern MotifTypeArray arrayOfMotifTypes;\n";
-  decl << mappingNamespaceEnd();
+  std::ostringstream impl;
 
   int n{0};
-  //impl << "#include \"" << filename << ".h\"\n";
+  impl << generateInclude({"motifType.h"});
   impl << mappingNamespaceBegin();
   impl << "MotifTypeArray arrayOfMotifTypes{\n";
   for (const auto& motifType: motifs.GetArray()) {
@@ -151,5 +95,5 @@ using MotifTypeArray = std::array<MotifType,)";
   impl << "\n};\n";
   impl << mappingNamespaceEnd();
 
-  return std::make_pair<std::string, std::string>(decl.str(), impl.str());
+  return impl.str();
 };

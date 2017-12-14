@@ -13,12 +13,22 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_MOTIFTYPE_H
-#define ALO_JSONMAP_READER_MOTIFTYPE_H
+#ifndef O2_MCH_MAPPING_SEGMENTATIONCONTOURS_H
+#define O2_MCH_MAPPING_SEGMENTATIONCONTOURS_H
 
-#include <string>
-#include "rapidjson/document.h"
+#include <vector>
+#include "contour.h"
 
-std::string generateCodeForMotifTypes(const rapidjson::Value& motifs);
+namespace o2 {
+namespace mch {
+namespace mapping {
+
+class SegmentationInterface;
+
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::SegmentationInterface &seg);
+
+}
+}
+}
 
 #endif

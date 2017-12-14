@@ -12,22 +12,25 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include "genSegmentationInterface.h"
+#include "segmentationInterface.h"
 #include <fstream>
+#include <contourCreator.h>
+#include <segmentationContours.h>
 #include "svgContour.h"
 
 namespace o2 {
-namespace mch  {
+namespace mch {
 namespace svg {
 
-void writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &seg, const char *filename, double x, double y)
+void
+writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &seg, const char *filename, double x, double y)
 {
-  auto contours = seg.getSampaContours();
+  auto contours = o2::mch::mapping::getSampaContours(seg);
 
   std::ofstream out(filename);
   int scale = 10;
   out << "<html><body>\n";
-  auto env = seg.getEnvelop();
+  auto env = o2::mch::contour::getEnvelop(contours);
   auto box = getBBox(env);
 
   x -= box.xmin();
@@ -41,7 +44,6 @@ void writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &s
     writeContour(out, scale, c, box);
     if (c.contains(x, y)) {
       writeContour(out, scale, c, box, "fill:#aaaaaa;stroke:none");
-      writeContour(out, scale, seg.getSampaPads(i), box, "fill:yellow;stroke:blue");
     }
   }
 
@@ -55,4 +57,6 @@ void writeSegmentationInterface(const o2::mch::mapping::SegmentationInterface &s
   out << "</body></html>\n";
 }
 
-}}}
+}
+}
+}

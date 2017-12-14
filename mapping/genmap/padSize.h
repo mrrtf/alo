@@ -8,13 +8,24 @@
 // In applying this license CERN does not waive the privileges and immunities
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
-#ifndef ALO_JSONMAP_READER_DETECTIONELEMENT_H
-#define ALO_JSONMAP_READER_DETECTIONELEMENT_H
 
-#include <utility>
-#include <string>
-#include "rapidjson/document.h"
+///
+/// @author  Laurent Aphecetche
 
-std::pair<std::string, std::string> generateCodeForDetectionElements(const rapidjson::Value& des);
+
+#ifndef O2_MCH_MAPPING_PADSIZE_H
+#define O2_MCH_MAPPING_PADSIZE_H
+
+namespace o2 {
+namespace mch {
+namespace mapping {
+
+double padSizeX(int i);
+
+double padSizeY(int i);
+
+} // namespace mapping
+} // namespace mch
+} // namespace o2
 
 #endif

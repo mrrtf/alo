@@ -26,7 +26,7 @@
 #include "seg.h"
 #include "seg2json.h"
 #include <cstdlib>
-#include <jsonmap/creator/test/segnumbers.h>
+#include "segnumbers.h"
 #include <utility>
 
 void convert_berg(std::string key)
