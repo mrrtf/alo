@@ -17,8 +17,9 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
+#include <array>
 #include <vector>
-#include "segmentationFactory.cxx"
+#include "segmentationFactory.h"
 
 using namespace o2::mch::mapping;
 
@@ -27,15 +28,27 @@ BOOST_AUTO_TEST_SUITE(detection_element)
 
 BOOST_AUTO_TEST_CASE(GetDetElemIdFromDetElemIndexShouldThrowForInvalidIndex)
 {
-  BOOST_CHECK_THROW(getDetElemIdFromDetElemIndex(-1),std::out_of_range);
-  BOOST_CHECK_THROW(getDetElemIdFromDetElemIndex(156),std::out_of_range);
+  BOOST_CHECK_THROW(getDetElemIdFromDetElemIndex(-1), std::out_of_range);
+  BOOST_CHECK_THROW(getDetElemIdFromDetElemIndex(156), std::out_of_range);
   BOOST_CHECK_NO_THROW(getDetElemIdFromDetElemIndex(15));
 }
 
-BOOST_DATA_TEST_CASE(CircularTest,boost::unit_test::data::xrange(0,156),deIndex)
+BOOST_DATA_TEST_CASE(SegTypeByDetElemIndex, boost::unit_test::data::xrange(0, 156), deIndex)
+{
+  std::array<int, 156> segtype{
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 5, 4, 3, 2, 3, 4, 5, 6, 6, 5, 4, 3, 7, 8, 9, 5, 6,
+    6, 5, 9, 8, 7, 8, 9, 5, 6, 6, 5, 9, 8, 10, 11, 12, 13, 14, 15, 16, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15,
+    16, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15, 16, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15, 16, 16, 15,
+    14, 13, 12, 11, 10, 11, 17, 18, 19, 20, 15, 15, 20, 19, 18, 17, 11, 10, 11, 17, 18, 19, 20, 15, 15, 20, 19, 18, 17,
+    11, 10, 11, 17, 18, 19, 20, 15, 15, 20, 19, 18, 17, 11, 10, 11, 17, 18, 19, 20, 15, 15, 20, 19, 18, 17, 11
+  };
+  BOOST_TEST(getSegTypeIndexFromDetElemIndex(deIndex) == segtype[deIndex]);
+}
+
+BOOST_DATA_TEST_CASE(CircularTest, boost::unit_test::data::xrange(0, 156), deIndex)
 {
   int deId = getDetElemIdFromDetElemIndex(deIndex);
-  BOOST_TEST(deIndex==getDetElemIndexFromDetElemId(deId));
+  BOOST_TEST(deIndex == getDetElemIndexFromDetElemId(deId));
 }
 
 BOOST_AUTO_TEST_CASE(SegmentationByDetElemIdThrowsIfDEIndexIsIncorrect)
@@ -45,14 +58,8 @@ BOOST_AUTO_TEST_CASE(SegmentationByDetElemIdThrowsIfDEIndexIsIncorrect)
   BOOST_CHECK_NO_THROW(getSegmentationByDetElemIndex(16, true));
 }
 
-BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
+BOOST_AUTO_TEST_CASE(GetOneDetElemIdPerSegmentation)
 {
-  BOOST_CHECK_THROW(getSegmentationByType(-1, true), std::out_of_range);
-  BOOST_CHECK_THROW(getSegmentationByType(21, true), std::out_of_range);
-  BOOST_CHECK_NO_THROW(getSegmentationByType(2, true));
-}
-
-BOOST_AUTO_TEST_CASE(GetOneDetElemIdPerSegmentation) {
 
   std::vector<int>
     firstDetElemIdOfEachSegmentationType{
@@ -61,8 +68,22 @@ BOOST_AUTO_TEST_CASE(GetOneDetElemIdPerSegmentation) {
   };
 
   auto deids = getOneDetElemIdPerSegmentation();
-  BOOST_TEST(deids==firstDetElemIdOfEachSegmentationType);
+  BOOST_TEST(deids == firstDetElemIdOfEachSegmentationType);
 }
+
+BOOST_AUTO_TEST_CASE(GetSegmentationByTypeThrowsIfTypeIsNotBetween0and20)
+{
+  BOOST_CHECK_THROW(getSegmentationByType(-1, true), std::out_of_range);
+  BOOST_CHECK_THROW(getSegmentationByType(21, true), std::out_of_range);
+}
+
+BOOST_DATA_TEST_CASE(GetSegmentationByTypeMustNotThrowIfTypeIsBetween0and20, boost::unit_test::data::xrange(0, 21), segtype)
+{
+  for (auto bending: {true,false}) {
+    BOOST_CHECK_NO_THROW(getSegmentationByType(segtype, bending));
+  }
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

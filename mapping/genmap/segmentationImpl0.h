@@ -2,13 +2,12 @@
 #define O2_MCH_MAPPING_SEGMENTATIONIMPL0_H
 
 #include "contourCreator.h"
-#include "motifType.h"
-#include "segmentationInterface.h"
 #include "motifPosition.h"
 #include "motifPositionContours.h"
-#include "motifPositionTwoPadSizes.h"
+#include "motifType.h"
 #include "pad.h"
 #include "segmentationContours.h"
+#include "segmentationInterface.h"
 #include "zone.h"
 #include <algorithm>
 #include <array>
@@ -23,13 +22,20 @@ namespace o2 {
 namespace mch {
 namespace mapping {
 
-template<int SEGID, bool BENDINGPLANE, int NFEC, int (*berg2channel)(int), typename MOTIFPOSITION>
+template<int SEGID, bool BENDINGPLANE>
 class SegmentationImpl0 : public SegmentationInterface
 {
   public:
-    SegmentationImpl0(const MotifTypeArray &motifTypes)
-    { throw std::out_of_range("Invalid segmentation initialization. Only specific specializations are allowed."); }
-
+    using MOTIFPOSITION = typename MotifPositionTrait<SEGID,BENDINGPLANE>::type;
+    static const int NFEC{MotifPositionTrait<SEGID,BENDINGPLANE>::value};
+    int (*berg2channel)(int) = MotifPositionTrait<SEGID,BENDINGPLANE>::func;
+    
+    SegmentationImpl0(const MotifTypeArray &motifTypes) : mId(SEGID),mIsBendingPlane(BENDINGPLANE), mNofPads{0}, mMotifPositions(getMotifPositions<SEGID,BENDINGPLANE>())
+    {
+      populatePads(motifTypes);
+      createContours(motifTypes);
+    }
+    
     int getId() const override
     { return mId; }
 
@@ -121,7 +127,7 @@ class SegmentationImpl0 : public SegmentationInterface
       const MotifType &mt = motifTypes[mp.motifTypeId()];
       auto pads = o2::mch::mapping::getPads(mp, mt);
       for (auto i = 0; i < pads.size(); ++i) {
-        int fecChannel = berg2channel(mt.getBerg(i));
+        int fecChannel = (*berg2channel)(mt.getBerg(i));
         int padIndex = index * 64 + fecChannel;
         mPads[padIndex] = pads[i];
       }
@@ -147,13 +153,10 @@ class SegmentationImpl0 : public SegmentationInterface
     bool mIsBendingPlane;
     int mNofPads;
     std::array<Pad, NFEC * 64> mPads;
-    std::array<MOTIFPOSITION, NFEC> mMotifPositions;
+    typename MotifPositionTrait<SEGID,BENDINGPLANE>::array_type mMotifPositions;
     std::vector<Zone<MOTIFPOSITION>> mZones;
     std::array<o2::mch::contour::Contour<double>, NFEC> mFEContours;
 };
-
-#include "genSegmentationImpl0.h"
-
 
 }}}
 

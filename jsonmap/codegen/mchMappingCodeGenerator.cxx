@@ -9,10 +9,12 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
+
 #include "boost/program_options.hpp"
 #include "chamber.h"
 #include "codeWriter.h"
 #include "jsonReader.h"
+#include "motifPosition.h"
 #include "motifType.h"
 #include "padSize.h"
 #include "rapidjson/document.h"
@@ -95,21 +97,29 @@ int main(int argc, char *argv[])
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
-      && documents.count("bergs") && documents.count("detection_elements")) {
+      && documents.count("detection_elements")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
-    Document &bergs = documents["bergs"]->document();
     Document &detection_elements = documents["detection_elements"]->document();
     generateCodeForSegmentations(segmentations["segmentations"],
                                  motiftypes["motiftypes"],
                                  padsizes["padsizes"],
-                                 bergs["bergs"],
                                  detection_elements["detection_elements"]);
   }
 
-//    generateCodeForDESegmentationFactory(segmentations["segmentations"],detection_elements["detection_elements"]);
-//    outputCode("", generateCodeForDetectionElements(deDocument["detection_elements"]), "genDetectionElement");
+  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&
+      documents.count("bergs")) {
+    Document &segmentations = documents["segmentations"]->document();
+    Document &motiftypes = documents["motiftypes"]->document();
+    Document &padsizes = documents["padsizes"]->document();
+    Document &bergs = documents["bergs"]->document();
+    generateCodeForMotifPositions(segmentations["segmentations"],
+                                  motiftypes["motiftypes"],
+                                  padsizes["padsizes"],
+                                  bergs["bergs"]
+    );
+  }
 
   return 0;
 }

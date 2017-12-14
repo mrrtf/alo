@@ -68,8 +68,8 @@ static void segmentationList(benchmark::internal::Benchmark *b)
 {
   for (auto detElemId : o2::mch::mapping::getOneDetElemIdPerSegmentation())
   {
-    for (auto bending : {true /*, false*/}) {
-      for (auto extent : {0 /*, 10*/}) {
+    for (auto bending : {true,false}) {
+      for (auto extent : {0 , 10}) {
         b->Args({detElemId, bending, extent});
       }
     }

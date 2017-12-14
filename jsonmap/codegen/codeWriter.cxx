@@ -62,8 +62,9 @@ std::string generateNotice(bool standalone)
   return notice;
 }
 
-void outputCode(const std::string &decl, const std::string &impl, const std::string &outputFileName,
-                bool withIncludeGuards, bool standalone)
+void outputCode(const std::string decl, const std::string impl, const std::string outputFileName,
+                bool withIncludeGuards, bool standalone,
+                const std::string includeFileNameIfDifferentFromImplementation)
 {
   std::string includeFileName = outputFileName + ".h";
 
@@ -84,7 +85,9 @@ void outputCode(const std::string &decl, const std::string &impl, const std::str
   }
   std::ofstream implFile(outputFileName + ".cxx");
   if (!decl.empty()) {
-    implFile << "#include \"" << includeFileName << "\"\n";
+    implFile << "#include \"" << ((includeFileNameIfDifferentFromImplementation.empty()) ? includeFileName
+                                                                                         : includeFileNameIfDifferentFromImplementation)
+             << "\"\n";
   }
   implFile << generateNotice(standalone);
   implFile << impl;
@@ -95,10 +98,9 @@ std::string generateInclude(std::initializer_list<std::string> list)
   std::ostringstream code;
 
   for (auto h: list) {
-    if (h.find('.')!=std::string::npos) {
+    if (h.find('.') != std::string::npos) {
       code << "#include \"" << h << "\"\n";
-    }
-    else {
+    } else {
       code << "#include <" << h << ">\n";
     }
   }

@@ -21,7 +21,6 @@
 void generateCodeForSegmentations(const rapidjson::Value &segmentations,
                                   const rapidjson::Value &motiftypes,
                                   const rapidjson::Value &padsizes,
-                                  const rapidjson::Value &bergs,
                                   const rapidjson::Value& detection_elements);
 
 #endif

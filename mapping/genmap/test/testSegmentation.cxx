@@ -14,7 +14,8 @@
 
 #define BOOST_TEST_DYN_LINK
 
-#include "segmentationInterface.h"
+#include "segmentationImpl0.h"
+#include "segmentationFactory.h"
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
@@ -28,114 +29,119 @@ namespace bdata = boost::unit_test::data;
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation_interface)
 
-BOOST_AUTO_TEST_CASE(SegmentationIdMustBeBetween0and20)
+BOOST_AUTO_TEST_CASE(GetSegmentationThrowsIfDetElemIdIsNotValid)
 {
   BOOST_CHECK_THROW(getSegmentation(-1, true), std::out_of_range);
-  BOOST_CHECK_THROW(getSegmentation(21, true), std::out_of_range);
-  BOOST_CHECK_NO_THROW(getSegmentation(500, true));
+  BOOST_CHECK_THROW(getSegmentation(121, true), std::out_of_range);
+}
+
+BOOST_AUTO_TEST_CASE(GetSegmentationMustNotThrowIfDetElemIdIsValid)
+{
+  BOOST_CHECK_NO_THROW(getSegmentation(100, true));
 }
 
 BOOST_AUTO_TEST_CASE(NofBendingPads)
 {
   // we explicitly don't make a loop
-  // we prefer this solution to more clearly document the number of pads per segmentation
+  // we prefer this solution to more clearly document the number of pads per DE-type
+  // sorted by number of pads.
+  
   BOOST_CHECK_EQUAL(getSegmentation(100, true)->nofPads(), 14392);
   BOOST_CHECK_EQUAL(getSegmentation(300, true)->nofPads(), 13947);
-  BOOST_CHECK_EQUAL(getSegmentation(500, true)->nofPads(), 2928);
-  BOOST_CHECK_EQUAL(getSegmentation(501, true)->nofPads(), 3568);
-  BOOST_CHECK_EQUAL(getSegmentation(502, true)->nofPads(), 3120);
-  BOOST_CHECK_EQUAL(getSegmentation(503, true)->nofPads(), 1920);
-  BOOST_CHECK_EQUAL(getSegmentation(504, true)->nofPads(), 1280);
-  BOOST_CHECK_EQUAL(getSegmentation(600, true)->nofPads(), 3008);
+  BOOST_CHECK_EQUAL(getSegmentation(902, true)->nofPads(), 4480);
+  BOOST_CHECK_EQUAL(getSegmentation(702, true)->nofPads(), 4160);
+  BOOST_CHECK_EQUAL(getSegmentation(701, true)->nofPads(), 4096);
   BOOST_CHECK_EQUAL(getSegmentation(601, true)->nofPads(), 3648);
+  BOOST_CHECK_EQUAL(getSegmentation(501, true)->nofPads(), 3568);
   BOOST_CHECK_EQUAL(getSegmentation(602, true)->nofPads(), 3200);
   BOOST_CHECK_EQUAL(getSegmentation(700, true)->nofPads(), 3200);
-  BOOST_CHECK_EQUAL(getSegmentation(701, true)->nofPads(), 4096);
-  BOOST_CHECK_EQUAL(getSegmentation(702, true)->nofPads(), 4160);
+  BOOST_CHECK_EQUAL(getSegmentation(502, true)->nofPads(), 3120);
+  BOOST_CHECK_EQUAL(getSegmentation(600, true)->nofPads(), 3008);
+  BOOST_CHECK_EQUAL(getSegmentation(500, true)->nofPads(), 2928);
+  BOOST_CHECK_EQUAL(getSegmentation(903, true)->nofPads(), 2880);
   BOOST_CHECK_EQUAL(getSegmentation(703, true)->nofPads(), 2560);
+  BOOST_CHECK_EQUAL(getSegmentation(904, true)->nofPads(), 2240);
+  BOOST_CHECK_EQUAL(getSegmentation(503, true)->nofPads(), 1920);
   BOOST_CHECK_EQUAL(getSegmentation(704, true)->nofPads(), 1920);
+  BOOST_CHECK_EQUAL(getSegmentation(504, true)->nofPads(), 1280);
+  BOOST_CHECK_EQUAL(getSegmentation(905, true)->nofPads(), 1280);
   BOOST_CHECK_EQUAL(getSegmentation(705, true)->nofPads(), 960);
   BOOST_CHECK_EQUAL(getSegmentation(706, true)->nofPads(), 640);
-  BOOST_CHECK_EQUAL(getSegmentation(902, true)->nofPads(), 4480);
-  BOOST_CHECK_EQUAL(getSegmentation(903, true)->nofPads(), 2880);
-  BOOST_CHECK_EQUAL(getSegmentation(904, true)->nofPads(), 2240);
-  BOOST_CHECK_EQUAL(getSegmentation(905, true)->nofPads(), 1280);
 }
-
 
 BOOST_AUTO_TEST_CASE(NofNonBendingPads)
 {
   BOOST_CHECK_EQUAL(getSegmentation(100, false)->nofPads(), 14280);
   BOOST_CHECK_EQUAL(getSegmentation(300, false)->nofPads(), 13986);
-  BOOST_CHECK_EQUAL(getSegmentation(500, false)->nofPads(), 2048);
-  BOOST_CHECK_EQUAL(getSegmentation(501, false)->nofPads(), 2496);
-  BOOST_CHECK_EQUAL(getSegmentation(502, false)->nofPads(), 2176);
-  BOOST_CHECK_EQUAL(getSegmentation(503, false)->nofPads(), 1344);
-  BOOST_CHECK_EQUAL(getSegmentation(504, false)->nofPads(), 896);
-  BOOST_CHECK_EQUAL(getSegmentation(600, false)->nofPads(), 2112);
+  BOOST_CHECK_EQUAL(getSegmentation(902, false)->nofPads(), 3136);
+  BOOST_CHECK_EQUAL(getSegmentation(702, false)->nofPads(), 2912);
+  BOOST_CHECK_EQUAL(getSegmentation(701, false)->nofPads(), 2880);
   BOOST_CHECK_EQUAL(getSegmentation(601, false)->nofPads(), 2560);
+  BOOST_CHECK_EQUAL(getSegmentation(501, false)->nofPads(), 2496);
   BOOST_CHECK_EQUAL(getSegmentation(602, false)->nofPads(), 2240);
   BOOST_CHECK_EQUAL(getSegmentation(700, false)->nofPads(), 2240);
-  BOOST_CHECK_EQUAL(getSegmentation(701, false)->nofPads(), 2880);
-  BOOST_CHECK_EQUAL(getSegmentation(702, false)->nofPads(), 2912);
+  BOOST_CHECK_EQUAL(getSegmentation(502, false)->nofPads(), 2176);
+  BOOST_CHECK_EQUAL(getSegmentation(600, false)->nofPads(), 2112);
+  BOOST_CHECK_EQUAL(getSegmentation(500, false)->nofPads(), 2048);
+  BOOST_CHECK_EQUAL(getSegmentation(903, false)->nofPads(), 2016);
   BOOST_CHECK_EQUAL(getSegmentation(703, false)->nofPads(), 1792);
+  BOOST_CHECK_EQUAL(getSegmentation(904, false)->nofPads(), 1568);
+  BOOST_CHECK_EQUAL(getSegmentation(503, false)->nofPads(), 1344);
   BOOST_CHECK_EQUAL(getSegmentation(704, false)->nofPads(), 1344);
+  BOOST_CHECK_EQUAL(getSegmentation(504, false)->nofPads(), 896);
+  BOOST_CHECK_EQUAL(getSegmentation(905, false)->nofPads(), 896);
   BOOST_CHECK_EQUAL(getSegmentation(705, false)->nofPads(), 672);
   BOOST_CHECK_EQUAL(getSegmentation(706, false)->nofPads(), 448);
-  BOOST_CHECK_EQUAL(getSegmentation(902, false)->nofPads(), 3136);
-  BOOST_CHECK_EQUAL(getSegmentation(903, false)->nofPads(), 2016);
-  BOOST_CHECK_EQUAL(getSegmentation(904, false)->nofPads(), 1568);
-  BOOST_CHECK_EQUAL(getSegmentation(905, false)->nofPads(), 896);
-}
-
-BOOST_AUTO_TEST_CASE(NofNonBendingFEC)
-{
-  BOOST_CHECK_EQUAL(getSegmentation(100, false)->nofDualSampas(), 225);
-  BOOST_CHECK_EQUAL(getSegmentation(300, false)->nofDualSampas(), 222);
-  BOOST_CHECK_EQUAL(getSegmentation(500, false)->nofDualSampas(), 32);
-  BOOST_CHECK_EQUAL(getSegmentation(501, false)->nofDualSampas(), 39);
-  BOOST_CHECK_EQUAL(getSegmentation(502, false)->nofDualSampas(), 34);
-  BOOST_CHECK_EQUAL(getSegmentation(503, false)->nofDualSampas(), 21);
-  BOOST_CHECK_EQUAL(getSegmentation(504, false)->nofDualSampas(), 14);
-  BOOST_CHECK_EQUAL(getSegmentation(600, false)->nofDualSampas(), 33);
-  BOOST_CHECK_EQUAL(getSegmentation(601, false)->nofDualSampas(), 40);
-  BOOST_CHECK_EQUAL(getSegmentation(602, false)->nofDualSampas(), 35);
-  BOOST_CHECK_EQUAL(getSegmentation(700, false)->nofDualSampas(), 36);
-  BOOST_CHECK_EQUAL(getSegmentation(701, false)->nofDualSampas(), 46);
-  BOOST_CHECK_EQUAL(getSegmentation(702, false)->nofDualSampas(), 46);
-  BOOST_CHECK_EQUAL(getSegmentation(703, false)->nofDualSampas(), 29);
-  BOOST_CHECK_EQUAL(getSegmentation(704, false)->nofDualSampas(), 22);
-  BOOST_CHECK_EQUAL(getSegmentation(705, false)->nofDualSampas(), 12);
-  BOOST_CHECK_EQUAL(getSegmentation(706, false)->nofDualSampas(), 8);
-  BOOST_CHECK_EQUAL(getSegmentation(902, false)->nofDualSampas(), 50);
-  BOOST_CHECK_EQUAL(getSegmentation(903, false)->nofDualSampas(), 33);
-  BOOST_CHECK_EQUAL(getSegmentation(904, false)->nofDualSampas(), 26);
-  BOOST_CHECK_EQUAL(getSegmentation(905, false)->nofDualSampas(), 16);
 }
 
 BOOST_AUTO_TEST_CASE(NofBendingFEC)
 {
   BOOST_CHECK_EQUAL(getSegmentation(100, true)->nofDualSampas(), 226);
   BOOST_CHECK_EQUAL(getSegmentation(300, true)->nofDualSampas(), 221);
-  BOOST_CHECK_EQUAL(getSegmentation(500, true)->nofDualSampas(), 46);
-  BOOST_CHECK_EQUAL(getSegmentation(501, true)->nofDualSampas(), 56);
-  BOOST_CHECK_EQUAL(getSegmentation(502, true)->nofDualSampas(), 49);
-  BOOST_CHECK_EQUAL(getSegmentation(503, true)->nofDualSampas(), 30);
-  BOOST_CHECK_EQUAL(getSegmentation(504, true)->nofDualSampas(), 20);
-  BOOST_CHECK_EQUAL(getSegmentation(600, true)->nofDualSampas(), 47);
+  BOOST_CHECK_EQUAL(getSegmentation(902, true)->nofDualSampas(), 70);
+  BOOST_CHECK_EQUAL(getSegmentation(702, true)->nofDualSampas(), 65);
+  BOOST_CHECK_EQUAL(getSegmentation(701, true)->nofDualSampas(), 64);
   BOOST_CHECK_EQUAL(getSegmentation(601, true)->nofDualSampas(), 57);
+  BOOST_CHECK_EQUAL(getSegmentation(501, true)->nofDualSampas(), 56);
   BOOST_CHECK_EQUAL(getSegmentation(602, true)->nofDualSampas(), 50);
   BOOST_CHECK_EQUAL(getSegmentation(700, true)->nofDualSampas(), 50);
-  BOOST_CHECK_EQUAL(getSegmentation(701, true)->nofDualSampas(), 64);
-  BOOST_CHECK_EQUAL(getSegmentation(702, true)->nofDualSampas(), 65);
+  BOOST_CHECK_EQUAL(getSegmentation(502, true)->nofDualSampas(), 49);
+  BOOST_CHECK_EQUAL(getSegmentation(600, true)->nofDualSampas(), 47);
+  BOOST_CHECK_EQUAL(getSegmentation(500, true)->nofDualSampas(), 46);
+  BOOST_CHECK_EQUAL(getSegmentation(903, true)->nofDualSampas(), 45);
   BOOST_CHECK_EQUAL(getSegmentation(703, true)->nofDualSampas(), 40);
+  BOOST_CHECK_EQUAL(getSegmentation(904, true)->nofDualSampas(), 35);
+  BOOST_CHECK_EQUAL(getSegmentation(503, true)->nofDualSampas(), 30);
   BOOST_CHECK_EQUAL(getSegmentation(704, true)->nofDualSampas(), 30);
+  BOOST_CHECK_EQUAL(getSegmentation(504, true)->nofDualSampas(), 20);
+  BOOST_CHECK_EQUAL(getSegmentation(905, true)->nofDualSampas(), 20);
   BOOST_CHECK_EQUAL(getSegmentation(705, true)->nofDualSampas(), 15);
   BOOST_CHECK_EQUAL(getSegmentation(706, true)->nofDualSampas(), 10);
-  BOOST_CHECK_EQUAL(getSegmentation(902, true)->nofDualSampas(), 70);
-  BOOST_CHECK_EQUAL(getSegmentation(903, true)->nofDualSampas(), 45);
-  BOOST_CHECK_EQUAL(getSegmentation(904, true)->nofDualSampas(), 35);
-  BOOST_CHECK_EQUAL(getSegmentation(905, true)->nofDualSampas(), 20);
+}
+
+BOOST_AUTO_TEST_CASE(NofNonBendingFEC)
+{
+  BOOST_CHECK_EQUAL(getSegmentation(100, false)->nofDualSampas(), 225);
+  BOOST_CHECK_EQUAL(getSegmentation(300, false)->nofDualSampas(), 222);
+  BOOST_CHECK_EQUAL(getSegmentation(902, false)->nofDualSampas(), 50);
+  BOOST_CHECK_EQUAL(getSegmentation(701, false)->nofDualSampas(), 46);
+  BOOST_CHECK_EQUAL(getSegmentation(702, false)->nofDualSampas(), 46);
+  BOOST_CHECK_EQUAL(getSegmentation(601, false)->nofDualSampas(), 40);
+  BOOST_CHECK_EQUAL(getSegmentation(501, false)->nofDualSampas(), 39);
+  BOOST_CHECK_EQUAL(getSegmentation(700, false)->nofDualSampas(), 36);
+  BOOST_CHECK_EQUAL(getSegmentation(602, false)->nofDualSampas(), 35);
+  BOOST_CHECK_EQUAL(getSegmentation(502, false)->nofDualSampas(), 34);
+  BOOST_CHECK_EQUAL(getSegmentation(600, false)->nofDualSampas(), 33);
+  BOOST_CHECK_EQUAL(getSegmentation(903, false)->nofDualSampas(), 33);
+  BOOST_CHECK_EQUAL(getSegmentation(500, false)->nofDualSampas(), 32);
+  BOOST_CHECK_EQUAL(getSegmentation(703, false)->nofDualSampas(), 29);
+  BOOST_CHECK_EQUAL(getSegmentation(904, false)->nofDualSampas(), 26);
+  BOOST_CHECK_EQUAL(getSegmentation(704, false)->nofDualSampas(), 22);
+  BOOST_CHECK_EQUAL(getSegmentation(503, false)->nofDualSampas(), 21);
+  BOOST_CHECK_EQUAL(getSegmentation(905, false)->nofDualSampas(), 16);
+  BOOST_CHECK_EQUAL(getSegmentation(504, false)->nofDualSampas(), 14);
+  BOOST_CHECK_EQUAL(getSegmentation(705, false)->nofDualSampas(), 12);
+  BOOST_CHECK_EQUAL(getSegmentation(706, false)->nofDualSampas(), 8);
 }
 
 BOOST_AUTO_TEST_CASE(CountPadsInSegmentations) {
