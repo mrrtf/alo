@@ -195,6 +195,8 @@ bool Polygon<T>::contains(T xp, T yp) const
 template<typename T>
 BBox<T> getBBox(const Polygon<T>& polygon)
 {
+  /// Return the bounding box (aka MBR, minimum bounding rectangle)
+  /// of this polygon
   return getBBox(polygon.getVertices());
 }
 
