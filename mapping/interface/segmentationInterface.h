@@ -41,7 +41,10 @@ class SegmentationInterface
      */
 };
 
+enum class SegmentationImplementation { TemplateMadness, Simple };
+
 /// Get the segmentation for the given plane of a detection element
+template<SegmentationImplementation si=SegmentationImplementation::TemplateMadness>
 std::unique_ptr<SegmentationInterface> getSegmentation(int detElemId, bool isBendingPlane);
 
 /// Return the list of valid detection element ids

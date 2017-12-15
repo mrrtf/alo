@@ -23,46 +23,13 @@
 #include "commonBench.h"
 #include "contourCreator.h"
 #include "segmentationContours.h"
+#include "generateTestPoints.h"
 
 namespace {
 constexpr int NTESTPOINTS{1000};
 }
 
-std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent)
-{
-  auto seg = o2::mch::mapping::getSegmentation(detElemId, true);
-  auto bbox = o2::mch::contour::getBBox(getEnvelop(o2::mch::mapping::getSampaContours(*(seg.get()))));
-
-  double offset{0.0};
-
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::vector<std::pair<double, double>> testPoints;
-
-  if (extent == 0) {
-
-    testPoints.resize(n);
-
-    std::uniform_real_distribution<double> distX{bbox.xmin() - offset, bbox.xmax() + offset};
-    std::uniform_real_distribution<double> distY{bbox.ymin() - offset, bbox.ymax() + offset};
-
-    std::generate(testPoints.begin(), testPoints.end(),
-                  [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
-
-  } else {
-    std::normal_distribution<double> dist(0.0, extent * 1.0);
-    while (testPoints.size() < n) {
-      double x = dist(mt);
-      double y = dist(mt);
-      if (x >= bbox.xmin() - offset && x <= bbox.xmax() + offset &&
-          y >= bbox.ymin() - offset && y <= bbox.ymax() + offset) {
-        testPoints.push_back({x, y});
-      }
-    }
-  }
-
-  return testPoints;
-}
+using o2::mch::mapping::generateTestPoints;
 
 static void segmentationList(benchmark::internal::Benchmark *b)
 {
@@ -90,8 +57,8 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
 
   auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
-  double nin{0};
-  double n{0};
+  int nin{0};
+  int n{0};
 
   for (auto _ : state) {
     for (const auto &tp: testPoints) {

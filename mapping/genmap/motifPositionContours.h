@@ -43,14 +43,19 @@ std::vector<Pad> getPads(const MOTIFPOSITION &mp, const MotifType &motifType)
 
 std::vector<o2::mch::contour::Polygon<double>> padAsPolygons(const std::vector<Pad> &pads);
 
+template<typename MOTIFPOSITION>
+o2::mch::contour::Contour<double>
+createMotifPositionContour(const MOTIFPOSITION& mp, const MotifType& mt) {
+  return o2::mch::contour::createContour(padAsPolygons(getPads(mp,mt)));
+}
+
 template<typename MOTIFPOSITION, int N>
 std::array<o2::mch::contour::Contour<double>, N>
 createMotifPositionContours(const std::array<MOTIFPOSITION, N> &motifPositions, const MotifTypeArray &motifTypes)
 {
   std::array<o2::mch::contour::Contour<double>, N> contours;
   for (auto i = 0; i < motifPositions.size(); ++i) {
-    auto pads = padAsPolygons(getPads(motifPositions[i], motifTypes[motifPositions[i].motifTypeId()]));
-    contours[i] = o2::mch::contour::createContour(pads);
+    contours[i] = createMotifPositionContour(motifPositions[i], motifTypes[motifPositions[i].motifTypeId()]);
   }
   return contours;
 }

@@ -105,8 +105,7 @@ getMotifPositions(int segtype, bool bending, const Value &segmentations, const V
   return motifpositions;
 }
 
-
-std::pair<std::string,std::string> generateCodeForBerg2Manu(const Value &bergs, int id)
+std::pair<std::string, std::string> generateCodeForBerg2Manu(const Value &bergs, int id)
 {
   std::ostringstream decl;
   std::ostringstream header;
@@ -136,11 +135,11 @@ std::pair<std::string,std::string> generateCodeForBerg2Manu(const Value &bergs, 
 }
 )";
 
-  return {header.str(),impl.str()};
+  return {header.str(), impl.str()};
 }
 
-std::pair<std::string,std::string> generateCodeForGetMotifPosition(int segtype, bool isBending,
-                                            const std::vector<MotifPosition> &motifPositions)
+std::pair<std::string, std::string> generateCodeForGetMotifPosition(int segtype, bool isBending,
+                                                                    const std::vector<MotifPosition> &motifPositions)
 {
   std::ostringstream decl;
   std::ostringstream header;
@@ -166,7 +165,7 @@ std::pair<std::string,std::string> generateCodeForGetMotifPosition(int segtype, 
   }
   impl << "  };\n}\n";
 
-  return { header.str(), impl.str()};
+  return {header.str(), impl.str()};
 }
 
 std::string generateCodeForMotifPositionTrait(int segtype, bool bending, int size)
@@ -192,7 +191,7 @@ void generateCodeForMotifPositions(const Value &segmentations,
 
   decl << generateInclude({"array"});
 
-  for ( auto i : { 0, 1} ) {
+  for (auto i : {0, 1}) {
     auto p = generateCodeForBerg2Manu(bergs, i);
     decl << p.first;
     impl << p.second;
@@ -214,6 +213,6 @@ void generateCodeForMotifPositions(const Value &segmentations,
 
   bool includeGuards{false};
   bool standalone{false};
-  outputCode(decl.str(), impl.str(), "genMotifPosition", includeGuards, standalone,"motifPosition.h");
+  outputCode(decl.str(), impl.str(), "genMotifPosition", includeGuards, standalone, "motifPosition.h");
 }
 

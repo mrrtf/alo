@@ -25,6 +25,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "feePadGroup.h"
 
 using namespace rapidjson;
 namespace po = boost::program_options;
@@ -114,11 +115,17 @@ int main(int argc, char *argv[])
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
     Document &bergs = documents["bergs"]->document();
+
     generateCodeForMotifPositions(segmentations["segmentations"],
                                   motiftypes["motiftypes"],
                                   padsizes["padsizes"],
                                   bergs["bergs"]
     );
+
+    generateCodeForFEEPadGroups(segmentations["segmentations"],
+                                motiftypes["motiftypes"],
+                                padsizes["padsizes"],
+                                bergs["bergs"]);
   }
 
   return 0;

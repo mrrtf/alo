@@ -1,4 +1,6 @@
 add_library(genmap SHARED
+        generateTestPoints.cxx
+        generateTestPoints.h
         genMotifType.cxx
         genMotifPosition.cxx
         genMotifPosition.h

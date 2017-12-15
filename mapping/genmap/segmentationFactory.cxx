@@ -13,7 +13,7 @@ namespace mapping {
 
 int getSegTypeIndexFromDetElemIndex(int deIndex)
 {
-  if (deIndex >= segtype.size() || deIndex<0) { throw std::out_of_range("deIndex is incorrect"); }
+  if (deIndex >= segtype.size() || deIndex < 0) { throw std::out_of_range("deIndex is incorrect"); }
   return segtype[deIndex];
 }
 
@@ -35,7 +35,9 @@ std::unique_ptr<SegmentationInterface> getSegmentationByDetElemIndex(int deIndex
   return getSegmentationByType(getSegTypeIndexFromDetElemIndex(deIndex), isBendingPlane);
 }
 
-std::unique_ptr<SegmentationInterface> getSegmentation(int detElemId, bool isBendingPlane)
+template<>
+std::unique_ptr<SegmentationInterface>
+getSegmentation<SegmentationImplementation::TemplateMadness>(int detElemId, bool isBendingPlane)
 {
   return getSegmentationByDetElemIndex(getDetElemIndexFromDetElemId(detElemId), isBendingPlane);
 }
@@ -48,9 +50,9 @@ std::vector<int> getOneDetElemIdPerSegmentation()
   std::set<int> segtypeset;
   auto deids{getDetElemIds()};
   for (auto i = 0; i < deids.size(); ++i) {
-    for ( auto bending : {true,false}) {
+    for (auto bending : {true, false}) {
       int id = segtype[i];
-      if (std::find(cbegin(segtypeset),cend(segtypeset),id)==segtypeset.end()) {
+      if (std::find(cbegin(segtypeset), cend(segtypeset), id) == segtypeset.end()) {
         segtypeset.insert(id);
         des.push_back(deids[i]);
       }

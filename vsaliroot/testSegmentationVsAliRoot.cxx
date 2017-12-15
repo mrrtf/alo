@@ -325,5 +325,87 @@ BOOST_AUTO_TEST_CASE(PadSizesAreMultipleOfEachOther)
   BOOST_CHECK(padSizeY.size()==10);
 }
 
+BOOST_AUTO_TEST_CASE(PadIntegerIndicesRanges)
+{
+  int pixmax{0};
+  int piymax{0};
+
+  for (auto detElemId : detElemIds) {
+
+    for (auto isBendingPlane : {true,false}) {
+
+      float x{0.0};
+      float y{0.0};
+      AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
+
+      auto al = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
+        isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
+
+      std::unique_ptr<AliMpVPadIterator> it{al->CreateIterator()};
+
+      it->First();
+
+      // yes, set of floats might be a bad idea, but it seems to
+      // do the trick for the task at hand.
+      std::set<float> planePadSizeX;
+      std::set<float> planePadSizeY;
+
+      double offsetx{0.0};
+      double offsety{0.0};
+
+      // why do I have to correct this here by hand ???
+      if ( detElemId == 100 && isBendingPlane == false ) {
+        offsetx = -0.315;
+        offsety = 0.21;
+      }
+      if (detElemId == 300 && isBendingPlane == true ) {
+        offsetx = -1.0;
+        offsety = -0.75;
+      }
+      if (detElemId == 300 && isBendingPlane == false ) {
+        offsetx = -0.625;
+        offsety = -0.5;
+      }
+
+      while (!it->IsDone()) {
+        AliMpPad pad = it->CurrentItem();
+        float xleft = pad.GetPositionX() - pad.GetDimensionX() + al->GetPositionX() - offsetx;
+        float ybottom = pad.GetPositionY() - pad.GetDimensionY() + al->GetPositionY() - offsety;
+
+        planePadSizeX.insert(static_cast<float>(2.0 * pad.GetDimensionX()));
+        planePadSizeY.insert(static_cast<float>(2.0 * pad.GetDimensionY()));
+
+        if ( xleft < -0.01 || ybottom < -0.01 ) {
+          std::cout << xleft << " " << ybottom << " ";
+          pad.Print();
+        }
+        x = std::max(x,xleft);
+        y = std::max(y,ybottom);
+        it->Next();
+      }
+
+      float refPadSizeX = *(begin(planePadSizeX));
+      float refPadSizeY = *(begin(planePadSizeY));
+
+      float ix = x/refPadSizeX;
+      float iy = y/refPadSizeY;
+
+      BOOST_CHECK(std::floor(ix)-ix<1E-3);
+      BOOST_CHECK(std::floor(iy)-iy<1E-3);
+
+      int pix = static_cast<int>(std::floor(ix));
+      int piy = static_cast<int>(std::floor(iy));
+
+      pixmax = std::max(pix,pixmax);
+      piymax = std::max(piy,piymax);
+
+      //std::cout << boost::format("DE %4d B %c xmax %7.2f ymax %7.2f padsize min x %7.2f min y %7.2f pix %4d piy %4d\n") % detElemId % isBendingPlane % x % y % refPadSizeX % refPadSizeY % pix % piy;
+    }
+  }
+
+  BOOST_CHECK_EQUAL(pixmax,335);
+  BOOST_CHECK_EQUAL(piymax,235);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

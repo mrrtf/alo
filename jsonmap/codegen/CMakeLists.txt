@@ -8,6 +8,7 @@ target_sources(mchMappingCodeGenerator PUBLIC motifType.h motifType.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC padSize.h padSize.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC segmentation.h segmentation.cxx)
 target_sources(mchMappingCodeGenerator PUBLIC motifPosition.h motifPosition.cxx)
+target_sources(mchMappingCodeGenerator PUBLIC feePadGroup.h feePadGroup.cxx)
 
 target_link_libraries(mchMappingCodeGenerator Boost::program_options RapidJSON)
 
