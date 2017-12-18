@@ -179,10 +179,12 @@ finalizeContour(const std::vector<VerticalEdge<double>> &verticals,
       if (inorder.empty()) {
         throw std::runtime_error("got an empty polygon");
       }
-      Polygon<double> polygon;
+      std::vector<Vertex<double>> vertices;
+      vertices.reserve(inorder.size());
       for (auto i: inorder) {
-        polygon.addVertex(all[i].begin());
+        vertices.push_back(all[i].begin());
       }
+      Polygon<double> polygon(vertices.begin(),vertices.end());
       contour.addPolygon(close(polygon));
       iCurrent = std::distance(alreadyAdded.begin(), std::find_if(alreadyAdded.begin(), alreadyAdded.end(),
                                                                   [](bool a) { return a == false; }));

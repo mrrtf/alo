@@ -31,13 +31,14 @@ using namespace o2::mch::contour;
 
 o2::mch::contour::Polygon<double> convert(const AliMUONPolygon &polygon)
 {
-  o2::mch::contour::Polygon<double> p;
+  std::vector<Vertex<double>> vertices;
 
   for (int i = 0; i < polygon.NumberOfVertices(); ++i) {
-    p.addVertex({polygon.X(i), polygon.Y(i)});
+    vertices.push_back({polygon.X(i), polygon.Y(i)});
   }
 
-  return p;
+  return
+    o2::mch::contour::Polygon<double>{vertices.begin(), vertices.end()};
 }
 
 
@@ -157,11 +158,10 @@ std::vector<Polygon<double>> createManuPads(AliMpSegmentation *mseg, int detElem
 
 double area1(const Polygon<double> &p)
 {
-  auto vertices = p.getVertices();
   double a{0.0};
-  for (auto i = 0; i < vertices.size() - 1; ++i) {
-    const auto &current = vertices[i];
-    const auto &next = vertices[i + 1];
+  for (auto i = 0; i < p.size() - 1; ++i) {
+    const auto &current = p[i];
+    const auto &next = p[i + 1];
     a += current.x * next.y - current.y * next.x;
   }
   return a / 2.0;
@@ -178,7 +178,7 @@ double area1(const Contour<double> &c)
 
 double area2(const Polygon<double> &p)
 {
-  auto vertices = p.getVertices();
+  const auto& vertices = getVertices(p);
   double a{0.0};
   for (auto i = 0; i < vertices.size() - 1; ++i) {
     const auto &current = vertices[i];

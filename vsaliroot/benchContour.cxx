@@ -12,6 +12,7 @@
 ///
 /// @author  Laurent Aphecetche
 
+#include <contourCreator.h>
 #include "benchmark/benchmark.h"
 #include "AliMpManuIterator.h"
 #include "commonContour.h"
@@ -21,7 +22,6 @@ using namespace o2::mch::contour;
 
 BENCHMARK_DEFINE_F(BenchAliRoot, benchContourAliRoot)(benchmark::State &state)
 {
-
   for (auto _ : state) {
     AliMpManuIterator it;
 
@@ -70,6 +70,22 @@ BENCHMARK_DEFINE_F(BenchAliRoot, benchPolygonArea2)(benchmark::State &state)
     }
   }
 }
+
+BENCHMARK_DEFINE_F(BenchAliRoot, benchGetYPosition)(benchmark::State &state)
+{
+  auto contours = getContours(getPads(mseg));
+
+  for (auto _: state) {
+    for (auto &c: contours) {
+      std::vector<Polygon<double>> polygons;
+      for ( auto i = 0; i < c.size(); ++i ) {
+        polygons.push_back(c[i]);
+      }
+      auto ypos = getYPositions(polygons);
+    }
+  }
+}
+BENCHMARK_REGISTER_F(BenchAliRoot, benchGetYPosition)->Unit(benchmark::kMillisecond);
 
 BENCHMARK_REGISTER_F(BenchAliRoot, benchContourAliRoot)->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchAliRoot, benchContourO2contours)->Unit(benchmark::kMillisecond);

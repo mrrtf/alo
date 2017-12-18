@@ -79,10 +79,11 @@ std::vector<VerticalEdge<T>> getVerticalEdges(const std::vector<Polygon<T>>& pol
 template<typename T>
 std::vector<T> getYPositions(const std::vector<Polygon<T>>& polygons)
 {
-  auto vertices = getVertices(polygons);
   std::vector<T> ypos;
-  for (const auto& v: vertices) {
-    ypos.push_back(v.y);
+  for ( auto i = 0; i < polygons.size(); ++i ) {
+    for ( auto j = 0; j < polygons[i].size(); ++j ) {
+      ypos.push_back(polygons[i][j].y);
+    }
   }
   std::sort(ypos.begin(),ypos.end());
   auto last = std::unique(ypos.begin(), ypos.end(),
@@ -94,10 +95,11 @@ std::vector<T> getYPositions(const std::vector<Polygon<T>>& polygons)
 template<typename T>
 std::vector<T> getXPositions(const std::vector<Polygon<T>>& polygons)
 {
-  auto vertices = getVertices(polygons);
   std::vector<T> xpos;
-  for (const auto& v: vertices) {
-    xpos.push_back(v.x);
+  for ( auto i = 0; i < polygons.size(); ++i ) {
+    for ( auto j = 0; j < polygons[i].size(); ++j ) {
+      xpos.push_back(polygons[i][j].x);
+    }
   }
   std::sort(xpos.begin(),xpos.end());
   auto last = std::unique(xpos.begin(), xpos.end(),
