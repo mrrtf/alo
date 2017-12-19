@@ -8,5 +8,5 @@ target_include_directories(svgwriterlib PUBLIC .)
 target_link_libraries(svgwriterlib genmap contour)
 
 add_executable(svgwriter svgWriter.cxx)
-target_link_libraries(svgwriter svgwriterlib)
+target_link_libraries(svgwriter svgwriterlib segmentationcontours)
 

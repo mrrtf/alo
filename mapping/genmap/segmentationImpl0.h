@@ -80,18 +80,16 @@ class SegmentationImpl0 : public SegmentationInterface
 
     bool hasPadByPosition(double x, double y) const override
     {
-      for ( const auto& c: mFEContours) {
-        if (c.contains(x,y)) {
-          return true;
-        }
-      }
-      /*
+//      for ( const auto& c: mFEContours) {
+//        if (c.contains(x,y)) {
+//          return true;
+//        }
+//      }
       for (const auto &z : mZones) {
         if (z.contains(x, y)) {
           return true;
         }
       }
-       */
       return false;
     }
 

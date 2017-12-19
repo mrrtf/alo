@@ -11,6 +11,11 @@ namespace mapping {
 /// SegmentationInterface is able to retrieve pad information
 /// (position, sizes, etc...) within a plane of a detection element
 ///
+/// A segmentaion is a "container" of "pad information"
+///
+/// Whether or not the segmentation actually holds pad objects or
+/// just way(s) to access pad information is left to the implementation
+
 class SegmentationInterface
 {
   public:
@@ -30,21 +35,18 @@ class SegmentationInterface
 
     virtual std::vector<int> getPads(int dualSampaId) const = 0;
 
-    virtual void getPadPosition(int ph, double& x, double& y) const = 0;
+    virtual void getPadPosition(int ph, double &x, double &y) const = 0;
 
-    virtual void getPadDimension(int ph, double& dx, double& dy) const = 0;
-
-    /* TODO
-    virtual int getPad(double x, double y) const = 0
-    virtual int getPad(int dualSampaId, int dualSampaChannel) const = 0
-    virtual std::vector<int> getPads(Area area) const = 0;
-     */
+    virtual void getPadDimension(int ph, double &dx, double &dy) const = 0;
 };
 
-enum class SegmentationImplementation { TemplateMadness, Simple };
+enum class SegmentationImplementation
+{
+    TemplateMadness, Simple
+};
 
 /// Get the segmentation for the given plane of a detection element
-template<SegmentationImplementation si=SegmentationImplementation::TemplateMadness>
+template<SegmentationImplementation si = SegmentationImplementation::TemplateMadness>
 std::unique_ptr<SegmentationInterface> getSegmentation(int detElemId, bool isBendingPlane);
 
 /// Return the list of valid detection element ids

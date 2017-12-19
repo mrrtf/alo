@@ -23,7 +23,7 @@ void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour
 {
   for (auto i = 0; i < contour.size(); ++i) {
     out << "<polygon points=\"";
-    auto vertices = contour[i].getVertices();
+    auto vertices = getVertices(contour[i]);
     for (auto j = 0; j < vertices.size(); ++j) {
       auto v = vertices[j];
       v.x -= box.xmin();

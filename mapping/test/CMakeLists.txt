@@ -1,6 +1,6 @@
-add_executable(testmapping testSegmentation.cxx )
+add_executable(testSegmentation testSegmentation.cxx)
 
-target_link_libraries(testmapping PRIVATE Boost::unit_test_framework genmap genmap2)
+target_link_libraries(testSegmentation PRIVATE Boost::unit_test_framework segmentationcontours)
 
-add_test(NAME testmapping COMMAND testmapping)
+add_test(NAME testSegmentation COMMAND testSegmentation)
 

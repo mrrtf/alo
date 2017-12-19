@@ -13,11 +13,21 @@
 /// @author  Laurent Aphecetche
 
 
-#include "segmentationImpl1.h"
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 
-namespace o2 {
-namespace mch {
-namespace mapping {
+#include <boost/test/unit_test.hpp>
+
+#include "segmentation.h"
+
+BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
+BOOST_AUTO_TEST_SUITE(cstyle_segmentation)
+
+BOOST_AUTO_TEST_CASE(CreateSegmentationWithInvalidVersionMustThrow)
+{
+  BOOST_CHECK_THROW(o2::mch::mapping::Segmentation seg(100,true),std::runtime_error);
 }
-}
-}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE_END()

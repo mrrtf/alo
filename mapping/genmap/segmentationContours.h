@@ -24,8 +24,11 @@ namespace mch {
 namespace mapping {
 
 class SegmentationInterface;
+class Segmentation;
 
 std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::SegmentationInterface &seg);
+
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::Segmentation &seg);
 
 }
 }

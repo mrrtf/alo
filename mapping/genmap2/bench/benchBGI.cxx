@@ -18,6 +18,7 @@
 #include "segmentationInterface.h"
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -36,6 +37,42 @@ Contours getSampaContours(int detElemId, bool isBendingPlane)
 {
   auto seg = getSegmentation(detElemId, isBendingPlane);
   return getSampaContours(*seg);
+}
+
+typedef bg::model::point<double, 2, bg::cs::cartesian> point;
+typedef bg::model::box<point> box;
+typedef bg::model::polygon<point, false, true> polygon; // ccw, closed polygon
+typedef std::pair<box, unsigned> value;
+
+box pol2bgibox(const Polygon<double> &p)
+{
+  auto bbox = getBBox(p);
+  return box{point(bbox.xmin(),bbox.ymin()),point(bbox.xmax(),bbox.ymax())};
+}
+
+auto getRTree(const Contours& contours, int detElemId, bool isBendingPlane)
+{
+  bgi::rtree<value, bgi::rstar<8,2>> rtree;
+  //bgi::rtree<value, bgi::linear<16,1>> rtree;
+  //bgi::rtree<value, bgi::quadratic<16,4>> rtree;
+
+  for (auto i = 0; i < contours.size(); ++i) {
+    const Contour<double> &c = contours[i];
+    for (auto j = 0; j < c.size(); ++j) {
+      const Polygon<double> &p = c[j];
+      rtree.insert(std::make_pair(pol2bgibox(p), i));
+    }
+  }
+  return rtree;
+}
+
+std::vector<point> point2bgi(const std::vector<std::pair<double, double>>& points)
+{
+  std::vector<point> v;
+  for (auto& p: points) {
+    v.push_back(point(p.first,p.second));
+  }
+  return v;
 }
 
 static void segmentationList(benchmark::internal::Benchmark *b)
@@ -58,13 +95,19 @@ static void benchImpl0(benchmark::State &state)
   auto contours = getSampaContours(detElemId, isBendingPlane);
   auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
+  int nin{0};
+  int n{0};
+
   for (auto _ : state) {
     for (auto &p: testPoints) {
+      ++n;
       for (auto &c: contours) {
-        if (c.contains(p.first, p.second)) { break; }
+        if (c.contains(p.first, p.second)) { ++nin; break; }
       }
     }
   }
+
+  state.counters["in"]=100.0*nin/n;
 }
 
 static void benchImpl1(benchmark::State &state)
@@ -72,25 +115,38 @@ static void benchImpl1(benchmark::State &state)
   int detElemId = state.range(0);
   bool isBendingPlane = state.range(1);
   int extent = state.range(2);
-  typedef std::pair<Contour<double>, unsigned> value;
 
-  auto contours = getSampaContours(detElemId, isBendingPlane);
-  auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
-  //bgi::rtree<value, bgi::rstar<16, 4> > rtree;
+  Contours contours = getSampaContours(detElemId, isBendingPlane);
 
-  /*
-  for (auto i = 0; i < contours.size(); ++i) {
-    rtree.insert(std::make_pair<contours[i], i>);
-  }
-  */
+  auto testPoints = point2bgi(generateTestPoints(NTESTPOINTS, detElemId, extent));
 
+  auto rtree = getRTree(contours,detElemId, isBendingPlane);
+
+  int nin{0};
+  int n{0};
+  int nr{0};
+
+  double delta{1E-3};
   for (auto _ : state) {
     for (auto &p: testPoints) {
-      for (auto &c: contours) {
-        if (c.contains(p.first, p.second)) { break; }
+      ++n;
+      std::vector<value> result_n;
+      //rtree.query(bgi::covers(p), std::back_inserter(result_n));
+      rtree.query(bgi::contains(p), std::back_inserter(result_n));
+
+//      box query_box(
+//        point(p.get<0>() - delta, p.get<1>() - delta),
+//        point(p.get<0>() + delta, p.get<1>() + delta));
+//
+//      rtree.query(bgi::contains(query_box), std::back_inserter(result_n));
+      nr += result_n.size();
+      for (auto &r : result_n) {
+        if (contours[r.second].contains(p.get<0>(), p.get<1>())) { ++nin; break; }
       }
     }
   }
+  state.counters["in"]=100.0*nin/n;
+  state.counters["nresults"]=1.0*nr/nin;
 }
 
 BENCHMARK(benchImpl0)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);

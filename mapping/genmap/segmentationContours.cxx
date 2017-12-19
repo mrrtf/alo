@@ -15,6 +15,7 @@
 #include "segmentationContours.h"
 #include "segmentationInterface.h"
 #include "motifPositionContours.h"
+#include "segmentation.h"
 
 namespace o2 {
 namespace mch {
@@ -39,6 +40,23 @@ std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::m
   return contours;
 }
 
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const o2::mch::mapping::Segmentation &seg)
+{
+  std::vector<o2::mch::contour::Contour<double>> contours;
+  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
+    std::vector<Pad> pads;
+    seg.forEachPadInDualSampa(seg.dualSampaId(i),
+                              [&](PadHandle ph) {
+                                double x = seg.padPositionX(ph);
+                                double y = seg.padPositionY(ph);
+                                double dx = seg.padSizeX(ph)/2.0;
+                                double dy = seg.padSizeY(ph)/2.0;
+                                pads.push_back({x - dx, y - dy, x + dx, y + dy});
+                              });
+    contours.push_back(o2::mch::contour::createContour(padAsPolygons(pads)));
+  }
+  return contours;
+}
 }
 }
 }
