@@ -77,7 +77,7 @@ std::vector<int> MAPPING::detElemIds
   };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
-BOOST_FIXTURE_TEST_SUITE(segmentation, MAPPING)
+BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot2, MAPPING)
 
 void sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg, double x, double y,
                           double step, int ntimes, int &naliroot, int &no2)
@@ -107,59 +107,42 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &s
   }
 }
 
-std::pair<const AliMpVSegmentation *, Segmentation>
-getSegmentations(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
-{
-  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
-
-  auto al = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
-    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
-
-  return {al, Segmentation{detElemId, isBendingPlane}};
-}
-
 bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
                            int ntimes)
 {
-  try {
-    auto pair = getSegmentations(mseg, detElemId, isBendingPlane);
-    auto al = pair.first;
-    auto o2seg = pair.second;
+  auto al = mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
+    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
+  Segmentation o2seg{detElemId, isBendingPlane};
 
-    auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(
-      o2::mch::mapping::getSampaContours(o2seg)));
+  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(
+    o2::mch::mapping::getSampaContours(o2seg)));
 
-    bool same{true};
+  bool same{true};
 
-    int ndiff{0};
+  int ndiff{0};
 
-    for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
-      for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
-        int naliroot, no2;
-        sameHasPadByPosition(*al, o2seg, x, y, step, ntimes, naliroot, no2);
-        double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
-        if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
-          same = false;
-        }
-        if (!same) {
-          std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
-          std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
-          std::cout << "detElemId=" << detElemId << "\n";
-          std::cout << "isBendingPlane=" << isBendingPlane << "\n";
-          std::ostringstream filename;
-          filename << "bug-" << o2seg.id() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
-          ++ndiff;
-          auto seg = getSegmentation(detElemId, isBendingPlane);
-          o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
-        }
+  for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
+    for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
+      int naliroot, no2;
+      sameHasPadByPosition(*al, o2seg, x, y, step, ntimes, naliroot, no2);
+      double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
+      if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
+        same = false;
+      }
+      if (!same) {
+        std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
+        std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
+        std::cout << "detElemId=" << detElemId << "\n";
+        std::cout << "isBendingPlane=" << isBendingPlane << "\n";
+        std::ostringstream filename;
+        filename << "bug-" << o2seg.id() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        ++ndiff;
+        auto seg = getSegmentation(detElemId, isBendingPlane);
+        o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
       }
     }
-    return same;
   }
-  catch (std::exception &e) {
-    std::cout << "oups " << e.what() << "\n";
-    throw;
-  }
+  return same;
 }
 
 BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
