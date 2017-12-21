@@ -12,23 +12,27 @@
 
 #include "boost/program_options.hpp"
 #include "chamber.h"
-#include "codeWriter.h"
+#include "padGroupType.h"
 #include "jsonReader.h"
-#include "motifPosition.h"
+#include "motifPosition1.h"
 #include "motifType.h"
 #include "padSize.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "segmentation.h"
+#include "segmentation1.h"
+#include "segmentation2.h"
+#include "writer.h"
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include "feePadGroup.h"
+#include "padGroupType.h"
 
 using namespace rapidjson;
 namespace po = boost::program_options;
+
+using namespace jsonmap::codegen;
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +43,6 @@ int main(int argc, char *argv[])
     ("detection_elements", "read detection element information")
     ("chambers", "read chamber information")
     ("segmentations", "read segmentation information")
-    ("motifs", "read motif information")
     ("bergs", "read berg connector information")
     ("padsizes", "read padsize information")
     ("motiftypes", "read motif type information");
@@ -90,6 +93,8 @@ int main(int argc, char *argv[])
     Document &doc = documents["motiftypes"]->document();
     auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
     outputCode("", impl, "genMotifType");
+    impl = generateCodeForPadGroupTypes(doc["motiftypes"]);
+    outputCode("",impl,"genPadGroupType");
   }
 
   if (documents.count("padsizes")) {
@@ -103,10 +108,15 @@ int main(int argc, char *argv[])
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
     Document &detection_elements = documents["detection_elements"]->document();
-    generateCodeForSegmentations(segmentations["segmentations"],
-                                 motiftypes["motiftypes"],
-                                 padsizes["padsizes"],
-                                 detection_elements["detection_elements"]);
+    impl1::generateCodeForSegmentations(segmentations["segmentations"],
+                                        motiftypes["motiftypes"],
+                                        padsizes["padsizes"],
+                                        detection_elements["detection_elements"]);
+
+    impl2::generateCodeForSegmentations(segmentations["segmentations"],
+                                        motiftypes["motiftypes"],
+                                        padsizes["padsizes"],
+                                        detection_elements["detection_elements"]);
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&
@@ -116,16 +126,11 @@ int main(int argc, char *argv[])
     Document &padsizes = documents["padsizes"]->document();
     Document &bergs = documents["bergs"]->document();
 
-    generateCodeForMotifPositions(segmentations["segmentations"],
-                                  motiftypes["motiftypes"],
-                                  padsizes["padsizes"],
-                                  bergs["bergs"]
+    impl1::generateCodeForMotifPositions(segmentations["segmentations"],
+                                         motiftypes["motiftypes"],
+                                         padsizes["padsizes"],
+                                         bergs["bergs"]
     );
-
-    generateCodeForFEEPadGroups(segmentations["segmentations"],
-                                motiftypes["motiftypes"],
-                                padsizes["padsizes"],
-                                bergs["bergs"]);
   }
 
   return 0;

@@ -24,6 +24,9 @@ namespace o2 {
 namespace mch {
 namespace svg {
 
+void writeContours(const std::vector<o2::mch::contour::Contour<double>>& contours, const char *filename, double x,
+                   double y);
+
 void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour<double> &contour,
                   o2::mch::contour::BBox<double> &box, const char *style = "fill:none;stroke:black;stroke-width:0.5px");
 

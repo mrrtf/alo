@@ -15,7 +15,7 @@
 
 #include <random>
 #include "benchmark/benchmark.h"
-#include "segmentationInterface.h"
+#include "segmentation.h"
 #include "contour.h"
 #include "AliMpDetElement.h"
 #include "AliMpVSegmentation.h"
@@ -33,14 +33,13 @@ using o2::mch::mapping::generateTestPoints;
 
 static void segmentationList(benchmark::internal::Benchmark *b)
 {
-  for (auto detElemId : o2::mch::mapping::getOneDetElemIdPerSegmentation())
-  {
+  o2::mch::mapping::forOneDetectionElementOfEachSegmentationType([&b](int detElemId) {
     for (auto bending : {true,false}) {
       for (auto extent : {0 , 10}) {
         b->Args({detElemId, bending, extent});
       }
     }
-  }
+  });
 }
 
 class BenchO2 : public benchmark::Fixture
@@ -53,7 +52,7 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
   bool isBendingPlane = state.range(1);
   int extent = state.range(2);
 
-  auto seg = o2::mch::mapping::getSegmentation(detElemId, isBendingPlane);
+  o2::mch::mapping::Segmentation seg{detElemId, isBendingPlane};
 
   auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
@@ -63,7 +62,7 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
   for (auto _ : state) {
     for (const auto &tp: testPoints) {
       n++;
-      nin += seg->hasPadByPosition(tp.first, tp.second);
+      nin += seg.findPadByPosition(tp.first, tp.second);
     }
   }
 

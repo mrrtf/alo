@@ -14,7 +14,6 @@
 #include "json.h"
 #include "legacyseg2json.h"
 #include "motif.h"
-#include "motif2json.h"
 #include "motifPosition.h"
 #include "motifType.h"
 #include "motiftype2json.h"
@@ -80,17 +79,6 @@ void convert_motiftype(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentati
   all_motiftype2json(key, motifTypes, OF(key + ".json").Writer());
 }
 
-void convert_motif(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
-{
-  // convert all motifs (=motif type + pad size(s)) to JSON
-  std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore, mseg);
-  std::vector<const AliMpSector*> sectors = get_allsectors(mseg);
-  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
-  std::vector<AliMpVMotif*> motifs = get_allmotifs(pcbs, sectors, padsizes);
-  std::vector<AliMpMotifType*> motifTypes = get_allmotiftypes(pcbs, sectors);
-  all_motif2json(key,motifs, motifTypes, padsizes, OF(key+".json").Writer());
-}
-
 void convert_pcb(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
   std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore, mseg);
@@ -139,7 +127,6 @@ int main(int argc, char* argv[])
   convert_ddl("ddls",ddlStore);
   convert_de("detection_elements",ddlStore);
   convert_motiftype("motiftypes",ddlStore, mseg);
-  convert_motif("motifs",ddlStore, mseg);
   convert_pcb("pcbs",ddlStore, mseg);
   convert_legacyseg("legacyseg",ddlStore, mseg);
   convert_seg("segmentations",ddlStore, mseg);

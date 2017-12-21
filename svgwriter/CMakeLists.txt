@@ -1,12 +1,10 @@
 add_library(svgwriterlib
         svgContour.cxx
-        svgContour.h
-        svgSegmentationInterface.h
-        svgSegmentationInterface.cxx)
+        svgContour.h)
 
 target_include_directories(svgwriterlib PUBLIC .)
-target_link_libraries(svgwriterlib genmap contour)
+target_link_libraries(svgwriterlib contour)
 
 add_executable(svgwriter svgWriter.cxx)
-target_link_libraries(svgwriter svgwriterlib segmentationcontours)
+target_link_libraries(svgwriter svgwriterlib segcontour)
 

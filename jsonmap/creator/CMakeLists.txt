@@ -12,7 +12,6 @@ add_library(mchjsoncreator SHARED
         legacyseg2json.h
         motif.cxx
         motif.h
-        motif2json.h
         motifPosition.cxx
         motifPosition.h
         motifType.cxx

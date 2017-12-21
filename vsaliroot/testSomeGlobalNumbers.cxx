@@ -31,9 +31,7 @@
 #include "AliMpVSegmentation.h"
 #include "contour.h"
 #include "contourCreator.h"
-#include "segmentationContours.h"
-#include "segmentationInterface.h"
-#include "svgSegmentationInterface.h"
+#include "svgContour.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>
@@ -47,8 +45,6 @@
 #include <set>
 #include <utility>
 #include <vector>
-
-using namespace o2::mch::mapping;
 
 struct MAPPING
 {

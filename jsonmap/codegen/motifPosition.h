@@ -20,6 +20,9 @@
 #include <string>
 #include "rapidjson/document.h"
 
+namespace jsonmap {
+namespace codegen {
+
 struct MotifPosition
 {
   public:
@@ -52,7 +55,6 @@ struct MotifPosition
 
     friend std::ostream &operator<<(std::ostream &os, const MotifPosition &position);
 
-  private:
     int mFECId;
     int mMotifTypeId;
     int mPadSizeId;
@@ -66,10 +68,6 @@ std::vector<MotifPosition>
 getMotifPositions(int segtype, bool bending, const rapidjson::Value &segmentations, const rapidjson::Value &motiftypes,
                   const rapidjson::Value &padsizes);
 
-void generateCodeForMotifPositions(
-  const rapidjson::Value &segmentations,
-  const rapidjson::Value &motiftypes,
-  const rapidjson::Value &padsizes,
-  const rapidjson::Value &bergs);
-
+}
+}
 #endif

@@ -1,14 +1,16 @@
 
-add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx)
-
-target_sources(mchMappingCodeGenerator PUBLIC jsonReader.h jsonReader.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC codeWriter.h codeWriter.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC chamber.h chamber.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC motifType.h motifType.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC padSize.h padSize.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC segmentation.h segmentationCInterface.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC motifPosition.h motifPosition.cxx)
-target_sources(mchMappingCodeGenerator PUBLIC feePadGroup.h feePadGroup.cxx)
+add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx
+        jsonReader.h
+        writer.h writer.cxx
+        chamber.h chamber.cxx
+        motifType.h motifType.cxx
+        padSize.h padSize.cxx
+        segmentation1.h segmentation1.cxx
+        segmentation2.h segmentation2.cxx
+        motifPosition.h motifPosition.cxx
+        motifPosition1.h motifPosition1.cxx
+        motifPosition2.h motifPosition2.cxx
+        padGroupType.h padGroupType.cxx)
 
 target_link_libraries(mchMappingCodeGenerator Boost::program_options RapidJSON)
 

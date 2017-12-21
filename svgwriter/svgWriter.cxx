@@ -12,25 +12,23 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include "segmentationInterface.h"
-#include "svgSegmentationInterface.h"
-#include "contourCreator.h"
+#include "segmentation.h"
 #include "segmentationContours.h"
+#include "svgContour.h"
 
 using namespace o2::mch::svg;
 
 int main()
 {
-  for (auto i: o2::mch::mapping::getOneDetElemIdPerSegmentation()) {
+  o2::mch::mapping::forOneDetectionElementOfEachSegmentationType([](int detElemId) {
     for (auto isBendingPlane : {true, false}) {
-      auto o2 = o2::mch::mapping::getSegmentation(i, isBendingPlane);
-      auto bbox = o2::mch::contour::getBBox(
-        o2::mch::contour::getEnvelop(o2::mch::mapping::getSampaContours(*(o2.get()))));
+      o2::mch::mapping::Segmentation seg{detElemId, isBendingPlane};
       std::ostringstream filename;
-      filename << "segmentation-contour-" << i << "-" << (isBendingPlane ? "B" : "NB") << ".html";
-      writeSegmentationInterface(*o2, filename.str().c_str(), 0, 0);
+      filename << "segmentation-contour-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << ".html";
+      auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
+      writeContours(contours, filename.str().c_str(), 0, 0);
     }
-  }
+  });
 
   return 0;
 }

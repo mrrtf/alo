@@ -15,7 +15,7 @@
 
 #include "motifType.h"
 #include "jsonReader.h"
-#include "codeWriter.h"
+#include "writer.h"
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -23,9 +23,11 @@
 #include <sstream>
 
 using namespace rapidjson;
+namespace jsonmap {
+namespace codegen {
 
 namespace {
-std::string returnVectorAsString(const std::vector<int>& v)
+std::string returnVectorAsString(const std::vector<int> &v)
 {
 
   std::ostringstream s;
@@ -42,16 +44,18 @@ std::string returnVectorAsString(const std::vector<int>& v)
   return s.str();
 }
 
-void generateCode(const Value& motif, std::ostringstream& code)
+}
+
+void generateCode(const Value &motif, std::ostringstream &code)
 {
-  const Value& pads = motif["pads"];
+  const Value &pads = motif["pads"];
   assert(pads.IsArray());
 
   unsigned int nofpads = pads.Size();
 
   std::vector<int> berg, ix, iy;
 
-  for (const auto& p: pads.GetArray()) {
+  for (const auto &p: pads.GetArray()) {
     assert(p["berg"].IsInt());
     assert(p["ix"].IsInt());
     assert(p["iy"].IsInt());
@@ -72,10 +76,8 @@ void generateCode(const Value& motif, std::ostringstream& code)
        << berg.size()
        << ")";
 }
-}
 
-
-std::string generateCodeForMotifTypes(const rapidjson::Value& motifs)
+std::string generateCodeForMotifTypes(const rapidjson::Value &motifs)
 {
   assert(motifs.IsArray());
 
@@ -83,9 +85,9 @@ std::string generateCodeForMotifTypes(const rapidjson::Value& motifs)
 
   int n{0};
   impl << generateInclude({"motifType.h"});
-  impl << mappingNamespaceBegin();
+  impl << mappingNamespaceBegin("impl1");
   impl << "MotifTypeArray arrayOfMotifTypes{\n";
-  for (const auto& motifType: motifs.GetArray()) {
+  for (const auto &motifType: motifs.GetArray()) {
     assert(motifType.IsObject());
     impl << "/* index: " << n << " */ ";
     generateCode(motifType, impl);
@@ -93,7 +95,10 @@ std::string generateCodeForMotifTypes(const rapidjson::Value& motifs)
     if (n < motifs.Size()) { impl << ",\n"; }
   }
   impl << "\n};\n";
-  impl << mappingNamespaceEnd();
+  impl << mappingNamespaceEnd("impl1");
 
   return impl.str();
-};
+}
+
+}
+}

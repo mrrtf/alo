@@ -31,9 +31,8 @@
 #include "AliMpVSegmentation.h"
 #include "contour.h"
 #include "contourCreator.h"
-#include "segmentationContours.h"
-#include "segmentationInterface.h"
-#include "svgSegmentationInterface.h"
+#include "svgContour.h"
+#include "../mapping/segcontour/segmentationContours.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>
@@ -47,6 +46,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <segmentation.h>
 
 using namespace o2::mch::mapping;
 
@@ -77,9 +77,9 @@ std::vector<int> MAPPING::detElemIds
   };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
-BOOST_FIXTURE_TEST_SUITE(segmentation, MAPPING)
+BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot2, MAPPING)
 
-void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInterface &seg, double x, double y,
+void sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg, double x, double y,
                           double step, int ntimes, int &naliroot, int &no2)
 {
   // Check whether aliroot and o2 implementations give the same answer to
@@ -99,7 +99,7 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
     double xs = distX(mt);
     double ys = distY(mt);
     bool aliroot = alseg.PadByPosition(xs, ys, false).IsValid();
-    bool o2 = seg.hasPadByPosition(xs, ys);
+    bool o2 = seg.findPadByPosition(xs, ys);
 
     if (aliroot) { ++naliroot; }
     if (o2) { ++no2; }
@@ -107,28 +107,15 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
   }
 }
 
-std::pair<const AliMpVSegmentation *, SegmentationInterface *>
-getSegmentations(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
-{
-  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
-
-  auto al = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
-    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
-
-  auto o2 = getSegmentation(detElemId, isBendingPlane);
-
-  return {al, o2.release()};
-}
-
 bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
                            int ntimes)
 {
-  auto pair = getSegmentations(mseg, detElemId, isBendingPlane);
-  auto al = pair.first;
-  auto o2 = pair.second;
+  auto al = mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
+    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
+  Segmentation o2seg{detElemId, isBendingPlane};
 
-  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(
-    o2::mch::mapping::getSampaContours(*o2)));
+  auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
+  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(contours));
 
   bool same{true};
 
@@ -137,7 +124,7 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendin
   for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
     for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
       int naliroot, no2;
-      sameHasPadByPosition(*al, *o2, x, y, step, ntimes, naliroot, no2);
+      sameHasPadByPosition(*al, o2seg, x, y, step, ntimes, naliroot, no2);
       double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
       if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
         same = false;
@@ -148,10 +135,9 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendin
         std::cout << "detElemId=" << detElemId << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
         std::ostringstream filename;
-        filename << "bug-" << o2->getId() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        filename << "bug-" << o2seg.id() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
         ++ndiff;
-        auto seg = getSegmentation(detElemId, isBendingPlane);
-        o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
+        o2::mch::svg::writeContours(contours, filename.str().c_str(), x, y);
       }
     }
   }

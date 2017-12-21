@@ -13,6 +13,7 @@
 /// @author  Laurent Aphecetche
 
 #include "svgContour.h"
+#include "contourCreator.h"
 
 namespace o2 {
 namespace mch {
@@ -55,6 +56,40 @@ void writeContour(std::string filename, const o2::mch::contour::Contour<double> 
   out << "</svg>\n";
   out << "</body></html>\n";
 }
+
+void writeContours(const std::vector<o2::mch::contour::Contour<double>>& contours, const char *filename, double x,
+                   double y)
+{
+  std::ofstream out(filename);
+  int scale = 10;
+  out << "<html><body>\n";
+  auto env = o2::mch::contour::getEnvelop(contours);
+  auto box = getBBox(env);
+
+  x -= box.xmin();
+  y -= box.ymin();
+
+  writeHeader(out, box, scale);
+  writeContour(out, scale, env, box, "fill:#eeeeee;stroke:black;stroke-width:3px");
+  for (auto i = 0; i < contours.size(); ++i) {
+    auto &c = contours[i];
+//  for (auto &&c: contours) {
+    writeContour(out, scale, c, box);
+    if (c.contains(x, y)) {
+      writeContour(out, scale, c, box, "fill:#aaaaaa;stroke:none");
+    }
+  }
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"5\"\n"
+    "style=\"fill:none;stroke:black;stroke-width:0.5px;\"/>";
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"1\"\n"
+    "style=\"fill:none;stroke:red;stroke-width:0.5px;\"/>";
+
+  out << "</svg>\n";
+  out << "</body></html>\n";
+}
+
 
 }
 }

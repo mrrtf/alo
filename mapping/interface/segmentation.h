@@ -25,32 +25,6 @@ namespace o2 {
 namespace mch {
 namespace mapping {
 
-/* TODO : the real interface should be more like this ?
- *
- *
- * first methods that query the segmentation and return iterators
- *
- Iterator findPadByPosition(double x, double y) const ;
-
- Iterator findPadByFEE(int dualSampaId, int dualSampaChannel) const ;
-
- Iterator findPadInArea(const BBox& area) const ;
-
- then methods that query pad information from the iterator
-
- double getPadPositionX(Iterator it) const ; // or float return value ?
- double getPadPositionY(Iterator it) const ;
-
- double getPadDimensionX(Iterator it) const ;
- double getPadDimensionY(Iterator it) const ;
-
-  int getPadDualSampaId(Iterator it) const ; // or DualSampaId return value ? (i.e. always valid)
-  int getPadDualSampaChannel(Iterator it) const ; // or DualSampaChannel return value ? (i.e. always valid)
-
- => define a base class which represents a integer within a validity range. Can only be created valid (otherwise throw)
-
- */
-
 using PadHandle = ::MchPadHandle;
 
 class Segmentation

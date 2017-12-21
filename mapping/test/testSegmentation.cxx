@@ -47,8 +47,8 @@ BOOST_AUTO_TEST_CASE(GetSegmentationMustNotThrowIfDetElemIdIsValid)
 
 BOOST_AUTO_TEST_CASE(GetSegmentationThrowsIfDetElemIdIsNotValid)
 {
-  BOOST_CHECK_THROW(Segmentation(-1, true), std::out_of_range);
-  BOOST_CHECK_THROW(Segmentation(121, true), std::out_of_range);
+  BOOST_CHECK_THROW(Segmentation(-1, true), std::runtime_error);
+  BOOST_CHECK_THROW(Segmentation(121, true), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(NofBendingPads)

@@ -13,12 +13,18 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_MOTIFTYPE_H
-#define ALO_JSONMAP_READER_MOTIFTYPE_H
+#ifndef ALO_JSONMAP_CODEGEN_MOTIFTYPE_H
+#define ALO_JSONMAP_CODEGEN_MOTIFTYPE_H
 
 #include <string>
 #include "rapidjson/document.h"
 
+namespace jsonmap {
+namespace codegen {
+
 std::string generateCodeForMotifTypes(const rapidjson::Value& motifs);
+}
+}
 
 #endif
+

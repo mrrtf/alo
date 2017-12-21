@@ -1,10 +1,14 @@
-#ifndef ALO_JSONMAP_READER_PADSIZE_H
-#define ALO_JSONMAP_READER_PADSIZE_H
+#ifndef ALO_JSONMAP_CODEGEN_PADSIZE_H
+#define ALO_JSONMAP_CODEGEN_PADSIZE_H
 
 #include "rapidjson/document.h"
 #include <string>
 
-std::string generateCodeForPadSizes(const rapidjson::Value& padsizes);
+namespace jsonmap {
+namespace codegen {
 
+std::string generateCodeForPadSizes(const rapidjson::Value &padsizes);
+}
+}
 #endif
 

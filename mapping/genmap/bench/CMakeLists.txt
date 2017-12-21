@@ -1,6 +1,0 @@
-add_executable(benchPadAccess benchPadAccess.cxx)
-target_link_libraries(benchPadAccess benchmark::benchmark)
-
-add_executable(benchSegmentationFactory benchSegmentationFactory.cxx)
-target_link_libraries(benchSegmentationFactory benchmark::benchmark genmap)
-
