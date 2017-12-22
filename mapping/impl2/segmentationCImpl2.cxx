@@ -12,47 +12,29 @@
 ///
 /// @author  Laurent Aphecetche
 
-//
-// Copyright CERN and copyright holders of ALICE O2. This software is
-// distributed under the terms of the GNU General Public License v3 (GPL
-// Version 3), copied verbatim in the file "COPYING".
-//
-// See https://alice-o2.web.cern.ch/ for full licensing information.
-//
-// In applying this license CERN does not waive the privileges and immunities
-// granted to it by virtue of its status as an Intergovernmental Organization
-// or submit itself to any jurisdiction.
-
-///
-/// @author  Laurent Aphecetche
-
-#include "segmentation.h"
-#include "impl2_export.h"
 #include "segmentationCInterface.h"
-#include <string>
-#include <iostream>
-#include <memory>
+#include "impl2_export.h"
+#include "segmentationImpl2.h"
 
 extern "C" {
 
 struct IMPL2_EXPORT MchSegmentation
 {
-    //MchSegmentation(SegmentationInterface *si) : impl(si){}
-//  std::unique_ptr<SegmentationInterface> impl;
-    bool removeme;
+    MchSegmentation(o2::mch::mapping::impl2::Segmentation *i) : impl{i}
+    {}
+
+    std::unique_ptr<o2::mch::mapping::impl2::Segmentation> impl;
 };
 
 struct IMPL2_EXPORT MchPad
 {
-    //int padIndex;
-    bool removeme;
+    int padIndex;
 };
 
-IMPL2_EXPORT
-MchSegmentationHandle mchSegmentationConstruct(int detElemId, bool isBendingPlane)
+IMPL2_EXPORT MchSegmentationHandle
+mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
-  //return new MchSegmentation(getSegmentation(detElemId, isBendingPlane).release());
-  return nullptr;
+  return new MchSegmentation{o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane)};
 }
 
 IMPL2_EXPORT
@@ -62,28 +44,15 @@ void mchSegmentationDestruct(MchSegmentationHandle sh)
 }
 
 IMPL2_EXPORT
-int mchSegmentationDualSampaId(MchSegmentationHandle segHandle, int dualSampaIndex)
-{
-  //return segHandle->impl->getSampaId(dualSampaIndex);
-  return 0;
-}
-
-IMPL2_EXPORT
-int mchSegmentationNofDualSampas(MchSegmentationHandle segHandle)
-{
-  //return segHandle->impl->nofDualSampas();
-  return 0;
-}
-
-IMPL2_EXPORT
 int mchSegmentationId(MchSegmentationHandle segHandle)
 {
-  // return segHandle->impl->getId();
+// return segHandle->impl->getId();
   return -1;
 }
 
 IMPL2_EXPORT
-MchPadHandle mchSegmentationPadConstruct()
+MchPadHandle
+mchSegmentationPadConstruct()
 {
   // return new MchPad;
   return nullptr;
@@ -121,6 +90,14 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
     1007, 1008, 1009, 1010, 1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019, 1020, 1021, 1022, 1023, 1024, 1025
   }) {
     handler(clientData, detElemId);
+  }
+}
+
+IMPL2_EXPORT
+void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
+{
+  for (auto i = 0; i < segHandle->impl->nofDualSampas(); ++i) {
+    handler(clientData, segHandle->impl->dualSampaId(i));
   }
 }
 

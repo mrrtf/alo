@@ -17,11 +17,38 @@
 #define ALO_JSONMAP_CODEGEN_PADGROUPTYPE_H
 
 #include "rapidjson/document.h"
+#include <map>
+#include <string>
+#include <vector>
 
 namespace jsonmap {
 namespace codegen {
+namespace impl2 {
 
-std::string generateCodeForPadGroupTypes(const rapidjson::Value &motiftypes);
+struct PadGroupType
+{
+    int id;
+    int originalMotifTypeId;
+    std::string originalMotifTypeIdString;
+    bool isSplit;
+    std::vector<int> channelId;
+    std::vector<int> ix;
+    std::vector<int> iy;
+
+    void clear()
+    {
+      channelId.clear();
+      ix.clear();
+      iy.clear();
+    }
+};
+
+std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, int npins);
+
+std::vector<PadGroupType> getPadGroupTypes(const rapidjson::Value &motiftypes, const rapidjson::Value& bergs);
+
+std::string generateCodeForPadGroupTypes(const rapidjson::Value &motiftypes, const rapidjson::Value& bergs);
+}
 }
 }
 

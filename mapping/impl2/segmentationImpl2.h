@@ -24,15 +24,25 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
-class Segmentation;
-
-Segmentation getSegmentation(int segType, bool isBendingPlane);
-
 class Segmentation {
 
   public:
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
+
+    int nofDualSampas() const { return mDualSampaId.size();  }
+
+    int dualSampaId(int dualSampaIndex) const {
+      return mDualSampaId[dualSampaIndex];
+    }
+
+  private:
+    int mSegType;
+    bool mIsBendingPlane;
+    std::vector<PadGroup> mPadGroups;
+    std::vector<int> mDualSampaId;
 };
+
+Segmentation* createSegmentation(int detElemId, bool isBendingPlane);
 
 }
 }

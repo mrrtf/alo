@@ -12,25 +12,22 @@
 ///
 /// @author  Laurent Aphecetche
 
+#include "padGroup.h"
+#include <vector>
 
-#ifndef O2_MCH_MAPPING_IMPL2_PADGROUP_H
-#define O2_MCH_MAPPING_IMPL2_PADGROUP_H
-namespace o2 {
-namespace mch {
-namespace mapping {
+namespace jsonmap {
+namespace codegen {
 namespace impl2 {
 
-struct PadGroup
-{
-    int mFECId;
-    int mPadGroupTypeId;
-    int mPadSizeId;
-    double mX;
-    double mY;
-};
 
+std::vector <PadGroup> getPadGroups(int segtype,
+                                    bool bending,
+                                    const rapidjson::Value &segmentations,
+                                    const rapidjson::Value &motiftypes,
+                                    const rapidjson::Value &padsizes)
+{
+  return {};
 }
 }
 }
 }
-#endif

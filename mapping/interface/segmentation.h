@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <memory>
 #include <iostream>
+#include <vector>
 
 namespace o2 {
 namespace mch {
@@ -29,26 +30,36 @@ using PadHandle = ::MchPadHandle;
 
 class Segmentation
 {
-
   public:
-    Segmentation(int detElemId, bool isBendingPlane) : mImpl(nullptr)
+    Segmentation(int detElemId, bool isBendingPlane) : mImpl(nullptr), mDualSampaIds{}
     {
       mImpl = mchSegmentationConstruct(detElemId, isBendingPlane);
       if (!mImpl) {
-        throw std::runtime_error("Can not create segmentation for DE " + std::to_string(detElemId) + (isBendingPlane ? " Bending":" NonBending"));
+        throw std::runtime_error("Can not create segmentation for DE " + std::to_string(detElemId) +
+                                 (isBendingPlane ? " Bending" : " NonBending"));
       }
+      std::vector<int> dpid;
+      auto addDualSampaId = [&dpid](int dualSampaId) {
+        dpid.push_back(dualSampaId);
+      };
+      auto callback = [](void *data, int dualSampaId) {
+        auto fn = static_cast<decltype(&addDualSampaId)>(data);
+        (*fn)(dualSampaId);
+      };
+      mchForEachDualSampa(mImpl, callback, &addDualSampaId);
+      mDualSampaIds=dpid;
     }
 
     ~Segmentation()
     { mchSegmentationDestruct(mImpl); }
 
-    bool findPadByPosition(double x, double y, PadHandle* padHandle=nullptr) const
+    bool findPadByPosition(double x, double y, PadHandle *padHandle = nullptr) const
     {
       padHandle = nullptr;
       return mchSegmentationFindPadByPosition(mImpl, x, y, padHandle);
     }
 
-    bool findPadByFEE(int dualSampaId, int dualSampaChannel, PadHandle* padHandle=nullptr) const
+    bool findPadByFEE(int dualSampaId, int dualSampaChannel, PadHandle *padHandle = nullptr) const
     {
       padHandle = nullptr;
       return mchSegmentationFindPadByFEE(mImpl, dualSampaId, dualSampaChannel, padHandle);
@@ -58,10 +69,10 @@ class Segmentation
     { return mchSegmentationId(mImpl); }
 
     int nofDualSampas() const
-    { return mchSegmentationNofDualSampas(mImpl); }
+    { return mDualSampaIds.size(); }
 
     int dualSampaId(int dualSampaIndex) const
-    { return mchSegmentationDualSampaId(mImpl, dualSampaIndex); }
+    { return mDualSampaIds[dualSampaIndex]; }
 
     double padPositionX(PadHandle ph) const
     {
@@ -70,23 +81,24 @@ class Segmentation
 
     double padPositionY(PadHandle ph) const
     {
-      return mchSegmentationPadPositionY(mImpl,ph);
+      return mchSegmentationPadPositionY(mImpl, ph);
     }
 
     double padSizeX(PadHandle ph) const
     {
-      return mchSegmentationPadSizeX(mImpl,ph);
+      return mchSegmentationPadSizeX(mImpl, ph);
     }
 
     double padSizeY(PadHandle ph) const
     {
-      return mchSegmentationPadSizeY(mImpl,ph);
+      return mchSegmentationPadSizeY(mImpl, ph);
     }
 
-    int nofPads() const {
+    int nofPads() const
+    {
       int n{0};
-      for ( auto i = 0; i < nofDualSampas(); ++i ) {
-        forEachPadInDualSampa(dualSampaId(i),[&n](PadHandle /*ph*/){++n;});
+      for (auto i = 0; i < nofDualSampas(); ++i) {
+        forEachPadInDualSampa(dualSampaId(i), [&n](PadHandle /*ph*/) { ++n; });
       }
       return n;
     }
@@ -96,6 +108,7 @@ class Segmentation
 
   private:
     MchSegmentationHandle mImpl;
+    std::vector<int> mDualSampaIds;
 };
 
 template<typename CALLABLE>
@@ -105,7 +118,7 @@ void Segmentation::forEachPadInDualSampa(int dualSampaId, CALLABLE &&func) const
     auto fn = static_cast<decltype(&func)>(data);
     (*fn)(ph);
   };
-  mchForEachPadInDualSampa(mImpl,dualSampaId,callback,&func);
+  mchForEachPadInDualSampa(mImpl, dualSampaId, callback, &func);
 }
 
 template<typename CALLABLE>
@@ -115,7 +128,7 @@ void forEachDetectionElement(CALLABLE &&func)
     auto fn = static_cast<decltype(&func)>(data);
     (*fn)(detElemId);
   };
-  mchForEachDetectionElement(callback,&func);
+  mchForEachDetectionElement(callback, &func);
 }
 
 template<typename CALLABLE>
@@ -125,7 +138,7 @@ void forOneDetectionElementOfEachSegmentationType(CALLABLE &&func)
     auto fn = static_cast<decltype(&func)>(data);
     (*fn)(detElemId);
   };
-  mchForOneDetectionElementOfEachSegmentationType(callback,&func);
+  mchForOneDetectionElementOfEachSegmentationType(callback, &func);
 }
 
 }

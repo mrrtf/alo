@@ -13,24 +13,19 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_MAPPING_IMPL2_PADGROUP_H
-#define O2_MCH_MAPPING_IMPL2_PADGROUP_H
-namespace o2 {
-namespace mch {
-namespace mapping {
-namespace impl2 {
+#ifndef ALO_JSONMAP_CODEGEN_SEGMENTATIONCOMMON_H
+#define ALO_JSONMAP_CODEGEN_SEGMENTATIONCOMMON_H
 
-struct PadGroup
-{
-    int mFECId;
-    int mPadGroupTypeId;
-    int mPadSizeId;
-    double mX;
-    double mY;
-};
+#include <string>
+#include "rapidjson/document.h"
+
+namespace jsonmap {
+namespace codegen {
+
+std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elements);
+std::string generateCodeForSegTypeArray(const rapidjson::Value &segmentations, const rapidjson::Value &detection_elements);
 
 }
 }
-}
-}
+
 #endif

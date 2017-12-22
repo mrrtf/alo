@@ -12,24 +12,25 @@
 ///
 /// @author  Laurent Aphecetche
 
+#ifndef ALO_JSONMAP_CODEGEN_PADGROUP_H
+#define ALO_JSONMAP_CODEGEN_PADGROUP_H
 
-#ifndef O2_MCH_MAPPING_IMPL2_PADGROUP_H
-#define O2_MCH_MAPPING_IMPL2_PADGROUP_H
-namespace o2 {
-namespace mch {
-namespace mapping {
+#include "rapidjson/document.h"
+
+namespace jsonmap {
+namespace codegen {
 namespace impl2 {
 
 struct PadGroup
 {
-    int mFECId;
-    int mPadGroupTypeId;
-    int mPadSizeId;
-    double mX;
-    double mY;
 };
 
-}
+std::vector <PadGroup> getPadGroups(int segtype,
+                                    bool bending,
+                                    const rapidjson::Value &segmentations,
+                                    const rapidjson::Value &motiftypes,
+                                    const rapidjson::Value &padsizes);
+
 }
 }
 }

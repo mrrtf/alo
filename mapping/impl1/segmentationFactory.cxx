@@ -1,4 +1,4 @@
-#include "segmentation.h"
+#include "segmentationImpl1.h"
 
 #include <array>
 #include <stdexcept>
@@ -14,21 +14,19 @@ namespace impl1 {
 
 int getSegTypeIndexFromDetElemIndex(int deIndex)
 {
-  if (deIndex >= segtype.size() || deIndex < 0) { throw std::runtime_error("deIndex" + std::to_string(deIndex) + " is incorrect"); }
-  return segtype[deIndex];
+  if (deIndex >= detElemIndexToSegType.size() || deIndex < 0) { throw std::runtime_error("deIndex" + std::to_string(deIndex) + " is incorrect"); }
+  return detElemIndexToSegType[deIndex];
 }
 
 int getDetElemIdFromDetElemIndex(int deIndex)
 {
-  static auto deids = getDetElemIds();
-  if (deIndex < 0 || deIndex >= deids.size()) { throw std::runtime_error("deIndex" + std::to_string(deIndex) + " is incorrect"); }
-  return deids[deIndex];
+  if (deIndex < 0 || deIndex >= detElemIndexToDetElemId.size()) { throw std::runtime_error("deIndex" + std::to_string(deIndex) + " is incorrect"); }
+  return detElemIndexToDetElemId[deIndex];
 }
 
 int getDetElemIndexFromDetElemId(int deId)
 {
-  auto deids = getDetElemIds();
-  return std::distance(deids.begin(), std::find(deids.begin(), deids.end(), deId));
+  return std::distance(detElemIndexToDetElemId.begin(), std::find(detElemIndexToDetElemId.begin(), detElemIndexToDetElemId.end(), deId));
 }
 
 std::unique_ptr<SegmentationInterface> getSegmentationByDetElemIndex(int deIndex, bool isBendingPlane)
@@ -48,13 +46,12 @@ std::vector<int> getOneDetElemIdPerSegmentation()
 
   std::vector<int> des;
   std::set<int> segtypeset;
-  auto deids{getDetElemIds()};
-  for (auto i = 0; i < deids.size(); ++i) {
+  for (auto i = 0; i < detElemIndexToDetElemId.size(); ++i) {
     for (auto bending : {true, false}) {
-      int id = segtype[i];
+      int id = detElemIndexToSegType[i];
       if (std::find(cbegin(segtypeset), cend(segtypeset), id) == segtypeset.end()) {
         segtypeset.insert(id);
-        des.push_back(deids[i]);
+        des.push_back(detElemIndexToDetElemId[i]);
       }
     }
   }

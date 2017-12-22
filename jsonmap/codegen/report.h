@@ -13,23 +13,25 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_CODEGEN_SEGMENTATION2_H
-#define ALO_JSONMAP_CODEGEN_SEGMENTATION2_H
+#ifndef ALO_JSONMAP_CODEGEN_REPORT_H
+#define ALO_JSONMAP_CODEGEN_REPORT_H
 
+#include <set>
+#include <map>
 #include "rapidjson/document.h"
+#include "motifPosition.h"
 
 namespace jsonmap {
 namespace codegen {
-namespace impl2 {
 
-void generateCodeForSegmentations(const rapidjson::Value &segmentations,
-                                  const rapidjson::Value &motiftypes,
-                                  const rapidjson::Value &padsizes,
-                                  const rapidjson::Value &detection_elements,
-                                  const rapidjson::Value &bergs);
+void reportNonRegularMotifs(const std::vector <MotifPosition> &motifpositions,
+                            std::set<int> &regulars, std::map<int, int> &nonreg, std::set<int> &all);
 
-}
+void reportNonRegularMotifs(const rapidjson::Value &segmentations, const rapidjson::Value &motiftypes, const rapidjson::Value &padsizes);
+
+void reportIndicesRange(const rapidjson::Value &motiftypes);
 }
 }
 
 #endif
+

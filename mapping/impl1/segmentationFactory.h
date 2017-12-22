@@ -16,7 +16,7 @@
 #ifndef O2_MCH_MAPPING_IMPL1_SEGMENTATIONFACTORY_H
 #define O2_MCH_MAPPING_IMPL1_SEGMENTATIONFACTORY_H
 
-#include "segmentation.h"
+#include "segmentationImpl1.h"
 
 namespace o2 {
 namespace mch {

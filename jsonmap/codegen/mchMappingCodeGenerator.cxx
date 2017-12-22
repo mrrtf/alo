@@ -27,7 +27,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "padGroupType.h"
 
 using namespace rapidjson;
 namespace po = boost::program_options;
@@ -93,13 +92,20 @@ int main(int argc, char *argv[])
     Document &doc = documents["motiftypes"]->document();
     auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
     outputCode("", impl, "genMotifType");
-    impl = generateCodeForPadGroupTypes(doc["motiftypes"]);
+  }
+
+  if ( documents.count("motiftypes") && documents.count("bergs")) {
+    Document &motiftypes = documents["motiftypes"]->document();
+    Document &bergs = documents["bergs"]->document();
+    auto impl = impl2::generateCodeForPadGroupTypes(motiftypes["motiftypes"],bergs["bergs"]);
     outputCode("",impl,"genPadGroupType");
   }
 
   if (documents.count("padsizes")) {
     Document &doc = documents["padsizes"]->document();
-    outputCode("", generateCodeForPadSizes(doc["padsizes"]), "genPadSize");
+    for (std::string ns: {"impl1","impl2"}) {
+      outputCode("", generateCodeForPadSizes(ns,doc["padsizes"]), ns + "-genPadSize",true,true);
+    }
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
@@ -112,11 +118,20 @@ int main(int argc, char *argv[])
                                         motiftypes["motiftypes"],
                                         padsizes["padsizes"],
                                         detection_elements["detection_elements"]);
+  }
 
+  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
+      && documents.count("detection_elements") && documents.count("bergs")) {
+    Document &segmentations = documents["segmentations"]->document();
+    Document &motiftypes = documents["motiftypes"]->document();
+    Document &padsizes = documents["padsizes"]->document();
+    Document &detection_elements = documents["detection_elements"]->document();
+    Document &bergs = documents["bergs"]->document();
     impl2::generateCodeForSegmentations(segmentations["segmentations"],
                                         motiftypes["motiftypes"],
                                         padsizes["padsizes"],
-                                        detection_elements["detection_elements"]);
+                                        detection_elements["detection_elements"],
+                                        bergs["bergs"]);
   }
 
   if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&

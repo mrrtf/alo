@@ -10,10 +10,10 @@ set(SOURCES
         pad.h
         padSize.h
         segmentationFactory.cxx
-        segmentation.h
+        segmentationImpl1.h
         zone.h
         segmentationFactory.h
-        segmentation.cxx)
+        segmentationImpl1.cxx)
 
 add_library(motiftype1 SHARED motifType.h genMotifType.cxx)
 target_include_directories(motiftype1 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -24,7 +24,7 @@ target_link_libraries(impl1 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl1 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl1 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl1> 16
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl1> 15
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl1_static STATIC ${SOURCES})

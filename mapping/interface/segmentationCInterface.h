@@ -25,6 +25,7 @@ typedef struct MchSegmentation *MchSegmentationHandle;
 typedef struct MchPad *MchPadHandle;
 typedef void (*MchDetectionElementHandler)(void *clientData, int detElemId);
 typedef void (*MchPadHandler)(void *clientData, MchPadHandle padHandle);
+typedef void (*MchDualSampaHandler)(void *clientData, int dualSampaId);
 
 /// Create a handle to a segmentation for a given plane of a detection element
 MchSegmentationHandle mchSegmentationConstruct(int detElemId, bool isBendingPlane);
@@ -46,16 +47,13 @@ bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaI
 
 int mchSegmentationId(MchSegmentationHandle segHandle);
 
-int mchSegmentationDualSampaId(MchSegmentationHandle segHandle, int dualSampaIndex);
-
-int mchSegmentationNofDualSampas(MchSegmentationHandle segHandle);
-
 void mchForEachDetectionElement(MchDetectionElementHandler handler, void *clientData);
 
 void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData);
 
-void
-mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData);
+void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void* clientData);
+
+void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData);
 
 double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, MchPadHandle padHandle);
 double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, MchPadHandle padHandle);

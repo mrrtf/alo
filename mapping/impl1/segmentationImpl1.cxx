@@ -50,18 +50,6 @@ void mchSegmentationDestruct(MchSegmentationHandle sh)
 }
 
 IMPL1_EXPORT
-int mchSegmentationDualSampaId(MchSegmentationHandle segHandle, int dualSampaIndex)
-{
-  return segHandle->impl->getSampaId(dualSampaIndex);
-}
-
-IMPL1_EXPORT
-int mchSegmentationNofDualSampas(MchSegmentationHandle segHandle)
-{
-  return segHandle->impl->nofDualSampas();
-}
-
-IMPL1_EXPORT
 int mchSegmentationId(MchSegmentationHandle segHandle)
 {
   return segHandle->impl->getId();
@@ -104,8 +92,17 @@ bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaI
 IMPL1_EXPORT
 void mchForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
 {
-  for (auto detElemId: o2::mch::mapping::impl1::getDetElemIds()) {
-    handler(clientData, detElemId);
+  for (auto i = 0; i < 156; ++i ) {
+    handler(clientData, o2::mch::mapping::impl1::getDetElemIdFromDetElemIndex(i));
+  }
+}
+
+IMPL1_EXPORT
+void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void* clientData)
+{
+  for (auto i = 0; i < segHandle->impl->nofDualSampas(); ++i )
+  {
+    handler(clientData,segHandle->impl->getSampaId(i));
   }
 }
 

@@ -13,24 +13,21 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_MAPPING_IMPL2_PADGROUP_H
-#define O2_MCH_MAPPING_IMPL2_PADGROUP_H
+#ifndef O2_MCH_MAPPING_IMPL2_PADSIZE_H
+#define O2_MCH_MAPPING_IMPL2_PADSIZE_H
+
 namespace o2 {
 namespace mch {
 namespace mapping {
 namespace impl2 {
 
-struct PadGroup
-{
-    int mFECId;
-    int mPadGroupTypeId;
-    int mPadSizeId;
-    double mX;
-    double mY;
-};
+double padSizeX(int i);
 
-}
-}
-}
-}
+double padSizeY(int i);
+
+} // namespace impl2
+} // namespace mapping
+} // namespace mch
+} // namespace o2
+
 #endif

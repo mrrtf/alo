@@ -7,7 +7,7 @@
 namespace jsonmap {
 namespace codegen {
 
-std::string generateCodeForPadSizes(const rapidjson::Value &padsizes);
+std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &padsizes);
 }
 }
 #endif

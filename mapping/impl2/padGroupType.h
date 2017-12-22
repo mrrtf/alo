@@ -62,6 +62,8 @@ class PadGroupType
     int mNofPadsX;
 };
 
+PadGroupType getPadGroupType(int i);
+
 }
 }
 }

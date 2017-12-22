@@ -19,28 +19,28 @@
 namespace jsonmap {
 namespace codegen {
 
-std::string generateCodeForPadSizes(const rapidjson::Value &padsizes)
+std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &padsizes)
 {
   assert(padsizes.IsArray());
 
-  std::ostringstream impl;
+  std::ostringstream code;
 
-  impl << generateInclude({"padSize.h", "utility", "array"});
+  code << generateInclude({"padSize.h", "utility", "array"});
 
-  impl << mappingNamespaceBegin("impl1");
-  impl << R"(namespace {
+  code << mappingNamespaceBegin(ns);
+  code << R"(namespace {
 std::array<std::pair<float, float>, 18> arrayOfPadSizes{
 )";
   int n{0};
   for (auto &ps: padsizes.GetArray()) {
-    impl << "/* " << n << " */ std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << ","
+    code << "/* " << n << " */ std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << ","
          << static_cast<float>(ps["y"].GetDouble()) << ")";
     n++;
-    if (n < padsizes.Size()) { impl << ","; }
-    impl << "\n";
+    if (n < padsizes.Size()) { code << ","; }
+    code << "\n";
   }
 
-  impl << R"(
+  code << R"(
 };
 }
 double padSizeX(int i)
@@ -49,9 +49,9 @@ double padSizeX(int i)
 double padSizeY(int i)
 { return arrayOfPadSizes[i].second; }
 )";
-  impl << mappingNamespaceEnd("impl1");
+  code << mappingNamespaceEnd(ns);
 
-  return impl.str();
+  return code.str();
 
 }
 

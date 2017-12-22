@@ -14,106 +14,21 @@
 
 
 #include "segmentation1.h"
-#include "writer.h"
 #include "motifPosition.h"
-#include <sstream>
-#include <iostream>
-#include <array>
-#include <vector>
+#include "segmentationCommon.h"
+#include "writer.h"
 #include <algorithm>
+#include <array>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
 using rapidjson::Value;
 
 namespace jsonmap {
 namespace codegen {
 namespace impl1 {
-std::string generateCodeForOneSegmentation(int index, bool isBending,
-                                           const Value &segmentations,
-                                           const Value &motiftypes,
-                                           const Value &padsizes)
-{
-  std::vector<MotifPosition> motifpositions = getMotifPositions(index, isBending, segmentations, motiftypes, padsizes);
-
-  std::ostringstream code;
-
-  std::string bendingString = (isBending ? "true" : "false");
-  code << "template<>\n";
-  code << "Segmentation<" << index << "," << bendingString
-       << ">::Segmentation(const MotifTypeArray& motifTypes)"
-       << " : mId(" << index << "),mIsBendingPlane(" << bendingString << "), "
-       << "mNofPads{0},"
-       << "mMotifPositions{o2::mch::mapping::getMotifPositions<" << index << "," << bendingString << ">()}\n";
-
-  code << "{";
-
-  code << "  populatePads(motifTypes);\n";
-  code << "  createContours(motifTypes);\n";
-
-  code << "}\n";
-
-  return code.str();
-}
-
-std::string
-generateCodeForSegmentationType(int index, const Value &segmentations, const Value &motiftypes,
-                                const Value &padsizes)
-{
-  std::string code;
-  for (auto bending: {true, false}) {
-    code += generateCodeForOneSegmentation(index, bending, segmentations, motiftypes, padsizes);
-  }
-  return code;
-}
-
-std::string generateCodeForSegTypeArray(const Value &segmentations, const Value &detection_elements)
-{
-  std::ostringstream impl;
-
-  impl << "namespace {";
-
-  impl << "\n  std::array<int," << detection_elements.Size() << "> segtype{";
-
-  for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
-    const auto &de = detection_elements.GetArray()[ide];
-    for (int i = 0; i < segmentations.Size(); ++i) {
-      const auto &seg = segmentations.GetArray()[i];
-      if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
-        impl << i;
-        if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }
-        break;
-      }
-    }
-  }
-
-  impl << "};\n}";
-
-  return impl.str();
-}
-
-std::string generateCodeForDetectionElements(const rapidjson::Value &detection_elements)
-{
-  assert(detection_elements.IsArray());
-  std::vector<int> deids;
-  for (const auto &de: detection_elements.GetArray()) {
-    assert(de.IsObject());
-    assert(de["id"].IsInt());
-    deids.push_back(de["id"].GetInt());
-  }
-
-  std::ostringstream impl;
-
-  std::sort(deids.begin(), deids.end());
-
-  impl << "std::vector<int> getDetElemIds() { \n";
-  impl << "return {\n";
-  for (auto i = 0; i < deids.size(); ++i) {
-    impl << deids[i];
-    if (i < deids.size() - 1) { impl << ","; }
-  }
-  impl << "};\n}\n";
-  return impl.str();
-}
 
 std::string generateCodeForSegmentationFactory(const Value &segmentations, const Value &detection_elements)
 {
@@ -123,7 +38,7 @@ std::string generateCodeForSegmentationFactory(const Value &segmentations, const
 
   impl << mappingNamespaceBegin("impl1");
 
-  impl << generateCodeForDetectionElements(detection_elements);
+  impl << generateCodeForDetElemIdArray(detection_elements);
 
   impl << generateCodeForSegTypeArray(segmentations, detection_elements);
 
