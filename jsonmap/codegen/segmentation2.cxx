@@ -124,8 +124,7 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
   int detElemIndex = std::distance(detElemIndexToDetElemId.begin(),
                                    std::find(detElemIndexToDetElemId.begin(), detElemIndexToDetElemId.end(),
                                              detElemId));
-  int segType = detElemIndexToSegType[detElemIndex];
-
+  int segType = (detElemIndex>=0 && detElemIndex<156) ? detElemIndexToSegType[detElemIndex] : -1;
  )";
 
   int nonRegIndexLimit = motiftypes.GetArray().Size();
@@ -152,7 +151,7 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
   }
 
   impl
-    << "  throw std::out_of_range(std::to_string(segType) + \" is not a valid segtype\");\n";
+    << "  throw std::runtime_error(std::to_string(segType) + \" is not a valid segtype\");\n";
   impl << "\n}\n";
   impl << mappingNamespaceEnd("impl2");
 

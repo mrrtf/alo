@@ -23,8 +23,7 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
   int detElemIndex = std::distance(detElemIndexToDetElemId.begin(),
                                    std::find(detElemIndexToDetElemId.begin(), detElemIndexToDetElemId.end(),
                                              detElemId));
-  int segType = detElemIndexToSegType[detElemIndex];
-
+  int segType = (detElemIndex>=0 && detElemIndex<156) ? detElemIndexToSegType[detElemIndex] : -1;
   if (isBendingPlane==true && segType==0) {
    return new Segmentation{0,true,{
      {1,6,7,80.64,0}, {1,210,1,88.2,0},
@@ -1755,8 +1754,8 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
      {404,138,9,102.5,-2.5},
      {405,139,9,100,-3.5},
      {406,140,9,95,-6.5},
-     {407,141,9,95,-4.5}, {407,213,9,92.5,-9.5},
-     {408,142,9,92.5,-8.5}, {408,214,9,90,-11},
+     {407,141,9,92.5,-9.5}, {407,213,9,95,-4.5},
+     {408,142,9,90,-11}, {408,214,9,92.5,-8.5},
      {409,143,9,90,-10},
      {410,144,9,87.5,-12},
      {411,144,9,85,-12},
@@ -2458,7 +2457,7 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
      {1326,184,17,-60,0}
    }};
  };
-  throw std::out_of_range(std::to_string(segType) + " is not a valid segtype");
+  throw std::runtime_error(std::to_string(segType) + " is not a valid segtype");
 
 }
 

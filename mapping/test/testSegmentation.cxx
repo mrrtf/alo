@@ -40,7 +40,6 @@ BOOST_AUTO_TEST_CASE(NumberOfDetectionElementsIs156)
 BOOST_AUTO_TEST_CASE(GetSegmentationMustNotThrowIfDetElemIdIsValid)
 {
   forOneDetectionElementOfEachSegmentationType([](int detElemId) {
-    std::cout << detElemId << "\n";
     BOOST_CHECK_NO_THROW(Segmentation(detElemId, true));
     BOOST_CHECK_NO_THROW(Segmentation(detElemId, false));
   });
