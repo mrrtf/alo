@@ -54,6 +54,23 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mDualSampaId.insert(mDualSampaId.end(), dpid.begin(), dpid.end());
 }
 
+PadGroup Segmentation::padGroup(int index) const
+{
+  return mPadGroups[index];
+}
+
+std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const
+{
+  std::vector<int> rv;
+  for (auto i = 0; i < mPadGroups.size(); ++i) {
+    if (mPadGroups[i].mFECId == dualSampaId) {
+      rv.push_back(i);
+    }
+  }
+  return rv;
+}
+
+
 }
 }
 }

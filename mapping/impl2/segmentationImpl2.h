@@ -35,6 +35,10 @@ class Segmentation {
       return mDualSampaId[dualSampaIndex];
     }
 
+    std::vector<int> padGroupIndices(int dualSampaId) const;
+
+    PadGroup padGroup(int index) const;
+
   private:
     int mSegType;
     bool mIsBendingPlane;

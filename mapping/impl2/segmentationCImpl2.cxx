@@ -15,6 +15,7 @@
 #include "segmentationCInterface.h"
 #include "impl2_export.h"
 #include "segmentationImpl2.h"
+#include "padGroupType.h"
 
 extern "C" {
 
@@ -28,7 +29,8 @@ struct IMPL2_EXPORT MchSegmentation
 
 struct IMPL2_EXPORT MchPad
 {
-    int padIndex;
+    int padGroupIndex;
+    int padIndexInGroup;
 };
 
 IMPL2_EXPORT MchSegmentationHandle
@@ -114,6 +116,15 @@ void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler 
 IMPL2_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
+  auto padGroupIndices = segHandle->impl->padGroupIndices(dualSampaId);
+  for (auto& pgi: padGroupIndices) {
+    auto pg = segHandle->impl->padGroup(pgi);
+    auto pgt = o2::mch::mapping::impl2::getPadGroupType(pg.mPadGroupTypeId);
+    for (auto i= 0; i <pgt.getNofPads(); ++i) {
+      MchPad pad{pgi,i};
+      handler(clientData, &pad);
+    }
+  }
 }
 
 IMPL2_EXPORT
