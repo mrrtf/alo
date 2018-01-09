@@ -64,6 +64,11 @@ int PadGroupType::padIdByIndices(int ix, int iy) const
   return mId[getIndex(ix, iy)];
 }
 
+bool PadGroupType::hasPadById(int id) const
+{
+  return std::find(begin(mId),end(mId),id) != end(mId);
+}
+
 }
 }
 }

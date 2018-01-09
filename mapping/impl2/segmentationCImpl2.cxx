@@ -56,8 +56,7 @@ IMPL2_EXPORT
 MchPadHandle
 mchSegmentationPadConstruct()
 {
-  // return new MchPad;
-  return nullptr;
+  return new MchPad;
 }
 
 IMPL2_EXPORT
@@ -69,6 +68,11 @@ void mchSegmentationPadDestruct(MchPadHandle ph)
 IMPL2_EXPORT
 bool mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y, MchPadHandle *ph)
 {
+  auto &seg = segHandle->impl;
+  if ( seg->hasPadByPosition(x,y)) {
+    //FIXME : fill padhandle
+    return true;
+  }
   return false;
 }
 
@@ -76,7 +80,20 @@ IMPL2_EXPORT
 bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
                                  MchPadHandle *padHandle)
 {
-  return false;
+  auto &seg = segHandle->impl;
+
+  bool rv{false};
+
+  for (auto index: seg->padGroupIndices(dualSampaId)) {
+    auto pg = seg->padGroup(index);
+    auto pgt = o2::mch::mapping::impl2::getPadGroupType(pg.mPadGroupTypeId);
+    if (pgt.hasPadById(dualSampaChannel)) {
+      rv=true;
+      // FIXME: fill padHandle if not nullptr
+    }
+  }
+
+  return rv;
 }
 
 IMPL2_EXPORT
@@ -98,8 +115,9 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
 IMPL2_EXPORT
 void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
-  for (auto i = 0; i < segHandle->impl->nofDualSampas(); ++i) {
-    handler(clientData, segHandle->impl->dualSampaId(i));
+  for (auto dualSampaId: segHandle->impl->dualSampaIds())
+  {
+    handler(clientData, dualSampaId);
   }
 }
 
@@ -117,11 +135,11 @@ IMPL2_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
   auto padGroupIndices = segHandle->impl->padGroupIndices(dualSampaId);
-  for (auto& pgi: padGroupIndices) {
+  for (auto &pgi: padGroupIndices) {
     auto pg = segHandle->impl->padGroup(pgi);
     auto pgt = o2::mch::mapping::impl2::getPadGroupType(pg.mPadGroupTypeId);
-    for (auto i= 0; i <pgt.getNofPads(); ++i) {
-      MchPad pad{pgi,i};
+    for (auto i = 0; i < pgt.getNofPads(); ++i) {
+      MchPad pad{pgi, i};
       handler(clientData, &pad);
     }
   }

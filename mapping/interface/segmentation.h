@@ -47,7 +47,7 @@ class Segmentation
         (*fn)(dualSampaId);
       };
       mchForEachDualSampa(mImpl, callback, &addDualSampaId);
-      mDualSampaIds=dpid;
+      mDualSampaIds = dpid;
     }
 
     ~Segmentation()
@@ -61,6 +61,9 @@ class Segmentation
 
     bool findPadByFEE(int dualSampaId, int dualSampaChannel, PadHandle *padHandle = nullptr) const
     {
+      if (dualSampaChannel < 0 || dualSampaChannel > 63) {
+        throw std::out_of_range("dualSampaChannel should be between 0 and 63");
+      }
       padHandle = nullptr;
       return mchSegmentationFindPadByFEE(mImpl, dualSampaId, dualSampaChannel, padHandle);
     }

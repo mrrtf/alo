@@ -43,15 +43,11 @@ namespace mapping {
 namespace impl2 {
 
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups) :
-  mSegType{segType}, mIsBendingPlane{isBendingPlane}, mPadGroups{padGroups}, mDualSampaId{}
+  mSegType{segType}, mIsBendingPlane{isBendingPlane}, mPadGroups{padGroups}, mDualSampaIds{}
 {
-  std::set<int> dpid;
-
-  for (auto &pg: mPadGroups) {
-    dpid.insert(pg.mFECId);
+  for (auto& pg: mPadGroups) {
+    mDualSampaIds.insert(pg.mFECId);
   }
-
-  mDualSampaId.insert(mDualSampaId.end(), dpid.begin(), dpid.end());
 }
 
 PadGroup Segmentation::padGroup(int index) const
@@ -68,6 +64,11 @@ std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const
     }
   }
   return rv;
+}
+
+bool Segmentation::hasPadByPosition(double x, double y) const
+{
+  return false;
 }
 
 

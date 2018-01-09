@@ -38,18 +38,12 @@ class PadGroupType
 
     int getNofPadsY() const;
 
-    int getId(int i) const
-    { return mId[i]; }
-
-    int getIx(int i) const
-    { return mIx[i]; }
-
-    int getIy(int i) const
-    { return mIy[i]; }
-
     /// Return the index of the pad with indices = (ix,iy)
     /// or -1 if not found
     int padIdByIndices(int ix, int iy) const;
+
+    /// Whether pad with given id exists
+    bool hasPadById(int id) const;
 
   private:
     int getIndex(int ix, int iy) const;

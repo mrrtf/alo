@@ -18,6 +18,7 @@
 
 #include "padGroup.h"
 #include <vector>
+#include <set>
 
 namespace o2 {
 namespace mch {
@@ -29,21 +30,22 @@ class Segmentation {
   public:
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
 
-    int nofDualSampas() const { return mDualSampaId.size();  }
-
-    int dualSampaId(int dualSampaIndex) const {
-      return mDualSampaId[dualSampaIndex];
-    }
-
     std::vector<int> padGroupIndices(int dualSampaId) const;
 
     PadGroup padGroup(int index) const;
+
+    std::set<int> dualSampaIds() const { return mDualSampaIds; }
+
+    bool hasPadByPosition(double x, double y) const;
+
+  private:
+    int dualSampaIndex(int dualSampaId) const;
 
   private:
     int mSegType;
     bool mIsBendingPlane;
     std::vector<PadGroup> mPadGroups;
-    std::vector<int> mDualSampaId;
+    std::set<int> mDualSampaIds;
 };
 
 Segmentation* createSegmentation(int detElemId, bool isBendingPlane);
