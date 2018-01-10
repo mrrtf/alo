@@ -15,7 +15,6 @@
 #include "segmentationCInterface.h"
 #include "impl2_export.h"
 #include "segmentationImpl2.h"
-#include "padGroupType.h"
 
 extern "C" {
 
@@ -80,20 +79,8 @@ IMPL2_EXPORT
 bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
                                  MchPadHandle *padHandle)
 {
-  auto &seg = segHandle->impl;
+  return segHandle->impl->hasPadByFEE(dualSampaId,dualSampaChannel);
 
-  bool rv{false};
-
-  for (auto index: seg->padGroupIndices(dualSampaId)) {
-    auto pg = seg->padGroup(index);
-    auto pgt = o2::mch::mapping::impl2::getPadGroupType(pg.mPadGroupTypeId);
-    if (pgt.hasPadById(dualSampaChannel)) {
-      rv=true;
-      // FIXME: fill padHandle if not nullptr
-    }
-  }
-
-  return rv;
 }
 
 IMPL2_EXPORT
@@ -134,11 +121,11 @@ void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler 
 IMPL2_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
+  auto& seg = segHandle->impl;
   auto padGroupIndices = segHandle->impl->padGroupIndices(dualSampaId);
   for (auto &pgi: padGroupIndices) {
-    auto pg = segHandle->impl->padGroup(pgi);
-    auto pgt = o2::mch::mapping::impl2::getPadGroupType(pg.mPadGroupTypeId);
-    for (auto i = 0; i < pgt.getNofPads(); ++i) {
+    auto pg = seg->padGroup(pgi);
+    for (auto i = 0; i < seg->nofPads(pg); ++i) {
       MchPad pad{pgi, i};
       handler(clientData, &pad);
     }

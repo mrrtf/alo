@@ -17,26 +17,38 @@
 #define O2_MCH_MAPPING_IMPL2_SEGMENTATION_H
 
 #include "padGroup.h"
+#include "padGroupType.h"
 #include <vector>
 #include <set>
+#include "contour.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 namespace impl2 {
 
-class Segmentation {
-
+class Segmentation
+{
   public:
+    using Contour = o2::mch::contour::Contour<double>;
+
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
 
     std::vector<int> padGroupIndices(int dualSampaId) const;
 
-    PadGroup padGroup(int index) const;
+    int nofPads(const PadGroup &padGroup) const;
 
-    std::set<int> dualSampaIds() const { return mDualSampaIds; }
+    PadGroup padGroup(int index) const
+    { return mPadGroups[index]; }
+
+    Contour padGroupContour(const PadGroup &padGroup) const;
+
+    std::set<int> dualSampaIds() const
+    { return mDualSampaIds; }
 
     bool hasPadByPosition(double x, double y) const;
+
+    bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const;
 
   private:
     int dualSampaIndex(int dualSampaId) const;
@@ -44,11 +56,13 @@ class Segmentation {
   private:
     int mSegType;
     bool mIsBendingPlane;
-    std::vector<PadGroup> mPadGroups;
     std::set<int> mDualSampaIds;
+    std::vector<PadGroup> mPadGroups;
+    std::vector<PadGroupType> mPadGroupTypes;
+    std::vector<Contour> mPadGroupContours;
 };
 
-Segmentation* createSegmentation(int detElemId, bool isBendingPlane);
+Segmentation *createSegmentation(int detElemId, bool isBendingPlane);
 
 }
 }
