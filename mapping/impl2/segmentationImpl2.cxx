@@ -20,6 +20,9 @@
 #include <memory>
 #include <set>
 #include <string>
+#include "polygon.h"
+#include "contourCreator.h"
+#include "padSize.h"
 
 using namespace o2::mch::mapping::impl2;
 
@@ -28,18 +31,55 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
-Segmentation::Contour computeContour(const PadGroup &pg, const PadGroupType &pgt)
+o2::mch::contour::Contour<int> computeContour(const PadGroupType &pgt)
 {
-  return Segmentation::Contour{};
+  std::vector<o2::mch::contour::Polygon<int>> pads;
+
+  for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
+    for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
+      if (pgt.padIdByIndices(ix, iy) >= 0) {
+        pads.push_back({{ix, iy},
+                        {ix + 1, iy},
+                        {ix + 1, iy + 1},
+                        {ix, iy + 1},
+                        {ix, iy},
+                       });
+      }
+    }
+  }
+  return o2::mch::contour::createContour(pads);
+}
+
+std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroupType> &padGroupTypes)
+{
+  std::vector<Segmentation::Contour> contours;
+  for (auto &pgt : padGroupTypes) {
+    auto c = computeContour(pgt);
+    if (c.size() != 1) {
+      std::cout << pgt << "\n" << c << "\n";
+      throw std::runtime_error("contour size should be 1 and is " + std::to_string(c.size()));
+    }
+    //contours.push_back(c[0]);
+  }
+  return contours;
 }
 
 std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
-                                                   const std::vector<PadGroupType> &padGroupTypes)
+                                                   const std::vector<PadGroupType> &padGroupTypes,
+                                                   const std::vector<std::pair<float, float>> &padSizes)
 {
+  std::vector<Segmentation::Contour> pgtContours = computeContours(padGroupTypes);
   std::vector<Segmentation::Contour> contours;
-  for (auto &pg : padGroups) {
-    contours.push_back(computeContour(pg, padGroupTypes[pg.mPadGroupTypeId]));
+
+  for (auto &pg: padGroups) {
+    auto &p = pgtContours[pg.mPadGroupTypeId];
+    float dx{padSizes[pg.mPadSizeId].first};
+    float dy{padSizes[pg.mPadSizeId].second};
+    p.scale(dx, dy);
+    p.translate(pg.mX, pg.mY);
+    contours.push_back(p);
   }
+
   return contours;
 }
 
@@ -50,6 +90,11 @@ int fecId(const PadGroup &padGroup)
 
 int groupTypeId(const PadGroup &padGroup)
 { return padGroup.mPadGroupTypeId; }
+
+int padSizeId(const PadGroup &padGroup)
+{
+  return padGroup.mPadSizeId;
+}
 
 std::set<int> getUnique(const std::vector<PadGroup> &padGroups, PadGroupFunc func)
 {
@@ -73,30 +118,56 @@ std::vector<PadGroupType> getPadGroupTypes(const std::vector<PadGroup> &padGroup
 }
 
 std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
-                            const std::vector<PadGroupType> &padGroupTypes)
+                            const std::vector<PadGroupType> &padGroupTypes,
+                            const std::vector<std::pair<float, float>> &padSizes)
 {
   // change the padGroupType ids in padGroups vector to
   // be from 0 to number of different padgrouptypes in padGroups vector
 
   std::map<int, int> idmap;
+  std::map<int, int> sizemap;
   std::vector<PadGroup> remappedPadGroups;
 
   std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
+  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
 
   int i{0};
-  for (auto& pgt: padGroupTypeIds) {
+  for (auto &pgt: padGroupTypeIds) {
     idmap[pgt] = i++;
+  }
+
+  i = 0;
+  for (auto &ps: padSizeIds) {
+    sizemap[ps] = i++;
   }
 
   for (auto &pg: padGroups) {
     auto it = idmap.find(pg.mPadGroupTypeId);
-    if (it == idmap.end()) { throw; }
+    if (it == idmap.end()) {
+      throw std::runtime_error("pad group id " + std::to_string(pg.mPadGroupTypeId) + " not found");
+    }
+    auto sit = sizemap.find(pg.mPadSizeId);
+    if (sit == sizemap.end()) {
+      throw std::runtime_error("pad size id " + std::to_string(pg.mPadSizeId) + " not found");
+    }
     PadGroup rpg{pg};
     rpg.mPadGroupTypeId = it->second;
+    rpg.mPadSizeId = sit->second;
     remappedPadGroups.push_back(rpg);
   }
 
   return remappedPadGroups;
+}
+
+std::vector<std::pair<float, float>> getPadSizes(const std::vector<PadGroup> &padGroups)
+{
+  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
+
+  std::vector<std::pair<float, float>> padSizes;
+  for (auto &sid: padSizeIds) {
+    padSizes.push_back(std::make_pair<float, float>(padSizeX(sid), padSizeY(sid)));
+  }
+  return padSizes;
 }
 
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups) :
@@ -104,9 +175,13 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mIsBendingPlane{isBendingPlane},
   mDualSampaIds{getUnique(padGroups, fecId)},
   mPadGroupTypes{getPadGroupTypes(padGroups)},
-  mPadGroups{remap(padGroups, mPadGroupTypes)},
-  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes)}
+  mPadSizes{getPadSizes(padGroups)},
+  mPadGroups{remap(padGroups, mPadGroupTypes, mPadSizes)},
+  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)}
 {
+  // note that in order to have the Segmentation object as much as possible "self-contained"
+  // (i.e. avoid relying on some global memory access)
+  // we "import" the padgrouptypes and padsizes we are interested in
 }
 
 std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const

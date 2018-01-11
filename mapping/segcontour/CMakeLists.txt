@@ -16,5 +16,4 @@ install(TARGETS segcontour LIBRARY DESTINATION lib)
 install(FILES
         generateTestPoints.h
         segmentationContours.h
-        ${CMAKE_CURRENT_BINARY_DIR}/segcontour_export.h DESTINATION $<TARGET_PROPERTY:segcontour,INCLUDE_INSTALL_DIR>}
-        )
+        ${CMAKE_CURRENT_BINARY_DIR}/segcontour_export.h DESTINATION include)

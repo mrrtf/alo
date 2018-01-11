@@ -30,7 +30,7 @@ namespace impl2 {
 class Segmentation
 {
   public:
-    using Contour = o2::mch::contour::Contour<double>;
+    using Contour = o2::mch::contour::Polygon<double>;
 
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
 
@@ -57,8 +57,9 @@ class Segmentation
     int mSegType;
     bool mIsBendingPlane;
     std::set<int> mDualSampaIds;
-    std::vector<PadGroup> mPadGroups;
     std::vector<PadGroupType> mPadGroupTypes;
+    std::vector<std::pair<float,float>> mPadSizes;
+    std::vector<PadGroup> mPadGroups;
     std::vector<Contour> mPadGroupContours;
 };
 

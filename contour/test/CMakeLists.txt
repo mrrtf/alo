@@ -9,7 +9,7 @@ add_executable(testContour
         testContour.cxx
         testContourCreator.cxx testBBox.cxx)
 
-target_include_directories(testContour PUBLIC ${CMAKE_SOURCE_DIR}/contour ${BOOST_INCLUDE_DIRS})
+target_include_directories(testContour PUBLIC contour ${BOOST_INCLUDE_DIRS})
 target_link_libraries(testContour PUBLIC contour Boost::unit_test_framework)
 add_test(NAME testContour COMMAND testContour)
 

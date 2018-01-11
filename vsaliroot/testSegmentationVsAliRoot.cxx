@@ -32,7 +32,7 @@
 #include "contour.h"
 #include "contourCreator.h"
 #include "svgContour.h"
-#include "../mapping/segcontour/segmentationContours.h"
+#include "segmentationContours.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>

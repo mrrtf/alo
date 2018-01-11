@@ -44,3 +44,4 @@ if (BUILD_TESTING)
     add_subdirectory(test)
 endif ()
 
+add_custom_target(impl1_ide SOURCES genSegmentationFactory.cxx)

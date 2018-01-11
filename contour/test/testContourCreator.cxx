@@ -34,6 +34,7 @@
 #include "contourCreator.h"
 
 using namespace o2::mch::contour;
+using namespace o2::mch::contour::impl;
 
 struct ContourCreatorPolygons
 {

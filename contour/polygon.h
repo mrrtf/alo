@@ -102,6 +102,22 @@ class Polygon
       return area * 0.5;
     }
 
+    void scale(double sx, double sy)
+    {
+      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+        mVertices[i].x *= sx;
+        mVertices[i].y *= sy;
+      }
+    }
+
+    void translate(double dx, double dy)
+    {
+      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+        mVertices[i].x += dx;
+        mVertices[i].y += dy;
+      }
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const Polygon<T> &polygon)
     {
       os << "POLYGON(";
@@ -217,11 +233,32 @@ std::vector<o2::mch::contour::Vertex<T>> getSortedVertices(const Polygon<T> &pol
 }
 
 template<typename T>
+BBox<T> getBBox(const std::vector<Vertex<T>>& vertices) {
+
+  T xmin{std::numeric_limits<T>::max()};
+  T xmax{std::numeric_limits<T>::min()};
+  T ymin{std::numeric_limits<T>::max()};
+  T ymax{std::numeric_limits<T>::min()};
+
+  for (const auto &v:vertices) {
+    xmin = std::min(xmin, v.x);
+    xmax = std::max(xmax, v.x);
+    ymin = std::min(ymin, v.y);
+    ymax = std::max(ymax, v.y);
+  }
+  return {
+    xmin, xmax, ymin, ymax
+  };
+}
+
+template<typename T>
 BBox<T> getBBox(const Polygon<T> &polygon)
 {
   /// Return the bounding box (aka MBR, minimum bounding rectangle)
   /// of this polygon
-  return getBBox(getVertices(polygon));
+
+  auto vertices = getVertices(polygon);
+  return getBBox(vertices);
 }
 
 

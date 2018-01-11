@@ -14,7 +14,7 @@
 
 
 #include "padGroupType.h"
-
+#include "boost/format.hpp"
 #include <stdexcept>
 
 namespace o2 {
@@ -67,6 +67,27 @@ int PadGroupType::padIdByIndices(int ix, int iy) const
 bool PadGroupType::hasPadById(int id) const
 {
   return std::find(begin(mId),end(mId),id) != end(mId);
+}
+
+void dump(std::ostream& os, std::string msg, const std::vector<int>& v)
+{
+  os << boost::format("%4s ") % msg;
+  for (auto i = 0; i < v.size(); ++i )
+  {
+    os << boost::format("%2d ") % v[i];
+  }
+  os << "\n";
+}
+
+std::ostream& operator<<(std::ostream &os, const PadGroupType &pgt)
+{
+  os << "n=" << pgt.getNofPads() << " nx=" << pgt.getNofPadsX() << " ny=" << pgt.getNofPadsY() << "\n";
+
+  dump(os,"id",pgt.mId);
+  dump(os,"ix",pgt.mIx);
+  dump(os,"iy",pgt.mIy);
+
+  return os;
 }
 
 }

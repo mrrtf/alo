@@ -9,3 +9,4 @@ target_link_libraries(mapping_interface INTERFACE Boost::boost)
 install(TARGETS mapping_interface EXPORT mch-mapping INCLUDES DESTINATION ${CMAKE_INSTALL_INCDIR})
 install(EXPORT mch-mapping DESTINATION cmake)
 
+add_custom_target(mapping_interface_ide SOURCES segmentation.h segmentationCInterface.h)

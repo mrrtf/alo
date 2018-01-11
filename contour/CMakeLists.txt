@@ -1,10 +1,9 @@
 
-add_library(contour STATIC
-        bbox.h
-        bbox.h
-        contour.h
-        contourCreator.cxx
-        contourCreator.h
+add_library(contour INTERFACE)
+
+set(HEADERS
+        bbox.h contour.h contourCreator.h
+        contourCreator.inl
         edge.h
         helper.h
         interval.h
@@ -12,8 +11,14 @@ add_library(contour STATIC
         segmentTree.h
         vertex.h)
 
-target_include_directories(contour PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(contour PROPERTIES CXX_VISIBILITY_PRESET hidden)
+# this trick is needed (only for header-only library)
+# to get the files know to IDEs, e.g. CLion
+add_custom_target(contour_ide SOURCES ${HEADERS})
+
+target_include_directories(contour INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCDIR}>)
+
+install(TARGETS contour INCLUDES DESTINATION include)
 
 if (BUILD_TESTING)
     add_subdirectory(test)

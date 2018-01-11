@@ -84,19 +84,19 @@ bool operator>=(const Vertex<T>& lhs, const Vertex<T>& rhs)
 template<typename T>
 bool isVertical(const Vertex<T>& a, const Vertex<T>& b)
 {
-  return areEqual(a.x, b.x);
+  return impl::areEqual(a.x, b.x);
 }
 
 template<typename T>
 bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
 {
-  return areEqual(a.y, b.y);
+  return impl::areEqual(a.y, b.y);
 }
 
 template<typename T>
 bool operator==(const Vertex<T>& lhs, const Vertex<T>& rhs)
 {
-  return areEqual(lhs.x, rhs.x) && areEqual(lhs.y, rhs.y);
+  return impl::areEqual(lhs.x, rhs.x) && impl::areEqual(lhs.y, rhs.y);
 }
 
 template<typename T>

@@ -81,7 +81,7 @@ BENCHMARK_DEFINE_F(BenchAliRoot, benchGetYPosition)(benchmark::State &state)
       for ( auto i = 0; i < c.size(); ++i ) {
         polygons.push_back(c[i]);
       }
-      auto ypos = getYPositions(polygons);
+      auto ypos = impl::getYPositions(polygons);
     }
   }
 }

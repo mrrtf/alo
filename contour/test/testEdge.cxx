@@ -32,6 +32,7 @@
 #include <iostream>
 #include "edge.h"
 
+using namespace o2::mch::contour::impl;
 using namespace o2::mch::contour;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_contour)

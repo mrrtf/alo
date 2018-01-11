@@ -17,6 +17,7 @@
 #define O2_MCH_MAPPING_PADGROUPTYPE_H
 
 #include <vector>
+#include <ostream>
 
 namespace o2 {
 namespace mch {
@@ -44,6 +45,8 @@ class PadGroupType
 
     /// Whether pad with given id exists
     bool hasPadById(int id) const;
+
+    friend std::ostream &operator<<(std::ostream &os, const PadGroupType &type);
 
   private:
     int getIndex(int ix, int iy) const;
