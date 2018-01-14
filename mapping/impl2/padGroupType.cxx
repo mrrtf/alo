@@ -16,6 +16,7 @@
 #include "padGroupType.h"
 #include "boost/format.hpp"
 #include <stdexcept>
+#include <iostream>
 
 namespace o2 {
 namespace mch {
@@ -41,10 +42,10 @@ PadGroupType::PadGroupType(const std::vector<int> &ids, const std::vector<int> &
   int ixmax = std::distance(begin(mIx), std::max(begin(mIx), end(mIx)));
   int iymax = std::distance(begin(mIy), std::max(begin(mIy), end(mIy)));
 
-  // generate a quick-index ix + iy*mNofPadsX -> index in other arrays
-  mIndex.resize(getIndex(ixmax, iymax), -1);
+  // generate a quick-index ix + iy*mNofPadsX -> Id
+  mFastId.resize(getIndex(ixmax, iymax), -1);
   for (auto i = 0; i < mIx.size(); ++i) {
-    mIndex[getIndex(mIx[i], mIy[i])] = i;
+    mFastId[getIndex(mIx[i], mIy[i])] = mId[i];
   }
 }
 
@@ -58,35 +59,39 @@ int PadGroupType::getNofPadsY() const
   return extent(mIy);
 }
 
-
 int PadGroupType::padIdByIndices(int ix, int iy) const
 {
-  return mId[getIndex(ix, iy)];
+  int index = getIndex(ix, iy);
+  if (index >= 0 && index < mFastId.size() )
+  {
+    return mFastId[index];
+  }
+  return -1;
 }
 
 bool PadGroupType::hasPadById(int id) const
 {
-  return std::find(begin(mId),end(mId),id) != end(mId);
+  return std::find(begin(mId), end(mId), id) != end(mId);
 }
 
-void dump(std::ostream& os, std::string msg, const std::vector<int>& v)
+void dump(std::ostream &os, std::string msg, const std::vector<int> &v)
 {
   os << boost::format("%4s ") % msg;
-  for (auto i = 0; i < v.size(); ++i )
-  {
+  for (auto i = 0; i < v.size(); ++i) {
     os << boost::format("%2d ") % v[i];
   }
   os << "\n";
 }
 
-std::ostream& operator<<(std::ostream &os, const PadGroupType &pgt)
+std::ostream &operator<<(std::ostream &os, const PadGroupType &pgt)
 {
   os << "n=" << pgt.getNofPads() << " nx=" << pgt.getNofPadsX() << " ny=" << pgt.getNofPadsY() << "\n";
 
-  dump(os,"id",pgt.mId);
-  dump(os,"ix",pgt.mIx);
-  dump(os,"iy",pgt.mIy);
+  dump(os, "id", pgt.mId);
+  dump(os, "ix", pgt.mIx);
+  dump(os, "iy", pgt.mIy);
 
+  dump(os, "index", pgt.mFastId);
   return os;
 }
 

@@ -83,8 +83,8 @@ PadGroupType extract(int index, const PadGroupType &orig, const std::vector<int>
   return out;
 }
 
-int splitAt(int regIndex, int nonRegIndex, const PadGroupType &input, PadGroupType &out1, PadGroupType &out2, int value,
-            bool isX)
+int splitBetween(int regIndex, int nonRegIndex, const PadGroupType &input, PadGroupType &out1,
+                 PadGroupType &out2, int valueLow, int valueHigh, bool isX)
 {
   // if ix = x then fill out2 else fill out1
 
@@ -93,9 +93,9 @@ int splitAt(int regIndex, int nonRegIndex, const PadGroupType &input, PadGroupTy
   for (auto i = 0; i < input.ix.size(); ++i) {
     bool mustSplit{false};
 
-    if (isX && input.ix[i] >= value) {
+    if (isX && input.ix[i] >= valueLow && input.ix[i] <= valueHigh) {
       mustSplit = true;
-    } else if (!isX && input.iy[i] >= value) {
+    } else if (!isX && input.iy[i] >= valueLow && input.iy[i] <= valueHigh) {
       mustSplit = true;
     }
 
@@ -118,7 +118,8 @@ int splitAt(int regIndex, int nonRegIndex, const PadGroupType &input, PadGroupTy
 int split(int regIndex, int nonRegIndex, const std::string &motifID,
           const PadGroupType &input,
           PadGroupType &out1,
-          PadGroupType &out2)
+          PadGroupType &out2,
+          PadGroupType &out3)
 {
   // For motiftypes which are used in motifs with two padsizes
   // (1BG,1NH,1NG) or that have non adjacent pads (E14,E15)
@@ -127,15 +128,19 @@ int split(int regIndex, int nonRegIndex, const std::string &motifID,
 
   // don't fret about being generic, we have 5 special cases over 210, let's deal with them by hand
   if (motifID == "1BG") {
-    return splitAt(regIndex, nonRegIndex, input, out1, out2, 3, true);
+    return splitBetween(regIndex, nonRegIndex, input, out1, out2, 3, 64, true);
   } else if (motifID == "1NH") {
-    return splitAt(regIndex, nonRegIndex, input, out1, out2, 3, false);
+    return splitBetween(regIndex, nonRegIndex, input, out1, out2, 3, 64, false);
   } else if (motifID == "1NG") {
-    return splitAt(regIndex, nonRegIndex, input, out1, out2, 3, false);
+    return splitBetween(regIndex, nonRegIndex, input, out1, out2, 3, 64, false);
   } else if (motifID == "E14") {
-    return splitAt(regIndex, nonRegIndex, input, out1, out2, 8, false);
+    PadGroupType dummy;
+    splitBetween(regIndex, nonRegIndex, input, out1, dummy, 8, 64, false);
+    splitBetween(regIndex, nonRegIndex, input, dummy, out2, 2, 7, false);
+    splitBetween(regIndex, nonRegIndex+1, input, dummy, out3, 0, 1, false);
+    return 3;
   } else if (motifID == "E15") {
-    return splitAt(regIndex, nonRegIndex, input, out1, out2, 4, false);
+    return splitBetween(regIndex, nonRegIndex, input, out1, out2, 4, 64, false);
   }
   out1 = input;
   return 1;
@@ -161,14 +166,16 @@ getPadGroupTypes(int regIndex, int nonRegIndex, const rapidjson::Value &motifTyp
     v.iy.push_back(p["iy"].GetInt());
   }
 
-  PadGroupType v1, v2;
+  PadGroupType v1, v2, v3;
 
-  int n = split(regIndex, nonRegIndex, motifID, v, v1, v2);
+  int n = split(regIndex, nonRegIndex, motifID, v, v1, v2, v3);
 
   if (n == 1) {
     return {v1};
-  } else {
+  } else if (n == 2) {
     return {v1, v2};
+  } else {
+    return {v1, v2, v3};
   }
 }
 

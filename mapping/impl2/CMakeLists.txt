@@ -9,7 +9,7 @@ set(SOURCES
         segmentationCImpl2.cxx)
 add_library(impl2 SHARED ${SOURCES})
 target_include_directories(impl2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost)
+target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost svgwriterlib)
 set_target_properties(impl2 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl2 POST_BUILD
@@ -18,7 +18,7 @@ add_custom_command(TARGET impl2 POST_BUILD
 
 add_library(impl2_static STATIC ${SOURCES})
 target_include_directories(impl2_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost)
+target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost svgwriterlib)
 
 #add_library(segmentation ALIAS impl2)
 

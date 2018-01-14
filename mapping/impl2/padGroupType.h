@@ -55,7 +55,7 @@ class PadGroupType
     std::vector<int> mId;
     std::vector<int> mIx;
     std::vector<int> mIy;
-    std::vector<int> mIndex;
+    std::vector<int> mFastId;
     int mNofPadsX;
 };
 

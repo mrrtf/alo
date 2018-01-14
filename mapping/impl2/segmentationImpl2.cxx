@@ -23,43 +23,59 @@
 #include "polygon.h"
 #include "contourCreator.h"
 #include "padSize.h"
+#include "boost/format.hpp"
+#include "svgContour.h"
+#include "polygon.h"
 
 using namespace o2::mch::mapping::impl2;
+using namespace o2::mch::svg;
+using namespace o2::mch::contour;
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 namespace impl2 {
 
-o2::mch::contour::Contour<int> computeContour(const PadGroupType &pgt)
+using IPolygon=o2::mch::contour::Polygon<int>;
+
+std::vector<o2::mch::contour::Polygon<int>> computePads(const PadGroupType &pgt)
 {
   std::vector<o2::mch::contour::Polygon<int>> pads;
 
   for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
     for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
       if (pgt.padIdByIndices(ix, iy) >= 0) {
-        pads.push_back({{ix, iy},
+        pads.push_back({{ix,     iy},
                         {ix + 1, iy},
                         {ix + 1, iy + 1},
-                        {ix, iy + 1},
-                        {ix, iy},
+                        {ix,     iy + 1},
+                        {ix,     iy},
                        });
       }
     }
   }
-  return o2::mch::contour::createContour(pads);
+  return pads;
 }
 
-std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroupType> &padGroupTypes)
+IPolygon computeContour(const PadGroupType &pgt)
 {
-  std::vector<Segmentation::Contour> contours;
+  std::vector<o2::mch::contour::Polygon<int>> pads{computePads(pgt)};
+
+  o2::mch::contour::Contour<int> contour = o2::mch::contour::createContour(pads);
+  if (contour.size() != 1) {
+    std::cout << "OUPS. Contour.size()=" << contour.size() << "\n";
+    std::cout << pgt << "\n";
+    o2::mch::svg::writePolygons("pgt.html", pads, 10);
+    throw std::runtime_error("contour size should be 1 and is " + std::to_string(contour.size()));
+  }
+  return contour[0];
+}
+
+std::vector<IPolygon> computeContours(const std::vector<PadGroupType> &padGroupTypes)
+{
+  std::vector<IPolygon> contours;
   for (auto &pgt : padGroupTypes) {
-    auto c = computeContour(pgt);
-    if (c.size() != 1) {
-      std::cout << pgt << "\n" << c << "\n";
-      throw std::runtime_error("contour size should be 1 and is " + std::to_string(c.size()));
-    }
-    //contours.push_back(c[0]);
+    contours.push_back(computeContour(pgt));
   }
   return contours;
 }
@@ -68,11 +84,15 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
                                                    const std::vector<PadGroupType> &padGroupTypes,
                                                    const std::vector<std::pair<float, float>> &padSizes)
 {
-  std::vector<Segmentation::Contour> pgtContours = computeContours(padGroupTypes);
+  //std::cout << boost::format("computeContours %3d padgroups %2d padgrouptypes %2d padsizes\n")
+  //             % padGroups.size() % padGroupTypes.size() % padSizes.size();
+
+  std::vector<IPolygon> pgtContours = computeContours(padGroupTypes);
+
   std::vector<Segmentation::Contour> contours;
 
   for (auto &pg: padGroups) {
-    auto &p = pgtContours[pg.mPadGroupTypeId];
+    auto p = pgtContours[pg.mPadGroupTypeId].convert(1.0);
     float dx{padSizes[pg.mPadSizeId].first};
     float dy{padSizes[pg.mPadSizeId].second};
     p.scale(dx, dy);
@@ -123,7 +143,6 @@ std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
 {
   // change the padGroupType ids in padGroups vector to
   // be from 0 to number of different padgrouptypes in padGroups vector
-
   std::map<int, int> idmap;
   std::map<int, int> sizemap;
   std::vector<PadGroup> remappedPadGroups;
@@ -170,6 +189,85 @@ std::vector<std::pair<float, float>> getPadSizes(const std::vector<PadGroup> &pa
   return padSizes;
 }
 
+//int getSegType(int segtype)
+//{
+//  std::cout << "SEGTYPE " << segtype << "\n";
+//  return segtype;
+//}
+//
+//bool getBendingPlane(bool bp)
+//{
+//  std::cout << "BENDING " << (bp ? "true" : "false") << "\n";
+//  return bp;
+//}
+
+void svg()
+{
+  static bool first{true};
+
+  if (!first) {
+    return;
+  }
+
+  std::vector<std::vector<Polygon<int>>> pgtPads;
+  std::vector<BBox<int>> boxes;
+
+  int maxWidth{0};
+  int maxHeight{0};
+
+  const int NPG{216};
+
+  for (int i = 0; i < NPG; ++i) {
+    auto pgt = getPadGroupType(i);
+    auto pads = computePads(pgt);
+    pgtPads.push_back(pads);
+    boxes.push_back(getBBox(pgtPads.back()));
+    auto &b = boxes.back();
+    maxWidth = std::max(maxWidth, b.width());
+    maxHeight = std::max(maxHeight, b.height());
+  }
+
+  BBox<int> maxBox(0, maxWidth, 0, maxHeight);
+
+  first = false;
+  auto style = "fill:#eeeeee;stroke:black;stroke-width:1px";
+  std::ofstream out("pgt-all.html");
+  out << "<html><body>\n";
+  int ncols{5};
+  int nlines{1 + NPG / ncols};
+  float scale{8};
+  int gutter{2};
+  o2::mch::contour::BBox<int> box(0, ncols * (maxBox.width() + gutter), 0,
+                                  nlines * (maxBox.height() + gutter));
+  o2::mch::svg::writeHeader(out, box, scale);
+  float x{0};
+  float y{0};
+  float w = scale * maxBox.width();
+  float h = scale * maxBox.height();
+  for (auto i = 0; i < boxes.size(); ++i) {
+    auto pgt = getPadGroupType(i);
+    out << "<g>\n";
+    out << boost::format(
+      "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" style=\"fill:none;stroke:#DDDDDD;fill:#AAAAAA;stroke-width:1px\"/>\n") %
+           x % y % w % h;
+    out << boost::format("<text x=\"%d\" y=\"%d\">") % ( x + w*0.5 ) % ( y + h*0.8)
+        << "PG" + std::to_string(i) + "(" +std::to_string(pgt.getNofPads()) + ")" << "</text>\n";
+    for (auto p : pgtPads[i]) {
+      p.scale(scale, scale);
+      p.translate(x, y);
+      writePolygon(out, p, style);
+    }
+    out << "</g>\n";
+    x += scale * (maxBox.width() + gutter);
+    if ((i + 1) % ncols == 0) {
+      x = 0;
+      y += scale * (maxBox.height() + gutter);
+    }
+  }
+  out << "</svg>\n";
+  out << "</body></html>\n";
+}
+
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups) :
   mSegType{segType},
   mIsBendingPlane{isBendingPlane},
@@ -182,6 +280,7 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   // note that in order to have the Segmentation object as much as possible "self-contained"
   // (i.e. avoid relying on some global memory access)
   // we "import" the padgrouptypes and padsizes we are interested in
+  svg();
 }
 
 std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const

@@ -54,6 +54,15 @@ class Polygon
     Polygon(std::initializer_list<o2::mch::contour::Vertex<T>> args) : mVertices{args}
     {}
 
+    template<typename DEST>
+    Polygon<DEST> convert(DEST /*a*/) {
+      std::vector<o2::mch::contour::Vertex<DEST>> vertices;
+      for ( auto i = 0; i < mVertices.size(); ++i ) {
+        vertices.push_back( { static_cast<DEST>(mVertices[i].x), static_cast<DEST>(mVertices[i].y) });
+      }
+      return Polygon<DEST>{begin(vertices),end(vertices)};
+    }
+
     o2::mch::contour::Vertex<T> firstVertex() const
     { return mVertices.front(); }
 
@@ -102,17 +111,17 @@ class Polygon
       return area * 0.5;
     }
 
-    void scale(double sx, double sy)
+    void scale(T sx, T sy)
     {
-      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+      for (auto i = 0; i < mVertices.size(); ++i) {
         mVertices[i].x *= sx;
         mVertices[i].y *= sy;
       }
     }
 
-    void translate(double dx, double dy)
+    void translate(T dx, T dy)
     {
-      for (auto i = 0; i < mVertices.size() - 1; ++i) {
+      for (auto i = 0; i < mVertices.size(); ++i) {
         mVertices[i].x += dx;
         mVertices[i].y += dy;
       }
@@ -261,6 +270,28 @@ BBox<T> getBBox(const Polygon<T> &polygon)
   return getBBox(vertices);
 }
 
+template<typename T>
+BBox<T> getBBox(const std::vector<Polygon<T>> &polygons)
+{
+  /// Return the bounding box (aka MBR, minimum bounding rectangle)
+  /// of this vector of polygons
+
+  T xmin{std::numeric_limits<T>::max()};
+  T xmax{std::numeric_limits<T>::min()};
+  T ymin{std::numeric_limits<T>::max()};
+  T ymax{std::numeric_limits<T>::min()};
+
+  for (const auto &p: polygons) {
+    auto b = getBBox(p);
+    xmin = std::min(xmin, b.xmin());
+    xmax = std::max(xmax, b.xmax());
+    ymin = std::min(ymin, b.ymin());
+    ymax = std::max(ymax, b.ymax());
+  }
+  return {
+    xmin, xmax, ymin, ymax
+  };
+}
 
 }
 }

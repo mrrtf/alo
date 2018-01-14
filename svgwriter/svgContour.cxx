@@ -23,27 +23,8 @@ void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour
                   o2::mch::contour::BBox<double> &box, const char *style)
 {
   for (auto i = 0; i < contour.size(); ++i) {
-    out << "<polygon points=\"";
-    auto vertices = getVertices(contour[i]);
-    for (auto j = 0; j < vertices.size(); ++j) {
-      auto v = vertices[j];
-      v.x -= box.xmin();
-      v.y -= box.ymin();
-      out << scale * v.x << "," << scale * v.y << ' ';
-    }
-    out << "\" style=\"" << style << "\"/>\n";
-
-//    if (!highlight) {
-//      out << "\" style=\"fill:none;stroke:black;stroke-width:0.5px\"/>\n";
-//    } else {
-//      out << "\" style=\"fill:none;stroke:red;stroke-width:0.5px\"/>\n";
-//    }
+    writePolygon(out,scale,contour[i],box,style);
   }
-}
-
-void writeHeader(std::ofstream &out, o2::mch::contour::BBox<double> &box, int scale)
-{
-  out << "<svg height=\"" << scale * box.height() + 100 << "\" width=\"" << scale * box.width() + 100 << "\">\n";
 }
 
 void writeContour(std::string filename, const o2::mch::contour::Contour<double> &contour, int scale)

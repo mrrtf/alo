@@ -18,14 +18,18 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "segmentation.h"
+#include "segmentationImpl2.h"
+
+using namespace o2::mch::mapping::impl2;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
-BOOST_AUTO_TEST_SUITE(cstyle_segmentation)
+BOOST_AUTO_TEST_SUITE(segmentation_impl2)
 
-BOOST_AUTO_TEST_CASE(CreateSegmentationWithInvalidVersionMustThrow)
+BOOST_AUTO_TEST_CASE(MotifE14IsSplitIn3PadGroups)
 {
-  BOOST_CHECK_THROW(o2::mch::mapping::Segmentation seg(100,true),std::runtime_error);
+  std::unique_ptr<Segmentation> seg{createSegmentation(701,true)};
+
+  BOOST_CHECK_EQUAL(seg->padGroupIndices(407).size(),3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
