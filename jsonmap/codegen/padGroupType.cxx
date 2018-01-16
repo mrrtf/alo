@@ -24,17 +24,25 @@
 #include <vector>
 #include <array>
 #include <iostream>
+#include "boost/format.hpp"
 
 using rapidjson::Value;
 namespace jsonmap {
 namespace codegen {
 namespace impl2 {
+
+int extent(const std::vector<int> &v)
+{
+  auto result = std::minmax_element(begin(v), end(v));
+  return 1 + *result.second - *result.first;
+}
+
 std::string returnVectorAsString(const std::vector<int> &v)
 {
   std::ostringstream s;
-  s << "    {";
+  s << "{";
   for (std::vector<int>::size_type i = 0; i < v.size(); ++i) {
-    s << std::setw(2) << v[i];
+    s << boost::format("%2d") % v[i];
     if (i < v.size() - 1) {
       s << ",";
     }
@@ -43,18 +51,43 @@ std::string returnVectorAsString(const std::vector<int> &v)
   return s.str();
 }
 
+int PadGroupType::nofPadsX() const
+{
+  return extent(ix);
+}
+
+int PadGroupType::nofPadsY() const
+{
+  return extent(iy);
+}
+
+int PadGroupType::getIndex(int ix, int iy) const
+{
+  return ix + iy * nofPadsX();
+}
+
+std::vector<int> PadGroupType::fastIndex() const
+{
+  std::vector<int> fi;
+
+  fi.resize(nofPadsX() * nofPadsY(), -1);
+
+  for (auto i = 0; i < ix.size(); ++i) {
+    fi[getIndex(ix[i], iy[i])] = channelId[i];
+  }
+  return fi;
+}
+
 std::ostream &operator<<(std::ostream &out, const PadGroupType &v)
 {
   out << "  if (i==" << v.id << ") { /* " << v.originalMotifTypeIdString
       << " (" << v.originalMotifTypeId << ") "
       << (v.isSplit ? " split " : " ") << v.channelId.size()
-      << " pads */\n    return PadGroupType(\n  "
-      << returnVectorAsString(v.channelId)
-      << ",\n  "
-      << returnVectorAsString(v.ix)
-      << ",\n  "
-      << returnVectorAsString(v.iy)
+      << " pads */\n    return PadGroupType("
+      << boost::format("%2d,%2d,") % v.nofPadsX() % v.nofPadsY()
+      << returnVectorAsString(v.fastIndex())
       << ");\n  }";
+
   return out;
 }
 
@@ -137,7 +170,7 @@ int split(int regIndex, int nonRegIndex, const std::string &motifID,
     PadGroupType dummy;
     splitBetween(regIndex, nonRegIndex, input, out1, dummy, 8, 64, false);
     splitBetween(regIndex, nonRegIndex, input, dummy, out2, 2, 7, false);
-    splitBetween(regIndex, nonRegIndex+1, input, dummy, out3, 0, 1, false);
+    splitBetween(regIndex, nonRegIndex + 1, input, dummy, out3, 0, 1, false);
     return 3;
   } else if (motifID == "E15") {
     return splitBetween(regIndex, nonRegIndex, input, out1, out2, 4, 64, false);
@@ -146,6 +179,8 @@ int split(int regIndex, int nonRegIndex, const std::string &motifID,
   return 1;
 }
 
+/// Return that pad group type(s) corresponding to one single motifType
+/// The number of pad group types is either 1 (most of cases), 2 (couple of cases) or 3 (a single case)
 std::vector<PadGroupType>
 getPadGroupTypes(int regIndex, int nonRegIndex, const rapidjson::Value &motifType, std::map<int, int> &berg2manu)
 {
@@ -179,11 +214,15 @@ getPadGroupTypes(int regIndex, int nonRegIndex, const rapidjson::Value &motifTyp
   }
 }
 
-std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, int npins)
+/// Return a map to convert berg pin number to manu channel
+/// npins can only be 80 or 100
+std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, bool is80pins)
 {
   std::map<int, int> b2m;
+  int npins{is80pins ? 80:100};
   int ipin{0};
   if (berg[ipin]["id"].GetInt() != npins) { ipin = 1; }
+  if (berg[ipin]["id"].GetInt() != npins) { throw std::runtime_error("number of pins can only be 80 or 100"); }
 
   for (const auto &b: berg[ipin]["pins"].GetArray()) {
     std::string smanu = b["manu"].GetString();
@@ -194,11 +233,13 @@ std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, int npins)
   return b2m;
 }
 
+/// Return _all_ the pad group types
 std::vector<PadGroupType> getPadGroupTypes(const rapidjson::Value &motiftypes, const rapidjson::Value &bergs)
 {
   std::vector<PadGroupType> pgts;
 
-  std::array<std::map<int, int>, 2> berg2manuMaps = {getBerg2Manu(bergs, 80), getBerg2Manu(bergs, 100)};
+  // the berg pin number to manu channel convertion is dependent on station (1,2 vs 3,4,5)
+  std::array<std::map<int, int>, 2> berg2manuMaps = {getBerg2Manu(bergs, true), getBerg2Manu(bergs, false)};
 
   int nmotifs{static_cast<int>(motiftypes.GetArray().Size())};
   int nonRegIndex{nmotifs};

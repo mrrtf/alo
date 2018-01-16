@@ -21,6 +21,11 @@
 using namespace o2::mch::mapping::impl1;
 using namespace o2::mch::mapping::impl2;
 
+int getIndex(int ix, int iy, int nx)
+{
+  return ix + iy * nx;
+}
+
 PadGroupType convert(const MotifType& mt) {
 
   std::vector<int> id,ix,iy;
@@ -30,7 +35,18 @@ PadGroupType convert(const MotifType& mt) {
     ix.push_back(mt.getIx(i));
     iy.push_back(mt.getIy(i));
   }
-  return PadGroupType{id,ix,iy};
+
+  std::vector<int> fi;
+
+  int ixmax = std::distance(begin(ix), std::max(begin(ix), end(ix)));
+  int iymax = std::distance(begin(iy), std::max(begin(iy), end(iy)));
+
+  fi.resize(getIndex(ixmax,iymax,ix.size()), -1);
+
+  for (auto i = 0; i < ix.size(); ++i) {
+    fi[getIndex(ix[i], iy[i],ix.size())] = id[i];
+  }
+  return PadGroupType{ixmax,iymax,fi};
 }
 
 std::vector<PadGroupType> convert(const MotifTypeArray& mtArray)

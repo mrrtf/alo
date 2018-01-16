@@ -19,6 +19,7 @@
 #include "contour.h"
 #include "bbox.h"
 #include <fstream>
+#include "contourCreator.h"
 
 namespace o2 {
 namespace mch {
@@ -75,6 +76,58 @@ void writePolygons(std::string filename, const std::vector<o2::mch::contour::Pol
   out << "</body></html>\n";
 
 }
+
+void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour<double> &contour,
+                  o2::mch::contour::BBox<double> &box, const char *style)
+{
+  for (auto i = 0; i < contour.size(); ++i) {
+    writePolygon(out,scale,contour[i],box,style);
+  }
+}
+
+void writeContour(std::string filename, const o2::mch::contour::Contour<double> &contour, int scale)
+{
+  std::ofstream out(filename);
+  out << "<html><body>\n";
+  auto box = getBBox(contour);
+  writeHeader(out, box, scale);
+  writeContour(out, scale, contour, box);
+  out << "</svg>\n";
+  out << "</body></html>\n";
+}
+
+void writeContours(const std::vector<o2::mch::contour::Contour<double>>& contours, const char *filename, double x,
+                   double y)
+{
+  std::ofstream out(filename);
+  int scale = 10;
+  out << "<html><body>\n";
+  auto env = o2::mch::contour::getEnvelop(contours);
+  auto box = getBBox(env);
+
+  x -= box.xmin();
+  y -= box.ymin();
+
+  writeHeader(out, box, scale);
+  writeContour(out, scale, env, box, "fill:#eeeeee;stroke:black;stroke-width:3px");
+  for (auto i = 0; i < contours.size(); ++i) {
+    auto &c = contours[i];
+    writeContour(out, scale, c, box);
+    if (c.contains(x, y)) {
+      writeContour(out, scale, c, box, "fill:#aaaaaa;stroke:none");
+    }
+  }
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"5\"\n"
+    "style=\"fill:none;stroke:black;stroke-width:0.5px;\"/>";
+
+  out << "<circle cx=\"" << scale * x << "\" cy=\"" << scale * y << "\" r=\"1\"\n"
+    "style=\"fill:none;stroke:red;stroke-width:0.5px;\"/>";
+
+  out << "</svg>\n";
+  out << "</body></html>\n";
+}
+
 
 }
 }

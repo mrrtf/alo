@@ -35,6 +35,13 @@ struct PadGroupType
     std::vector<int> ix;
     std::vector<int> iy;
 
+    int nofPadsX() const;
+    int nofPadsY() const;
+
+    std::vector<int> fastIndex() const;
+
+    int getIndex(int ix, int iy) const;
+    
     void clear()
     {
       channelId.clear();
@@ -43,7 +50,7 @@ struct PadGroupType
     }
 };
 
-std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, int npins);
+std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, bool is80pins);
 
 std::vector<PadGroupType> getPadGroupTypes(const rapidjson::Value &motiftypes, const rapidjson::Value& bergs);
 

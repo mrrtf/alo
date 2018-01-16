@@ -7,11 +7,11 @@ target_link_libraries(testContourCreatorVsAliRoot PUBLIC contour MUONmapping STE
 add_test(NAME testContourCreatorVsAliRoot COMMAND testContourCreatorVsAliRoot)
 
 add_executable(testSegmentationVsAliroot testSegmentationVsAliRoot.cxx)
-target_link_libraries(testSegmentationVsAliroot PUBLIC MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework svgwriterlib segcontour)
+target_link_libraries(testSegmentationVsAliroot PUBLIC MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework segcontour)
 add_test(NAME testSegmentationVsAliroot COMMAND testSegmentationVsAliroot)
 
 add_executable(testSomeGlobalNumbers testSomeGlobalNumbers.cxx)
-target_link_libraries(testSomeGlobalNumbers PUBLIC segcontour MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework svgwriterlib)
+target_link_libraries(testSomeGlobalNumbers PUBLIC segcontour MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework)
 add_test(NAME testSomeGlobalNumbers COMMAND testSomeGlobalNumbers)
 
 find_package(benchmark)

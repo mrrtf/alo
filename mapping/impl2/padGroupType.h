@@ -27,17 +27,20 @@ namespace impl2 {
 class PadGroupType
 {
   public:
-    PadGroupType(const std::vector<int> &ids, const std::vector<int> &ix, const std::vector<int> &iy);
+    PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int>& ids);
 
     int getNofPads() const
-    { return mId.size(); }
+    { return mNofPads; }
 
     int getNofPadsX() const
     {
       return mNofPadsX;
     }
 
-    int getNofPadsY() const;
+    int getNofPadsY() const
+    {
+        return mNofPadsY;
+    }
 
     /// Return the index of the pad with indices = (ix,iy)
     /// or -1 if not found
@@ -51,12 +54,10 @@ class PadGroupType
   private:
     int getIndex(int ix, int iy) const;
 
-  private:
-    std::vector<int> mId;
-    std::vector<int> mIx;
-    std::vector<int> mIy;
     std::vector<int> mFastId;
+    int mNofPads;
     int mNofPadsX;
+    int mNofPadsY;
 };
 
 PadGroupType getPadGroupType(int i);

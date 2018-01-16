@@ -12,20 +12,23 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include "segmentation1.h"
-#include "writer.h"
+#include "segmentation2.h"
+#include "boost/format.hpp"
 #include "motifPosition.h"
+#include "padGroup.h"
 #include "padGroupType.h"
 #include "segmentationCommon.h"
-#include <sstream>
-#include <iostream>
-#include <array>
-#include <vector>
+#include "writer.h"
 #include <algorithm>
+#include <array>
 #include <iomanip>
-#include <set>
+#include <iostream>
+#include <locale>
 #include <map>
+#include <set>
+#include <sstream>
 #include <tuple>
+#include <vector>
 
 using rapidjson::Value;
 
@@ -33,69 +36,19 @@ namespace jsonmap {
 namespace codegen {
 namespace impl2 {
 
-int getPadSizeId(const MotifPosition &mp, const PadGroupType &pgt, int channel,
-                const std::map<int, int> &manu2berg)
-{
-  if (mp.hasTwoPadSizes()) {
-    int berg = manu2berg.find(channel)->second;
-    auto it = std::find(mp.mPadNumbers.begin(), mp.mPadNumbers.end(), berg);
-    if (it != mp.mPadNumbers.end()) {
-      return mp.mSecondPadSizeId;
-    }
-  }
-  return mp.mPadSizeId;
-}
-
-void getPosition(const MotifPosition &mp, const PadGroupType &pgt, double &x, double &y)
-{
-  // once again, don't fret about some hard-coded stuff, that's faster sometimes ;-)
-
-  x = mp.mPositionX;
-  y = mp.mPositionY;
-
-  using shifts = std::tuple<std::string, int, double, double>;
-
-  std::vector<shifts> special = {{"1BG", 16, 2.52 * 3, 0.0},
-                                 {"1NG", 16, 0.0,      1.68 * 3},
-                                 {"1NH", 12, 0.0,      1.68 * 3},
-                                 {"E14", 7,  1 * 2.5,  10 * 0.5},
-                                 {"E15", 4,  1 * 2.5,  5 * 0.5}};
-
-  for (auto &s : special) {
-    if (pgt.originalMotifTypeIdString == std::get<0>(s) &&
-        pgt.channelId.size() == std::get<1>(s)) {
-      x += std::get<2>(s);
-      y += std::get<3>(s);
-    }
-  }
-}
-
 std::string
 padgroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes,
-          int nonRegIndexLimit, std::string space, const std::map<int,int>& manu2berg)
+          int nonRegIndexLimit, std::string space, const std::map<int, int> &manu2berg)
 {
+  auto pgs = getPadGroups(motifPositions, padGroupTypes, manu2berg);
+
   std::stringstream code;
 
   code << "{\n";
 
-  for (auto i = 0; i < motifPositions.size(); ++i) {
-    const auto &mp = motifPositions[i];
-    int motifTypeId = mp.mMotifTypeId;
-    for (auto &pgt : padGroupTypes) {
-      if (pgt.originalMotifTypeId == motifTypeId) {
-        int padSizeId{getPadSizeId(mp, pgt,pgt.channelId[0],manu2berg)};
-        double x, y;
-        getPosition(mp, pgt, x, y);
-        // shoud update padSizeId, x,y for split pad groups
-        if (pgt.id >= nonRegIndexLimit) {
-          code << ", ";
-        } else {
-          code << space;
-        }
-        code << "{" << mp.mFECId << "," << pgt.id << "," << padSizeId << "," << x << "," << y << "}";
-      }
-    }
-    if (i < motifPositions.size() - 1) {
+  for (auto i = 0; i < pgs.size(); ++i) {
+    code << pgs[i];
+    if (i < pgs.size() - 1) {
       code << ",";
     }
     code << "\n";
@@ -106,37 +59,85 @@ padgroups(const std::vector<MotifPosition> &motifPositions, const std::vector<Pa
   return code.str();
 }
 
-void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
-                                  const Value &padsizes,
-                                  const Value &detection_elements,
-                                  const Value &bergs)
+std::string codeForDetElemId2SegType(const Value &segmentations,
+                                     const Value &detection_elements)
 {
   std::stringstream impl;
 
-  impl << generateInclude({"array", "stdexcept", "vector", "segmentation.h"});
-  impl << mappingNamespaceBegin("impl2");
+  impl << R"(
+int detElemId2SegType(int detElemId)
+{)";
+
   impl << generateCodeForDetElemIdArray(detection_elements);
   impl << generateCodeForSegTypeArray(segmentations, detection_elements);
 
   impl << R"(
-Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
-{
   int detElemIndex = std::distance(detElemIndexToDetElemId.begin(),
                                    std::find(detElemIndexToDetElemId.begin(), detElemIndexToDetElemId.end(),
                                              detElemId));
-  int segType = (detElemIndex>=0 && detElemIndex<156) ? detElemIndexToSegType[detElemIndex] : -1;
- )";
+  return (detElemIndex>=0 && detElemIndex<156) ? detElemIndexToSegType[detElemIndex] : -1;
+}
+  )";
+  return impl.str();
+}
+
+void generateCodeForDetElemId2SegType(const Value &segmentation, const Value &detection_elements)
+{
+  bool includeGuards{true};
+  bool standalone{true};
+  std::stringstream decl, impl;
+
+  decl << mappingNamespaceBegin("impl2");
+  decl << "int detElemId2SegType(int detElemId);";
+  decl << mappingNamespaceEnd("impl2");
+
+  impl << generateInclude({"array"});
+  impl << mappingNamespaceBegin("impl2");
+  impl << codeForDetElemId2SegType(segmentation, detection_elements);
+  impl << mappingNamespaceEnd("impl2");
+  outputCode(decl.str(), impl.str(),
+             "genDetElemId2SegType",
+             includeGuards, !standalone);
+
+}
+
+std::map<int, int> getManu2Berg(const Value &bergs, bool is80pins)
+{
+  auto berg2manu = getBerg2Manu(bergs, is80pins);
+  std::map<int, int> manu2berg;
+  for (auto p: berg2manu) {
+    manu2berg[p.second] = p.first;
+  }
+  return manu2berg;
+}
+
+void generateCodeForSegmentations1(const Value &segmentations, const Value &motiftypes,
+                                   const Value &padsizes,
+                                   const Value &detection_elements,
+                                   const Value &bergs)
+{
+  std::stringstream impl;
+
+  impl << generateInclude(
+    {
+      "array", "stdexcept", "vector", "segmentation.h", "segmentationImpl2.h", "segmentationCreator.h",
+      "genDetElemId2SegType.h"
+    });
+  impl << mappingNamespaceBegin("impl2");
+
+  impl << R"(
+
+  Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
+  {
+    int segType = detElemId2SegType(detElemId);
+    )";
 
   int nonRegIndexLimit = motiftypes.GetArray().Size();
   auto padGroupTypes = getPadGroupTypes(motiftypes, bergs);
 
   for (int segType = 0; segType < 21; ++segType) {
 
-    auto berg2manu = getBerg2Manu(bergs,segType<2 ? 80:100);
-    std::map<int,int> manu2berg;
-    for ( auto p: berg2manu) {
-      manu2berg[p.second]=p.first;
-    }
+    std::map<int, int> manu2berg = getManu2Berg(bergs, segType < 2);
 
     for (auto isBendingPlane : {true, false}) {
       std::vector<MotifPosition> motifPositions = getMotifPositions(segType, isBendingPlane, segmentations, motiftypes,
@@ -145,7 +146,7 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
            << ") {\n";
       impl << "   return new Segmentation{" << segType << ","
            << (isBendingPlane ? "true" : "false") << "," <<
-           padgroups(motifPositions, padGroupTypes, nonRegIndexLimit, std::string(5, ' '),manu2berg) << "};\n";
+           padgroups(motifPositions, padGroupTypes, nonRegIndexLimit, std::string(5, ' '), manu2berg) << "};\n";
       impl << " };\n";
     }
   }
@@ -157,14 +158,111 @@ Segmentation* createSegmentation(int detElemId, bool isBendingPlane)
 
   bool includeGuards{true};
   bool standalone{true};
-  outputCode("", impl.str(), "impl2-genSegmentation",
+  outputCode("", impl.str(), "genSegmentation",
              includeGuards, !standalone);
-  // #include "report.h"
-  //reportNonRegularMotifs(segmentations, motiftypes, padsizes);
-  //reportIndicesRange(motiftypes);
 }
 
+std::string codeForSegmentationCtor()
+{
+  return "{},{},{}";
+}
 
+void
+generateCodeForSegmentationCreator(int segType, std::vector<PadGroupType> &padGroupTypes, const Value &segmentations,
+                                   const Value &motiftypes,
+                                   const Value &padsizes,
+                                   const Value &bergs)
+{
+  std::stringstream impl;
+
+  impl << generateInclude({"segmentationCreator.h"});
+  impl << mappingNamespaceBegin("impl2");
+
+  std::string creatorName{"createSegType" + std::to_string(segType)};
+  impl << "Segmentation* " << creatorName << "(bool isBendingPlane) {\n";
+  int nonRegIndexLimit = motiftypes.GetArray().Size();
+
+  std::map<int, int> manu2berg = getManu2Berg(bergs, segType < 2);
+
+  std::vector<MotifPosition> mpBending = getMotifPositions(segType, true, segmentations, motiftypes,
+                                                           padsizes);
+  std::vector<MotifPosition> mpNonBending = getMotifPositions(segType, false, segmentations, motiftypes,
+                                                              padsizes);
+
+  impl << " if (isBendingPlane) { \n";
+  impl << "   return new Segmentation{" << segType << ",true," << codeForSegmentationCtor() << "};\n}\n";
+  impl << " return new Segmentation{" << segType << ",true," << codeForSegmentationCtor();
+  impl << " };\n}\n";
+
+  auto registerName = "SegmentationCreatorRegisterC" + creatorName.substr(1);
+  impl << "class " << registerName << "{ \n";
+  impl << "  public:\n  " << registerName << "() { registerSegmentationCreator(" << segType << "," << creatorName
+       << "); }\n";
+  impl << "} a" << registerName << ";\n";
+
+  impl << mappingNamespaceEnd("impl2");
+  outputCode("", impl.
+
+               str(),
+
+             "genSegmentationCreatorForSegType" +
+             std::to_string(segType),
+             true, true);
+}
+
+void generateCodeForSegmentations2(const Value &segmentations, const Value &motiftypes,
+                                   const Value &padsizes,
+                                   const Value &detection_elements,
+                                   const Value &bergs)
+{
+  std::stringstream impl;
+
+  // first generate code for the "driver" which dispatch to the relevant segmentation creator...
+
+  impl << generateInclude(
+    {
+      "array", "stdexcept", "vector", "segmentation.h", "segmentationImpl2.h", "segmentationCreator.h",
+      "genDetElemId2SegType.h"
+    });
+  impl << mappingNamespaceBegin("impl2");
+
+  impl << R"(
+
+  Segmentation* createSegmentation2(int detElemId, bool isBendingPlane)
+  {
+    int segType = detElemId2SegType(detElemId);
+    SegmentationCreator creator = getSegmentationCreator(segType);
+    if (!creator) {
+       return nullptr;
+    }
+    return creator(isBendingPlane);
+   }
+ )";
+
+  impl << mappingNamespaceEnd("impl2");
+
+  bool includeGuards{true};
+  bool standalone{true};
+  outputCode("", impl.str(), "genSegmentation2",
+             includeGuards, !standalone);
+
+  // ... then generate code for the segmentation creators themselves
+  auto padGroupTypes = getPadGroupTypes(motiftypes, bergs);
+  for (int segType = 0; segType < 21; ++segType) {
+    generateCodeForSegmentationCreator(segType, padGroupTypes, segmentations, motiftypes, padsizes, bergs);
+  }
+
+}
+
+void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
+                                  const Value &padsizes,
+                                  const Value &detection_elements,
+                                  const Value &bergs)
+{
+  generateCodeForDetElemId2SegType(segmentations, detection_elements);
+  generateCodeForSegmentations1(segmentations, motiftypes, padsizes, detection_elements, bergs);
+  generateCodeForSegmentations2(segmentations, motiftypes, padsizes, detection_elements, bergs);
+}
 }
 }
 }

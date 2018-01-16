@@ -9,6 +9,7 @@ set(HEADERS
         interval.h
         polygon.h
         segmentTree.h
+        svgContour.h
         vertex.h)
 
 # this trick is needed (only for header-only library)

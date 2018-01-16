@@ -12,34 +12,26 @@
 ///
 /// @author  Laurent Aphecetche
 
-#ifndef ALO_JSONMAP_CODEGEN_PADGROUP_H
-#define ALO_JSONMAP_CODEGEN_PADGROUP_H
 
-#include "rapidjson/document.h"
-#include "motifPosition.h"
+#ifndef O2_MCH_MAPPING_IMPL2_PADGROUPTYPECONTOUR_H
+#define O2_MCH_MAPPING_IMPL2_PADGROUPTYPECONTOUR_H
+
+#include "polygon.h"
 #include "padGroupType.h"
-#include <map>
 #include <vector>
-#include <ostream>
 
-namespace jsonmap {
-namespace codegen {
+namespace o2 {
+namespace mch {
+namespace mapping {
 namespace impl2 {
 
-struct PadGroup
-{
-    int fecId;
-    int padGroupTypeId;
-    int padSizeId;
-    float x;
-    float y;
-};
+std::vector<o2::mch::contour::Polygon<int>> computePads(const PadGroupType &pgt);
 
-std::vector<PadGroup> getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes, const std::map<int, int> &manu2berg);
-
-std::ostream &operator<<(std::ostream &os, const PadGroup &pg);
+std::vector<o2::mch::contour::Polygon<int>> computeContours(const std::vector<PadGroupType> &padGroupTypes);
 
 }
 }
 }
+}
+
 #endif

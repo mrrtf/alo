@@ -36,7 +36,7 @@ std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elem
 
   std::sort(deids.begin(), deids.end());
 
-  impl << "std::array<int," << deids.size() << "> detElemIndexToDetElemId{ \n";
+  impl << "\n  const std::array<int," << deids.size() << "> detElemIndexToDetElemId{ \n";
   for (auto i = 0; i < deids.size(); ++i) {
     impl << deids[i];
     if (i < deids.size() - 1) { impl << ","; }
@@ -49,7 +49,7 @@ std::string generateCodeForSegTypeArray(const Value &segmentations, const Value 
 {
   std::ostringstream impl;
 
-  impl << "\n  std::array<int," << detection_elements.Size() << "> detElemIndexToSegType{";
+  impl << "\n  const std::array<int," << detection_elements.Size() << "> detElemIndexToSegType{";
 
   for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
     const auto &de = detection_elements.GetArray()[ide];

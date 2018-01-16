@@ -35,7 +35,10 @@ struct IMPL2_EXPORT MchPad
 IMPL2_EXPORT MchSegmentationHandle
 mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
-  return new MchSegmentation{o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane)};
+  o2::mch::mapping::impl2::Segmentation* s1 =o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane);
+  o2::mch::mapping::impl2::Segmentation* s2 =o2::mch::mapping::impl2::createSegmentation2(detElemId, isBendingPlane);
+  std::cout << "s1=" << s1 << " s2=" << s2 << "\n";
+  return new MchSegmentation{s1};
 }
 
 IMPL2_EXPORT

@@ -17,6 +17,7 @@
 #include "boost/format.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <algorithm>
 
 namespace o2 {
 namespace mch {
@@ -31,22 +32,14 @@ int extent(const std::vector<int> &v)
 }
 }
 
-PadGroupType::PadGroupType(const std::vector<int> &ids, const std::vector<int> &ix, const std::vector<int> &iy)
-  : mId(ids), mIx(ix), mIy(iy)
+PadGroupType::PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int> &ids)
+  :
+  mFastId{ids},
+  mNofPads{static_cast<int>(std::count_if(begin(mFastId), end(mFastId), [](int i) { return i >= 0; }))},
+  mNofPadsX{nofPadsX},
+  mNofPadsY{nofPadsY}
 {
-  if (mId.size() != mIx.size() || mId.size() != mIy.size() || mIx.size() != mIy.size()) {
-    throw std::out_of_range("input vectors should be the same size");
-  }
 
-  mNofPadsX = extent(mIx);
-  int ixmax = std::distance(begin(mIx), std::max(begin(mIx), end(mIx)));
-  int iymax = std::distance(begin(mIy), std::max(begin(mIy), end(mIy)));
-
-  // generate a quick-index ix + iy*mNofPadsX -> Id
-  mFastId.resize(getIndex(ixmax, iymax), -1);
-  for (auto i = 0; i < mIx.size(); ++i) {
-    mFastId[getIndex(mIx[i], mIy[i])] = mId[i];
-  }
 }
 
 int PadGroupType::getIndex(int ix, int iy) const
@@ -54,16 +47,10 @@ int PadGroupType::getIndex(int ix, int iy) const
   return ix + iy * mNofPadsX;
 }
 
-int PadGroupType::getNofPadsY() const
-{
-  return extent(mIy);
-}
-
 int PadGroupType::padIdByIndices(int ix, int iy) const
 {
   int index = getIndex(ix, iy);
-  if (index >= 0 && index < mFastId.size() )
-  {
+  if (index >= 0 && index < mFastId.size()) {
     return mFastId[index];
   }
   return -1;
@@ -71,7 +58,7 @@ int PadGroupType::padIdByIndices(int ix, int iy) const
 
 bool PadGroupType::hasPadById(int id) const
 {
-  return std::find(begin(mId), end(mId), id) != end(mId);
+  return id != -1 && std::find(begin(mFastId), end(mFastId), id) != end(mFastId);
 }
 
 void dump(std::ostream &os, std::string msg, const std::vector<int> &v)
@@ -86,11 +73,6 @@ void dump(std::ostream &os, std::string msg, const std::vector<int> &v)
 std::ostream &operator<<(std::ostream &os, const PadGroupType &pgt)
 {
   os << "n=" << pgt.getNofPads() << " nx=" << pgt.getNofPadsX() << " ny=" << pgt.getNofPadsY() << "\n";
-
-  dump(os, "id", pgt.mId);
-  dump(os, "ix", pgt.mIx);
-  dump(os, "iy", pgt.mIy);
-
   dump(os, "index", pgt.mFastId);
   return os;
 }

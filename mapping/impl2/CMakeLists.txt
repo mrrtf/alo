@@ -1,15 +1,34 @@
 set(SOURCES
+        genDetElemId2SegType.cxx
+        genDetElemId2SegType.h
         genPadGroupType.cxx
+        genPadSize.cxx
+        genSegmentation.cxx
+        genSegmentation2.cxx
         padGroup.h
         padGroupType.cxx
         padGroupType.h
+        padGroupTypeContour.cxx
+        padGroupTypeContour.h
+        segmentationCImpl2.cxx
+        segmentationCreator.cxx
+        segmentationCreator.h
         segmentationImpl2.cxx
         segmentationImpl2.h
-        genPadSize.cxx
-        segmentationCImpl2.cxx)
+        )
+
+
+# We add all segmentation creators by default,
+# but the final goal would be to tailor this
+# for each executable reaching a given FLP (so it gets only
+# the mapping it needs)
+foreach (segtype RANGE 20)
+    set(SOURCES ${SOURCES} genSegmentationCreatorForSegType${segtype}.cxx)
+endforeach ()
+
 add_library(impl2 SHARED ${SOURCES})
 target_include_directories(impl2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost svgwriterlib)
+target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl2 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl2 POST_BUILD
@@ -18,7 +37,10 @@ add_custom_command(TARGET impl2 POST_BUILD
 
 add_library(impl2_static STATIC ${SOURCES})
 target_include_directories(impl2_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost svgwriterlib)
+target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost)
+
+add_executable(svgPadGroupType svgPadGroupType.cxx)
+target_link_libraries(svgPadGroupType PRIVATE impl2_static)
 
 #add_library(segmentation ALIAS impl2)
 
