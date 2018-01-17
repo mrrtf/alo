@@ -7,7 +7,12 @@
 namespace jsonmap {
 namespace codegen {
 
-std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &padsizes);
+std::ostream &operator<<(std::ostream &out, const std::pair<float,float>& padsize);
+
+std::vector<std::pair<float, float>> getPadSizes(const rapidjson::Value &jsonPadSizes);
+
+std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &jsonPadSizes);
+
 }
 }
 #endif

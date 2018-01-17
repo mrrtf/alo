@@ -12,6 +12,7 @@
 ///
 /// @author  Laurent Aphecetche
 
+#include <fstream>
 #include "segmentationCInterface.h"
 #include "impl2_export.h"
 #include "segmentationImpl2.h"
@@ -35,10 +36,8 @@ struct IMPL2_EXPORT MchPad
 IMPL2_EXPORT MchSegmentationHandle
 mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
-  o2::mch::mapping::impl2::Segmentation* s1 =o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane);
-  o2::mch::mapping::impl2::Segmentation* s2 =o2::mch::mapping::impl2::createSegmentation2(detElemId, isBendingPlane);
-  std::cout << "s1=" << s1 << " s2=" << s2 << "\n";
-  return new MchSegmentation{s1};
+  auto seg = o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane);
+  return seg ? new MchSegmentation{seg} : nullptr;
 }
 
 IMPL2_EXPORT
@@ -71,7 +70,7 @@ IMPL2_EXPORT
 bool mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y, MchPadHandle *ph)
 {
   auto &seg = segHandle->impl;
-  if ( seg->hasPadByPosition(x,y)) {
+  if (seg->hasPadByPosition(x, y)) {
     //FIXME : fill padhandle
     return true;
   }
@@ -82,7 +81,7 @@ IMPL2_EXPORT
 bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
                                  MchPadHandle *padHandle)
 {
-  return segHandle->impl->hasPadByFEE(dualSampaId,dualSampaChannel);
+  return segHandle->impl->hasPadByFEE(dualSampaId, dualSampaChannel);
 
 }
 
@@ -105,8 +104,7 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
 IMPL2_EXPORT
 void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
-  for (auto dualSampaId: segHandle->impl->dualSampaIds())
-  {
+  for (auto dualSampaId: segHandle->impl->dualSampaIds()) {
     handler(clientData, dualSampaId);
   }
 }
@@ -124,7 +122,7 @@ void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler 
 IMPL2_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
-  auto& seg = segHandle->impl;
+  auto &seg = segHandle->impl;
   auto padGroupIndices = segHandle->impl->padGroupIndices(dualSampaId);
   for (auto &pgi: padGroupIndices) {
     auto pg = seg->padGroup(pgi);

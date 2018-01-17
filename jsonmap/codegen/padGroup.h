@@ -35,7 +35,18 @@ struct PadGroup
     float y;
 };
 
-std::vector<PadGroup> getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes, const std::map<int, int> &manu2berg);
+std::vector<PadGroup>
+getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes,
+             const std::map<int, int> &manu2berg);
+
+std::vector<PadGroupType>
+getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGroupType> &padGroupTypes);
+
+std::vector<std::pair<float, float>>
+getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<float, float>> &allPadSizes);
+
+std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups, const std::vector<PadGroupType> &padGroupTypes,
+                            const std::vector<std::pair<float, float>> &padSizes);
 
 std::ostream &operator<<(std::ostream &os, const PadGroup &pg);
 

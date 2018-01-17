@@ -3,8 +3,6 @@ set(SOURCES
         genDetElemId2SegType.h
         genPadGroupType.cxx
         genPadSize.cxx
-        genSegmentation.cxx
-        genSegmentation2.cxx
         padGroup.h
         padGroupType.cxx
         padGroupType.h
@@ -55,4 +53,4 @@ if (BUILD_TESTING)
     add_subdirectory(test)
 endif ()
 
-add_custom_target(impl2_ide SOURCES genSegmentation.cxx padSize.h)
+add_custom_target(impl2_ide SOURCES padSize.h)

@@ -50,6 +50,8 @@ struct PadGroupType
     }
 };
 
+std::ostream &operator<<(std::ostream &out, const PadGroupType &v);
+
 std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, bool is80pins);
 
 std::vector<PadGroupType> getPadGroupTypes(const rapidjson::Value &motiftypes, const rapidjson::Value& bergs);

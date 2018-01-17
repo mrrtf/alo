@@ -14,6 +14,9 @@
 
 #include "padGroup.h"
 #include <vector>
+#include <set>
+#include <iostream>
+#include <algorithm>
 
 namespace jsonmap {
 namespace codegen {
@@ -64,6 +67,61 @@ int getPadSizeId(const MotifPosition &mp, const PadGroupType &pgt, int channel,
   return mp.mPadSizeId;
 }
 
+using PadGroupFunc = int (*)(const PadGroup &);
+
+int fecId(const PadGroup &padGroup)
+{ return padGroup.fecId; }
+
+int groupTypeId(const PadGroup &padGroup)
+{ return padGroup.padGroupTypeId; }
+
+int padSizeId(const PadGroup &padGroup)
+{
+  return padGroup.padSizeId;
+}
+
+std::set<int> getUnique(const std::vector<PadGroup> &padGroups, PadGroupFunc func)
+{
+  // extract from padGroup vector the unique integer values given by func
+  std::set<int> u;
+  for (auto &pg: padGroups) {
+    u.insert(func(pg));
+  }
+  return u;
+}
+
+PadGroupType getPadGroupType(const std::vector<PadGroupType>& padGroupTypes, int i) {
+
+  auto it = std::find_if(begin(padGroupTypes),end(padGroupTypes),
+                         [&i](const PadGroupType& pgt) { return pgt.id == i; });
+  return *it;
+}
+
+std::vector<PadGroupType>
+getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGroupType> &padGroupTypes)
+{
+  // get a vector of unique padGroupTypes from padGroups
+
+  std::vector<PadGroupType> pgts;
+  std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
+  for (auto &i: padGroupTypeIds) {
+    pgts.push_back(getPadGroupType(padGroupTypes,i));
+  }
+  return pgts;
+}
+
+std::vector<std::pair<float, float>>
+getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<float, float>> &allPadSizes)
+{
+  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
+
+  std::vector<std::pair<float, float>> padSizes;
+  for (auto &sid: padSizeIds) {
+    padSizes.push_back(allPadSizes[sid]);
+  }
+  return padSizes;
+}
+
 std::vector<PadGroup>
 getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes,
              const std::map<int, int> &manu2berg)
@@ -71,18 +129,59 @@ getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector
   std::vector<PadGroup> pgs;
   for (auto i = 0; i < motifPositions.size(); ++i) {
     const auto &mp = motifPositions[i];
-    int motifTypeId = mp.mMotifTypeId;
     for (auto &pgt : padGroupTypes) {
-      if (pgt.originalMotifTypeId == motifTypeId) {
+      if (pgt.originalMotifTypeId == mp.mMotifTypeId) {
         int padSizeId{getPadSizeId(mp, pgt, pgt.channelId[0], manu2berg)};
         double x, y;
         getPosition(mp, pgt, x, y);
-        pgs.push_back({mp.mFECId,pgt.id,padSizeId,static_cast<float>(x),static_cast<float>(y)});
+        pgs.push_back({mp.mFECId, pgt.id, padSizeId, static_cast<float>(x), static_cast<float>(y)});
       }
     }
   }
   return pgs;
 }
+
+std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
+                            const std::vector<PadGroupType> &padGroupTypes,
+                            const std::vector<std::pair<float, float>> &padSizes)
+{
+  // change the padGroupType ids in padGroups vector to
+  // be from 0 to number of different padgrouptypes in padGroups vector
+  std::map<int, int> idmap;
+  std::map<int, int> sizemap;
+  std::vector<PadGroup> remappedPadGroups;
+
+  std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
+  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
+
+  int i{0};
+  for (auto &pgt: padGroupTypeIds) {
+    idmap[pgt] = i++;
+  }
+
+  i = 0;
+  for (auto &ps: padSizeIds) {
+    sizemap[ps] = i++;
+  }
+
+  for (auto &pg: padGroups) {
+    auto it = idmap.find(pg.padGroupTypeId);
+    if (it == idmap.end()) {
+      throw std::runtime_error("pad group id " + std::to_string(pg.padGroupTypeId) + " not found");
+    }
+    auto sit = sizemap.find(pg.padSizeId);
+    if (sit == sizemap.end()) {
+      throw std::runtime_error("pad size id " + std::to_string(pg.padSizeId) + " not found");
+    }
+    PadGroup rpg{pg};
+    rpg.padGroupTypeId = it->second;
+    rpg.padSizeId = sit->second;
+    remappedPadGroups.push_back(rpg);
+  }
+
+  return remappedPadGroups;
+}
+
 }
 }
 }

@@ -13,19 +13,24 @@
 /// @author  Laurent Aphecetche
 
 #include "segmentationImpl2.h"
+#include "boost/format.hpp"
+#include "contourCreator.h"
+#include "genDetElemId2SegType.h"
 #include "padGroup.h"
+#include "padGroupTypeContour.h"
+#include "padSize.h"
+#include "polygon.h"
+#include "segmentation.h"
+#include "segmentationCreator.h"
+#include "svgContour.h"
+#include <array>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <set>
+#include <stdexcept>
 #include <string>
-#include "polygon.h"
-#include "contourCreator.h"
-#include "padSize.h"
-#include "boost/format.hpp"
-#include "svgContour.h"
-#include "polygon.h"
-#include "padGroupTypeContour.h"
+#include <vector>
 
 using namespace o2::mch::mapping::impl2;
 using namespace o2::mch::contour;
@@ -35,6 +40,15 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
+Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
+{
+  int segType = detElemId2SegType(detElemId);
+  SegmentationCreator creator = getSegmentationCreator(segType);
+  if (!creator) {
+    return nullptr;
+  }
+  return creator(isBendingPlane);
+}
 
 std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
                                                    const std::vector<PadGroupType> &padGroupTypes,
@@ -58,116 +72,15 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
 
   return contours;
 }
-using PadGroupFunc = int (*)(const PadGroup &);
 
-int fecId(const PadGroup &padGroup)
-{ return padGroup.mFECId; }
-
-int groupTypeId(const PadGroup &padGroup)
-{ return padGroup.mPadGroupTypeId; }
-
-int padSizeId(const PadGroup &padGroup)
-{
-  return padGroup.mPadSizeId;
-}
-
-std::set<int> getUnique(const std::vector<PadGroup> &padGroups, PadGroupFunc func)
+std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
 {
   // extract from padGroup vector the unique integer values given by func
   std::set<int> u;
   for (auto &pg: padGroups) {
-    u.insert(func(pg));
+    u.insert(pg.mFECId);
   }
   return u;
-}
-
-std::vector<PadGroupType> getPadGroupTypes(const std::vector<PadGroup> &padGroups)
-{
-  // get a vector of unique padGroupTypes from padGroups
-  std::vector<PadGroupType> padGroupTypes;
-  std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
-  for (auto &pgt: padGroupTypeIds) {
-    padGroupTypes.push_back(getPadGroupType(pgt));
-  }
-  return padGroupTypes;
-}
-
-std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
-                            const std::vector<PadGroupType> &padGroupTypes,
-                            const std::vector<std::pair<float, float>> &padSizes)
-{
-  // change the padGroupType ids in padGroups vector to
-  // be from 0 to number of different padgrouptypes in padGroups vector
-  std::map<int, int> idmap;
-  std::map<int, int> sizemap;
-  std::vector<PadGroup> remappedPadGroups;
-
-  std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
-  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
-
-  int i{0};
-  for (auto &pgt: padGroupTypeIds) {
-    idmap[pgt] = i++;
-  }
-
-  i = 0;
-  for (auto &ps: padSizeIds) {
-    sizemap[ps] = i++;
-  }
-
-  for (auto &pg: padGroups) {
-    auto it = idmap.find(pg.mPadGroupTypeId);
-    if (it == idmap.end()) {
-      throw std::runtime_error("pad group id " + std::to_string(pg.mPadGroupTypeId) + " not found");
-    }
-    auto sit = sizemap.find(pg.mPadSizeId);
-    if (sit == sizemap.end()) {
-      throw std::runtime_error("pad size id " + std::to_string(pg.mPadSizeId) + " not found");
-    }
-    PadGroup rpg{pg};
-    rpg.mPadGroupTypeId = it->second;
-    rpg.mPadSizeId = sit->second;
-    remappedPadGroups.push_back(rpg);
-  }
-
-  return remappedPadGroups;
-}
-
-std::vector<std::pair<float, float>> getPadSizes(const std::vector<PadGroup> &padGroups)
-{
-  std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
-
-  std::vector<std::pair<float, float>> padSizes;
-  for (auto &sid: padSizeIds) {
-    padSizes.push_back(std::make_pair<float, float>(padSizeX(sid), padSizeY(sid)));
-  }
-  return padSizes;
-}
-
-//int getSegType(int segtype)
-//{
-//  std::cout << "SEGTYPE " << segtype << "\n";
-//  return segtype;
-//}
-//
-//bool getBendingPlane(bool bp)
-//{
-//  std::cout << "BENDING " << (bp ? "true" : "false") << "\n";
-//  return bp;
-//}
-
-Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups) :
-  mSegType{segType},
-  mIsBendingPlane{isBendingPlane},
-  mDualSampaIds{getUnique(padGroups, fecId)},
-  mPadGroupTypes{getPadGroupTypes(padGroups)},
-  mPadSizes{getPadSizes(padGroups)},
-  mPadGroups{remap(padGroups, mPadGroupTypes, mPadSizes)},
-  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)}
-{
-  // note that in order to have the Segmentation object as much as possible "self-contained"
-  // (i.e. avoid relying on some global memory access)
-  // we "import" the padgrouptypes and padsizes we are interested in
 }
 
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups,
@@ -176,7 +89,7 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
 :
   mSegType{segType},
   mIsBendingPlane{isBendingPlane},
-  mDualSampaIds{getUnique(padGroups, fecId)},
+  mDualSampaIds{getUnique(padGroups)},
   mPadGroupTypes{padGroupTypes},
   mPadSizes{padSizes},
   mPadGroups{padGroups},
@@ -217,6 +130,35 @@ bool Segmentation::hasPadByFEE(int dualSampaId, int dualSampaChannel) const
     }
   }
   return rv;
+}
+
+std::ostream& operator<<(std::ostream& out, const std::pair<float,float>& p)
+{
+  out << p.first << "," << p.second;
+  return out;
+}
+
+template<typename T>
+void dump(std::ostream& out, std::string msg, const std::vector<T>& v, int n) {
+
+  out << msg << "\n";
+  for ( auto i = 0; i < n; ++i ) {
+    if (i<v.size()) {
+      out << v[i] << "\n";
+    }
+  }
+}
+
+std::ostream& operator<<(std::ostream &os, const Segmentation &seg)
+{
+  os << "segType " << seg.mSegType << "-" << (seg.mIsBendingPlane ? "B":"NB");
+
+  os << boost::format(" %3d PG %2d PGT %2d PS\n") % seg.mPadGroups.size() % seg.mPadGroupTypes.size() % seg.mPadSizes.size();
+
+  dump(os,"PG",seg.mPadGroups,seg.mPadGroups.size());
+  dump(os,"PGT",seg.mPadGroupTypes,seg.mPadGroupTypes.size());
+  dump(os,"PS",seg.mPadSizes,seg.mPadSizes.size());
+  return os;
 }
 
 }

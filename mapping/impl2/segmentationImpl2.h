@@ -20,6 +20,7 @@
 #include "padGroupType.h"
 #include <vector>
 #include <set>
+#include <ostream>
 #include "contour.h"
 
 namespace o2 {
@@ -54,6 +55,8 @@ class Segmentation
 
     bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const;
 
+    friend std::ostream &operator<<(std::ostream &os, const Segmentation &segmentation);
+
   private:
     int dualSampaIndex(int dualSampaId) const;
 
@@ -68,7 +71,6 @@ class Segmentation
 };
 
 Segmentation *createSegmentation(int detElemId, bool isBendingPlane);
-Segmentation *createSegmentation2(int detElemId, bool isBendingPlane);
 
 }
 }
