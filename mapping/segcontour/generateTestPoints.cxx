@@ -18,7 +18,6 @@
 #include "segmentation.h"
 #include "segmentationContours.h"
 #include "contourCreator.h"
-#include "segcontour_export.h"
 
 using o2::mch::contour::getBBox;
 using o2::mch::contour::getEnvelop;
@@ -27,7 +26,7 @@ namespace o2 {
 namespace mch {
 namespace mapping {
 
-SEGCONTOUR_EXPORT
+
 std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent)
 {
   auto bbox = getBBox(getEnvelop(getSampaContours(detElemId,true)));

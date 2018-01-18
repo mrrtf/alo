@@ -37,12 +37,16 @@ void getPosition(const MotifPosition &mp, const PadGroupType &pgt, double &x, do
 
   using shifts = std::tuple<std::string, int, double, double>;
 
-  //                            motiftype, motiftypeid, shift in x, shift in y (cm)
+  //                            motiftype, #pads in pgt, shift in x, shift in y (cm)
   std::vector<shifts> special = {{"1BG", 16, 2.52 * 3, 0.0},
                                  {"1NG", 16, 0.0,      1.68 * 3},
                                  {"1NH", 12, 0.0,      1.68 * 3},
-                                 {"E14", 7,  1 * 2.5,  10 * 0.5},
-                                 {"E15", 4,  1 * 2.5,  5 * 0.5}};
+                                 {"E14", 57, 2.5 * 1,  0.5 * 9},
+                                 {"E14", 5,  2.5 * 1,  0.5 * 2},
+                                 {"E15", 60,  2.5 * 1,  0.5 * 5},
+    //{"E15", 4,  1 * 2.5,  5 * 0.5}
+
+  };
 
   for (auto &s : special) {
     if (pgt.originalMotifTypeIdString == std::get<0>(s) &&
@@ -90,10 +94,11 @@ std::set<int> getUnique(const std::vector<PadGroup> &padGroups, PadGroupFunc fun
   return u;
 }
 
-PadGroupType getPadGroupType(const std::vector<PadGroupType>& padGroupTypes, int i) {
+PadGroupType getPadGroupType(const std::vector<PadGroupType> &padGroupTypes, int i)
+{
 
-  auto it = std::find_if(begin(padGroupTypes),end(padGroupTypes),
-                         [&i](const PadGroupType& pgt) { return pgt.id == i; });
+  auto it = std::find_if(begin(padGroupTypes), end(padGroupTypes),
+                         [&i](const PadGroupType &pgt) { return pgt.id == i; });
   return *it;
 }
 
@@ -105,7 +110,7 @@ getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGr
   std::vector<PadGroupType> pgts;
   std::set<int> padGroupTypeIds = getUnique(padGroups, groupTypeId);
   for (auto &i: padGroupTypeIds) {
-    pgts.push_back(getPadGroupType(padGroupTypes,i));
+    pgts.push_back(getPadGroupType(padGroupTypes, i));
   }
   return pgts;
 }

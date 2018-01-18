@@ -24,10 +24,9 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
-class PadGroupType
+struct PadGroupType
 {
-  public:
-    PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int>& ids);
+    PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int> &ids);
 
     int getNofPads() const
     { return mNofPads; }
@@ -39,22 +38,44 @@ class PadGroupType
 
     int getNofPadsY() const
     {
-        return mNofPadsY;
+      return mNofPadsY;
     }
+
+    int fastIndex(int ix, int iy) const
+    {
+      return ix + iy * mNofPadsX;
+    }
+
+    int id(int fastIndex) const;
 
     /// Return the index of the pad with indices = (ix,iy)
     /// or -1 if not found
-    int padIdByIndices(int ix, int iy) const;
+    int id(int ix, int iy) const
+    {
+      return id(fastIndex(ix, iy));
+    }
+
+    int iy(int fastIndex) const {
+      return fastIndex/mNofPadsX;
+    }
+
+    int ix(int fastIndex) const {
+      return fastIndex - iy(fastIndex)*mNofPadsX;
+    }
+
+    std::vector<int> fastIndices() const {
+      return mFastIndices;
+    }
 
     /// Whether pad with given id exists
     bool hasPadById(int id) const;
 
     friend std::ostream &operator<<(std::ostream &os, const PadGroupType &type);
 
-  private:
     int getIndex(int ix, int iy) const;
 
     std::vector<int> mFastId;
+    std::vector<int> mFastIndices;
     int mNofPads;
     int mNofPadsX;
     int mNofPadsY;

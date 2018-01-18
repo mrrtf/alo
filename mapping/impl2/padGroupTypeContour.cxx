@@ -30,7 +30,7 @@ std::vector<o2::mch::contour::Polygon<int>> computePads(const PadGroupType &pgt)
 
   for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
     for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
-      if (pgt.padIdByIndices(ix, iy) >= 0) {
+      if (pgt.id(ix, iy) >= 0) {
         pads.push_back({{ix,     iy},
                         {ix + 1, iy},
                         {ix + 1, iy + 1},
@@ -52,6 +52,9 @@ o2::mch::contour::Polygon<int> computeContour(const PadGroupType &pgt)
     std::cout << "OUPS. Contour.size()=" << contour.size() << "\n";
     throw std::runtime_error("contour size should be 1 and is " + std::to_string(contour.size()));
   }
+  if (!contour[0].isCounterClockwiseOriented()) {
+    throw std::runtime_error("polygons must be counterclockwise oriented !");
+  }
   return contour[0];
 }
 
@@ -66,4 +69,7 @@ std::vector<o2::mch::contour::Polygon<int>> computeContours(const std::vector<Pa
 }
 
 
-}}}}
+}
+}
+}
+}

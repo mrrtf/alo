@@ -30,7 +30,7 @@ struct IMPL2_EXPORT MchSegmentation
 struct IMPL2_EXPORT MchPad
 {
     int padGroupIndex;
-    int padIndexInGroup;
+    int padIndexInGroupType;
 };
 
 IMPL2_EXPORT MchSegmentationHandle
@@ -81,8 +81,12 @@ IMPL2_EXPORT
 bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
                                  MchPadHandle *padHandle)
 {
-  return segHandle->impl->hasPadByFEE(dualSampaId, dualSampaChannel);
-
+  auto &seg = segHandle->impl;
+  if (seg->hasPadByFEE(dualSampaId, dualSampaChannel)) {
+    //FIXME : fill padhandle
+    return true;
+  }
+  return false;
 }
 
 IMPL2_EXPORT
@@ -126,9 +130,11 @@ void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, 
   auto padGroupIndices = segHandle->impl->padGroupIndices(dualSampaId);
   for (auto &pgi: padGroupIndices) {
     auto pg = seg->padGroup(pgi);
-    for (auto i = 0; i < seg->nofPads(pg); ++i) {
-      MchPad pad{pgi, i};
-      handler(clientData, &pad);
+    auto pgt = seg->padGroupType(pg);
+    for ( auto i: seg->padFastIndices(pg))
+    {
+        MchPad pad{pgi, i};
+        handler(clientData, &pad);
     }
   }
 }
@@ -136,25 +142,25 @@ void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, 
 IMPL2_EXPORT
 double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, MchPadHandle padHandle)
 {
-  return 0.0;
+  return segHandle->impl->padPositionX(padHandle->padGroupIndex,padHandle->padIndexInGroupType);
 }
 
 IMPL2_EXPORT
 double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, MchPadHandle padHandle)
 {
-  return 0.0;
+  return segHandle->impl->padPositionY(padHandle->padGroupIndex,padHandle->padIndexInGroupType);
 }
 
 IMPL2_EXPORT
 double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, MchPadHandle padHandle)
 {
-  return 0.0;
+  return segHandle->impl->padSizeX(padHandle->padGroupIndex);
 }
 
 IMPL2_EXPORT
 double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, MchPadHandle padHandle)
 {
-  return 0.0;
+  return segHandle->impl->padSizeY(padHandle->padGroupIndex);
 }
 
 } // extern "C"

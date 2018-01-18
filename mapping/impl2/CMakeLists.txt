@@ -40,9 +40,11 @@ target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost
 add_executable(svgPadGroupType svgPadGroupType.cxx)
 target_link_libraries(svgPadGroupType PRIVATE impl2_static)
 
-#add_library(segmentation ALIAS impl2)
+add_executable(svgSegmentation svgSegmentation.cxx)
+target_link_libraries(svgSegmentation PUBLIC impl2_static)
+set_target_properties(svgSegmentation PROPERTIES LINK_FLAGS "-Wl,-all_load")
 
-install(TARGETS impl2 #impl2_static
+install(TARGETS impl2 impl2_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 

@@ -22,7 +22,6 @@
 #include "polygon.h"
 #include "segmentation.h"
 #include "segmentationCreator.h"
-#include "svgContour.h"
 #include <array>
 #include <iostream>
 #include <map>
@@ -67,6 +66,10 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
     float dy{padSizes[pg.mPadSizeId].second};
     p.scale(dx, dy);
     p.translate(pg.mX, pg.mY);
+    if (!p.isCounterClockwiseOriented()) {
+      std::cout << p << "\n";
+      throw std::runtime_error("polygons must be counterclockwise oriented !");
+    }
     contours.push_back(p);
   }
 
@@ -85,8 +88,8 @@ std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
 
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups,
                            std::vector<PadGroupType> padGroupTypes,
-                           std::vector<std::pair<float,float>> padSizes)
-:
+                           std::vector<std::pair<float, float>> padSizes)
+  :
   mSegType{segType},
   mIsBendingPlane{isBendingPlane},
   mDualSampaIds{getUnique(padGroups)},
@@ -110,6 +113,11 @@ std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const
 
 bool Segmentation::hasPadByPosition(double x, double y) const
 {
+  for (auto &c: mPadGroupContours) {
+    if (c.contains(x, y)) {
+      return true;
+    }
+  }
   return false;
 }
 
@@ -118,6 +126,12 @@ int Segmentation::nofPads(const PadGroup &padGroup) const
   return mPadGroupTypes[padGroup.mPadGroupTypeId].getNofPads();
 }
 
+// Return the list of valid fastindices (somewhere between 0 and npadX*npadY-1)
+// for a given padgroup
+std::vector<int> Segmentation::padFastIndices(const PadGroup &padGroup) const
+{
+  return mPadGroupTypes[padGroup.mPadGroupTypeId].fastIndices();
+}
 
 bool Segmentation::hasPadByFEE(int dualSampaId, int dualSampaChannel) const
 {
@@ -132,32 +146,58 @@ bool Segmentation::hasPadByFEE(int dualSampaId, int dualSampaChannel) const
   return rv;
 }
 
-std::ostream& operator<<(std::ostream& out, const std::pair<float,float>& p)
+double Segmentation::padPositionX(int padGroupIndex, int padIndex) const
+{
+  auto pg = mPadGroups[padGroupIndex];
+  auto pgt = mPadGroupTypes[pg.mPadGroupTypeId];
+  return pg.mX + (pgt.ix(padIndex) + 0.5) * mPadSizes[pg.mPadSizeId].first;
+}
+
+double Segmentation::padPositionY(int padGroupIndex, int padIndex) const
+{
+  auto pg = mPadGroups[padGroupIndex];
+  auto pgt = mPadGroupTypes[pg.mPadGroupTypeId];
+  return pg.mY + (pgt.iy(padIndex) + 0.5) * mPadSizes[pg.mPadSizeId].second;
+}
+
+double Segmentation::padSizeX(int padGroupIndex) const
+{
+  return mPadSizes[mPadGroups[padGroupIndex].mPadSizeId].first;
+}
+
+double Segmentation::padSizeY(int padGroupIndex) const
+{
+  return mPadSizes[mPadGroups[padGroupIndex].mPadSizeId].second;
+}
+
+std::ostream &operator<<(std::ostream &out, const std::pair<float, float> &p)
 {
   out << p.first << "," << p.second;
   return out;
 }
 
 template<typename T>
-void dump(std::ostream& out, std::string msg, const std::vector<T>& v, int n) {
+void dump(std::ostream &out, std::string msg, const std::vector<T> &v, int n)
+{
 
   out << msg << "\n";
-  for ( auto i = 0; i < n; ++i ) {
-    if (i<v.size()) {
+  for (auto i = 0; i < n; ++i) {
+    if (i < v.size()) {
       out << v[i] << "\n";
     }
   }
 }
 
-std::ostream& operator<<(std::ostream &os, const Segmentation &seg)
+std::ostream &operator<<(std::ostream &os, const Segmentation &seg)
 {
-  os << "segType " << seg.mSegType << "-" << (seg.mIsBendingPlane ? "B":"NB");
+  os << "segType " << seg.mSegType << "-" << (seg.mIsBendingPlane ? "B" : "NB");
 
-  os << boost::format(" %3d PG %2d PGT %2d PS\n") % seg.mPadGroups.size() % seg.mPadGroupTypes.size() % seg.mPadSizes.size();
+  os << boost::format(" %3d PG %2d PGT %2d PS\n") % seg.mPadGroups.size() % seg.mPadGroupTypes.size() %
+        seg.mPadSizes.size();
 
-  dump(os,"PG",seg.mPadGroups,seg.mPadGroups.size());
-  dump(os,"PGT",seg.mPadGroupTypes,seg.mPadGroupTypes.size());
-  dump(os,"PS",seg.mPadSizes,seg.mPadSizes.size());
+  dump(os, "PG", seg.mPadGroups, seg.mPadGroups.size());
+  dump(os, "PGT", seg.mPadGroupTypes, seg.mPadGroupTypes.size());
+  dump(os, "PS", seg.mPadSizes, seg.mPadSizes.size());
   return os;
 }
 

@@ -15,6 +15,7 @@
 #include "segmentation.h"
 #include "segmentationContours.h"
 #include "svgContour.h"
+#include <iostream>
 
 using namespace o2::mch::svg;
 
@@ -25,8 +26,12 @@ int main()
       o2::mch::mapping::Segmentation seg{detElemId, isBendingPlane};
       std::ostringstream filename;
       filename << "segmentation-contour-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << ".html";
+      std::cout << "computing " << filename.str() << "\n";
       auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
-      writeContours(contours, filename.str().c_str(), 0, 0);
+      for (auto& c: contours) {
+        std::cout << c << "\n";
+      }
+      writeContours(contours, filename.str().c_str(), 0.0, 0.0);
     }
   });
 

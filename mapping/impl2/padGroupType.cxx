@@ -32,24 +32,29 @@ int extent(const std::vector<int> &v)
 }
 }
 
+std::vector<int> validIndices(const std::vector<int>& ids)
+{
+  std::vector<int> v;
+  for (auto i = 0; i < ids.size(); i++) {
+    if (ids[i] >= 0) {
+      v.push_back(i);
+    }
+  }
+  return v;
+}
+
 PadGroupType::PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int> &ids)
   :
   mFastId{ids},
+  mFastIndices{validIndices(mFastId)},
   mNofPads{static_cast<int>(std::count_if(begin(mFastId), end(mFastId), [](int i) { return i >= 0; }))},
   mNofPadsX{nofPadsX},
   mNofPadsY{nofPadsY}
 {
-
 }
 
-int PadGroupType::getIndex(int ix, int iy) const
+int PadGroupType::id(int index) const
 {
-  return ix + iy * mNofPadsX;
-}
-
-int PadGroupType::padIdByIndices(int ix, int iy) const
-{
-  int index = getIndex(ix, iy);
   if (index >= 0 && index < mFastId.size()) {
     return mFastId[index];
   }

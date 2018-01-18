@@ -41,12 +41,20 @@ class Segmentation
 
     std::vector<int> padGroupIndices(int dualSampaId) const;
 
+    std::vector<int> padFastIndices(const PadGroup& padGroup) const;
+
     int nofPads(const PadGroup &padGroup) const;
 
-    PadGroup padGroup(int index) const
+    int nofPadGroups() const { return mPadGroups.size(); }
+
+    const PadGroup& padGroup(int index) const
     { return mPadGroups[index]; }
 
-    Contour padGroupContour(const PadGroup &padGroup) const;
+    const PadGroupType& padGroupType(const PadGroup& padGroup) const {
+        return mPadGroupTypes[padGroup.mPadGroupTypeId];
+    }
+
+    Contour padGroupContour(int index) const { return mPadGroupContours[index]; }
 
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }
@@ -56,6 +64,11 @@ class Segmentation
     bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const;
 
     friend std::ostream &operator<<(std::ostream &os, const Segmentation &segmentation);
+
+    double padPositionX(int padGroupIndex, int padIndex) const;
+    double padPositionY(int padGroupIndex, int padIndex) const;
+    double padSizeX(int padGroupIndex) const;
+    double padSizeY(int padGroupIndex) const;
 
   private:
     int dualSampaIndex(int dualSampaId) const;
@@ -71,7 +84,6 @@ class Segmentation
 };
 
 Segmentation *createSegmentation(int detElemId, bool isBendingPlane);
-
 }
 }
 }

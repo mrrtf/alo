@@ -28,12 +28,12 @@ namespace svg {
 void writeContours(const std::vector<o2::mch::contour::Contour<double>> &contours, const char *filename, double x,
                    double y);
 
-void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour<double> &contour,
+void writeContour(std::ostream &out, int scale, const o2::mch::contour::Contour<double> &contour,
                   o2::mch::contour::BBox<double> &box, const char *style = "fill:none;stroke:black;stroke-width:0.5px");
 
 
 template<typename T>
-void writeHeader(std::ofstream &out, o2::mch::contour::BBox<T> &box, int scale)
+void writeHeader(std::ostream &out, o2::mch::contour::BBox<T> &box, int scale)
 {
   out << "<svg height=\"" << scale * box.height() << "\" width=\"" << scale * box.width() << "\">\n";
 }
@@ -41,7 +41,7 @@ void writeHeader(std::ofstream &out, o2::mch::contour::BBox<T> &box, int scale)
 void writeContour(std::string filename, const o2::mch::contour::Contour<double> &contour, int scale);
 
 template<typename T>
-void writePolygon(std::ofstream &out, const o2::mch::contour::Polygon<T> &polygon, const char *style = "fill:#eeeeee;stroke:black;stroke-width:1px")
+void writePolygon(std::ostream &out, const o2::mch::contour::Polygon<T> &polygon, const char *style = "fill:#eeeeee;stroke:black;stroke-width:1px")
 {
   out << "<polygon points=\"";
   auto vertices = getVertices(polygon);
@@ -53,7 +53,7 @@ void writePolygon(std::ofstream &out, const o2::mch::contour::Polygon<T> &polygo
 
 }
 template<typename T>
-void writePolygon(std::ofstream &out, int scale, const o2::mch::contour::Polygon<T> &polygon,
+void writePolygon(std::ostream &out, int scale, const o2::mch::contour::Polygon<T> &polygon,
                   o2::mch::contour::BBox<T> &box, const char *style = "fill:#eeeeee;stroke:black;stroke-width:1px")
 {
   auto p = polygon;
@@ -77,7 +77,7 @@ void writePolygons(std::string filename, const std::vector<o2::mch::contour::Pol
 
 }
 
-void writeContour(std::ofstream &out, int scale, const o2::mch::contour::Contour<double> &contour,
+void writeContour(std::ostream &out, int scale, const o2::mch::contour::Contour<double> &contour,
                   o2::mch::contour::BBox<double> &box, const char *style)
 {
   for (auto i = 0; i < contour.size(); ++i) {

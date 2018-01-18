@@ -31,8 +31,6 @@ add_library(impl1_static STATIC ${SOURCES})
 target_include_directories(impl1_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(impl1_static PUBLIC mapping_interface contour Boost::boost)
 
-add_library(segmentation ALIAS impl1)
-
 install(TARGETS impl1 impl1_static motiftype1
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

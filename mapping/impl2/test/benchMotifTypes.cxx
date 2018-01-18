@@ -91,7 +91,7 @@ static void benchPadGroupType(benchmark::State &state)
     for (auto& pgt : padGroupTypes) {
       for (int ix = 0; ix <= 27; ++ix) {
         for (int iy = 0; iy <= 63; ++iy) {
-          int p = pgt.padIdByIndices(ix, iy);
+          int p = pgt.id(ix, iy);
           if (p >= 0) {
             ++npads;
           }
