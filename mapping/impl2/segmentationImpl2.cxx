@@ -56,14 +56,14 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
   //std::cout << boost::format("computeContours %3d padgroups %2d padgrouptypes %2d padsizes\n")
   //             % padGroups.size() % padGroupTypes.size() % padSizes.size();
 
-  std::vector<o2::mch::contour::Polygon<int>> pgtContours = computeContours(padGroupTypes);
+  std::vector<o2::mch::contour::Polygon<double>> pgtContours = computeContours(padGroupTypes);
 
   std::vector<Segmentation::Contour> contours;
 
   for (auto &pg: padGroups) {
-    auto p = pgtContours[pg.mPadGroupTypeId].convert(1.0);
-    float dx{padSizes[pg.mPadSizeId].first};
-    float dy{padSizes[pg.mPadSizeId].second};
+    auto p = pgtContours[pg.mPadGroupTypeId];
+    double dx{padSizes[pg.mPadSizeId].first};
+    double dy{padSizes[pg.mPadSizeId].second};
     p.scale(dx, dy);
     p.translate(pg.mX, pg.mY);
     if (!p.isCounterClockwiseOriented()) {

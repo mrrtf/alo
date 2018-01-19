@@ -54,15 +54,6 @@ class Polygon
     Polygon(std::initializer_list<o2::mch::contour::Vertex<T>> args) : mVertices{args}
     {}
 
-    template<typename DEST>
-    Polygon<DEST> convert(DEST /*a*/) {
-      std::vector<o2::mch::contour::Vertex<DEST>> vertices;
-      for ( auto i = 0; i < mVertices.size(); ++i ) {
-        vertices.push_back( { static_cast<DEST>(mVertices[i].x), static_cast<DEST>(mVertices[i].y) });
-      }
-      return Polygon<DEST>{begin(vertices),end(vertices)};
-    }
-
     o2::mch::contour::Vertex<T> firstVertex() const
     { return mVertices.front(); }
 

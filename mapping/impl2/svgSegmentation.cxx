@@ -39,8 +39,7 @@ void asSVG(std::ostream &out, const Segmentation &seg, int scale)
 
     // pads
     auto padPolygons = computePads(pgt);
-    for (auto &pad: padPolygons) {
-      auto p = pad.convert(1.0);
+    for (auto &p: padPolygons) {
       p.scale(seg.padSizeX(i), seg.padSizeY(i));
       p.translate(pg.mX, pg.mY);
       writePolygon(out, scale, p, box, "fill:none;stroke-width:0.5px;stroke-opacity:0.5;stroke:#666666");

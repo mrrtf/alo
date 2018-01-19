@@ -13,10 +13,11 @@
 /// @author  Laurent Aphecetche
 
 #include "padGroup.h"
-#include <vector>
-#include <set>
-#include <iostream>
 #include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <set>
+#include <vector>
 
 namespace jsonmap {
 namespace codegen {
@@ -24,7 +25,7 @@ namespace impl2 {
 
 std::ostream &operator<<(std::ostream &os, const PadGroup &pg)
 {
-  os << "{" << pg.fecId << "," << pg.padGroupTypeId << "," << pg.padSizeId << "," << pg.x << "," << pg.y << "}";
+  os << "{" << pg.fecId << "," << pg.padGroupTypeId << "," << pg.padSizeId << "," << std::setprecision(10) << pg.x << "," << pg.y << "}";
   return os;
 }
 

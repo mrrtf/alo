@@ -25,9 +25,9 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
-std::vector<o2::mch::contour::Polygon<int>> computePads(const PadGroupType &pgt);
+std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt);
 
-std::vector<o2::mch::contour::Polygon<int>> computeContours(const std::vector<PadGroupType> &padGroupTypes);
+std::vector<o2::mch::contour::Polygon<double>> computeContours(const std::vector<PadGroupType> &padGroupTypes);
 
 }
 }

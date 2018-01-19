@@ -27,11 +27,11 @@ using namespace o2::mch::svg;
 
 int main()
 {
-  std::vector<std::vector<Polygon<int>>> pgtPads;
-  std::vector<BBox<int>> boxes;
+  std::vector<std::vector<Polygon<double>>> pgtPads;
+  std::vector<BBox<double>> boxes;
 
-  int maxWidth{0};
-  int maxHeight{0};
+  double maxWidth{0.0};
+  double maxHeight{0.0};
 
   const int NPG{216};
 
@@ -45,7 +45,7 @@ int main()
     maxHeight = std::max(maxHeight, b.height());
   }
 
-  BBox<int> maxBox(0, maxWidth, 0, maxHeight);
+  BBox<double> maxBox(0, maxWidth, 0, maxHeight);
 
   auto style = "fill:#eeeeee;stroke:black;stroke-width:1px";
   std::ofstream out("pgt-all.html");
@@ -54,7 +54,7 @@ int main()
   int nlines{1 + NPG / ncols};
   float scale{8};
   int gutter{2};
-  o2::mch::contour::BBox<int> box(0, ncols * (maxBox.width() + gutter), 0,
+  o2::mch::contour::BBox<double> box(0, ncols * (maxBox.width() + gutter), 0,
                                   nlines * (maxBox.height() + gutter));
   o2::mch::svg::writeHeader(out, box, scale);
   float x{0};

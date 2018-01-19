@@ -28,9 +28,6 @@ int main()
       filename << "segmentation-contour-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << ".html";
       std::cout << "computing " << filename.str() << "\n";
       auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
-      for (auto& c: contours) {
-        std::cout << c << "\n";
-      }
       writeContours(contours, filename.str().c_str(), 0.0, 0.0);
     }
   });
