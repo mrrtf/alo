@@ -43,10 +43,51 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 {
   int segType = detElemId2SegType(detElemId);
   SegmentationCreator creator = getSegmentationCreator(segType);
-  if (creator==nullptr) {
+  if (creator == nullptr) {
     return nullptr;
   }
   return creator(isBendingPlane);
+}
+
+Segmentation::Box pol2bgibox(const Polygon<double> &p)
+{
+  auto bbox = getBBox(p);
+  return Segmentation::Box{
+    Segmentation::Point(bbox.xmin(), bbox.ymin()), Segmentation::Point(bbox.xmax(), bbox.ymax())
+  };
+}
+
+void Segmentation::fillRtree()
+{
+  const double epsilon{0.0}; // artificially increase size of pads by 1 micron to avoid gaps
+
+  mPads={};
+
+  for (auto padGroupIndex =0; padGroupIndex < mPadGroups.size(); ++padGroupIndex) {
+    auto& pg = mPadGroups[padGroupIndex];
+    auto &pgt = mPadGroupTypes[pg.mPadGroupTypeId];
+    double dx{mPadSizes[pg.mPadSizeId].first};
+    double dy{mPadSizes[pg.mPadSizeId].second};
+    for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
+      for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
+        if (pgt.id(ix, iy) >= 0) {
+
+          double xmin = ix * dx + pg.mX - epsilon;
+          double xmax = (ix + 1) * dx + pg.mX + epsilon;
+          double ymin = iy * dy + pg.mY - epsilon;
+          double ymax = (iy + 1) * dy + pg.mY + epsilon;
+
+          mRtree.insert(std::make_pair(Segmentation::Box{
+            Segmentation::Point(xmin, ymin),
+            Segmentation::Point(xmax, ymax)
+          }, mPads.size()));
+
+          mPads.push_back(std::pair<int,int>(padGroupIndex,pgt.fastIndex(ix,iy)));
+
+        }
+      }
+    }
+  }
 }
 
 std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
@@ -96,8 +137,10 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mDualSampaIds{getUnique(mPadGroups)},
   mPadGroupTypes{std::move(padGroupTypes)},
   mPadSizes{std::move(padSizes)},
-  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)}
+  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
+  mPads{}
 {
+  fillRtree();
 }
 
 std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const
@@ -111,14 +154,43 @@ std::vector<int> Segmentation::padGroupIndices(int dualSampaId) const
   return rv;
 }
 
+std::ostream& Segmentation::showPad(std::ostream& out, int index) const {
+  int padGroupIndex = mPads[index].first;
+  int padChannel = mPads[index].second;
+ auto& pg = mPadGroups[padGroupIndex];
+  out << " [" << padGroupIndex << "," << padChannel << "] (FEC " << pg.mFECId << ")";
+  return out;
+}
+
 bool Segmentation::hasPadByPosition(double x, double y) const
 {
+  return findPadByPosition(x,y) != -1;
+}
+
+int Segmentation::findPadByPosition(double x, double y) const
+{
+  std::vector<Segmentation::Value> result_n;
+  mRtree.query(boost::geometry::index::contains(Segmentation::Point(x,y)), std::back_inserter(result_n));
+  if (result_n.size()>1)
+  {
+    std::cout << "pads ";
+    showPad(std::cout,result_n[0].second);
+    showPad(std::cout,result_n[1].second);
+    std::cout << "\n";
+  }
+
+#if 0
   for (auto &c: mPadGroupContours) {
     if (c.contains(x, y)) {
       return true;
     }
   }
   return false;
+#endif
+  if ( result_n.size() > 0 ) {
+    return result_n[0].second;
+  }
+  return -1;
 }
 
 int Segmentation::nofPads(const PadGroup &padGroup) const
@@ -177,7 +249,7 @@ std::ostream &operator<<(std::ostream &out, const std::pair<float, float> &p)
 }
 
 template<typename T>
-void dump(std::ostream &out, const std::string& msg, const std::vector<T> &v, int n)
+void dump(std::ostream &out, const std::string &msg, const std::vector<T> &v, int n)
 {
 
   out << msg << "\n";

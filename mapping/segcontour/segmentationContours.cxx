@@ -13,7 +13,6 @@
 /// @author  Laurent Aphecetche
 
 #include "segmentationContours.h"
-#include "segmentation.h"
 #include "contourCreator.h"
 #include "polygon.h"
 
@@ -21,9 +20,8 @@ namespace o2 {
 namespace mch {
 namespace mapping {
 
-std::vector<o2::mch::contour::Contour<double>> getSampaContours(int detElemId, bool isBendingPlane)
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const Segmentation& seg)
 {
-  Segmentation seg{detElemId, isBendingPlane};
   std::vector<o2::mch::contour::Contour<double>> contours;
   for (auto i = 0; i < seg.nofDualSampas(); ++i) {
     std::vector<o2::mch::contour::Polygon<double>> cpads;

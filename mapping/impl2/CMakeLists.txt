@@ -15,7 +15,6 @@ set(SOURCES
         segmentationImpl2.h
         )
 
-
 # We add all segmentation creators by default,
 # but the final goal would be to tailor this
 # for each executable reaching a given FLP (so it gets only

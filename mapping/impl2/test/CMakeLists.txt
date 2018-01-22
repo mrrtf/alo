@@ -9,8 +9,8 @@ set_target_properties(testSegmentationImpl2 PROPERTIES LINK_FLAGS "-Wl,-all_load
 
 find_package(benchmark)
 if (benchmark_FOUND)
-#    add_executable(benchBGI benchBGI.cxx)
-#    target_link_libraries(benchBGI PRIVATE benchmark::benchmark segcontour)
+    add_executable(benchBGI benchBGI.cxx)
+    target_link_libraries(benchBGI PRIVATE benchmark::benchmark segcontour2)
     add_executable(benchMotifTypes benchMotifTypes.cxx )
     target_link_libraries(benchMotifTypes impl2_static motiftype1 benchmark::benchmark)
 endif ()

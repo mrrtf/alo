@@ -22,6 +22,7 @@
 #include <set>
 #include <ostream>
 #include "contour.h"
+#include <boost/geometry/index/rtree.hpp>
 
 namespace o2 {
 namespace mch {
@@ -32,6 +33,9 @@ class Segmentation
 {
   public:
     using Contour = o2::mch::contour::Polygon<double>;
+    using Point = boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian>;
+    using Box = boost::geometry::model::box<Point>;
+    using Value = std::pair<Box, unsigned>;
 
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
 
@@ -41,37 +45,49 @@ class Segmentation
 
     std::vector<int> padGroupIndices(int dualSampaId) const;
 
-    std::vector<int> padFastIndices(const PadGroup& padGroup) const;
+    std::vector<int> padFastIndices(const PadGroup &padGroup) const;
 
     int nofPads(const PadGroup &padGroup) const;
 
-    int nofPadGroups() const { return mPadGroups.size(); }
+    int nofPadGroups() const
+    { return mPadGroups.size(); }
 
-    const PadGroup& padGroup(int index) const
+    const PadGroup &padGroup(int index) const
     { return mPadGroups[index]; }
 
-    const PadGroupType& padGroupType(const PadGroup& padGroup) const {
-        return mPadGroupTypes[padGroup.mPadGroupTypeId];
+    const PadGroupType &padGroupType(const PadGroup &padGroup) const
+    {
+      return mPadGroupTypes[padGroup.mPadGroupTypeId];
     }
 
-    Contour padGroupContour(int index) const { return mPadGroupContours[index]; }
+    Contour padGroupContour(int index) const
+    { return mPadGroupContours[index]; }
 
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }
 
     bool hasPadByPosition(double x, double y) const;
 
+    int findPadByPosition(double x, double y) const;
+
     bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const;
 
     friend std::ostream &operator<<(std::ostream &os, const Segmentation &seg);
 
     double padPositionX(int padGroupIndex, int padIndex) const;
+
     double padPositionY(int padGroupIndex, int padIndex) const;
+
     double padSizeX(int padGroupIndex) const;
+
     double padSizeY(int padGroupIndex) const;
 
   private:
     int dualSampaIndex(int dualSampaId) const;
+
+    void fillRtree();
+
+    std::ostream &showPad(std::ostream &out, int index) const;
 
   private:
     int mSegType;
@@ -81,6 +97,8 @@ class Segmentation
     std::vector<PadGroupType> mPadGroupTypes;
     std::vector<std::pair<float, float>> mPadSizes;
     std::vector<Contour> mPadGroupContours;
+    boost::geometry::index::rtree<Value, boost::geometry::index::quadratic<8>> mRtree;
+    std::vector<std::pair<int, int>> mPads;
 };
 
 Segmentation *createSegmentation(int detElemId, bool isBendingPlane);

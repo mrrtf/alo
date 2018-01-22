@@ -27,7 +27,7 @@ int main()
       std::ostringstream filename;
       filename << "segmentation-contour-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << ".html";
       std::cout << "computing " << filename.str() << "\n";
-      auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
+      auto contours = o2::mch::mapping::getSampaContours(seg);
       writeContours(contours, filename.str().c_str(), 0.0, 0.0);
     }
   });

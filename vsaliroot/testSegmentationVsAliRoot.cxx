@@ -114,7 +114,7 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendin
     isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
   Segmentation o2seg{detElemId, isBendingPlane};
 
-  auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
+  auto contours = o2::mch::mapping::getSampaContours(o2seg);
   auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(contours));
 
   bool same{true};

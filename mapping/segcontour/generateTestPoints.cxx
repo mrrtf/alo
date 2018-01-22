@@ -29,7 +29,8 @@ namespace mapping {
 
 std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent)
 {
-  auto bbox = getBBox(getEnvelop(getSampaContours(detElemId,true)));
+  Segmentation seg{detElemId,true};
+  auto bbox = getBBox(getEnvelop(getSampaContours(seg)));
 
   double offset{0.0};
 

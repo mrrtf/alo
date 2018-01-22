@@ -8,6 +8,7 @@ FOREACH (p
         CMP0042 # CMake 3.0
         CMP0028 # CMake 3.0
         CMP0063 # honor visibility settings also for static libs
+        CMP0057 # for doxygen
         )
     IF (POLICY ${p})
         cmake_policy(SET ${p} NEW)
@@ -15,7 +16,6 @@ FOREACH (p
 endforeach ()
 
 project(alo)
-
 
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
@@ -49,3 +49,7 @@ add_subdirectory(contour)
 add_subdirectory(mapping)
 add_subdirectory(svgwriter)
 
+find_package(Doxygen REQUIRED dot)
+if (DOXYGEN_FOUND)
+    doxygen_add_docs(doc)
+endif ()

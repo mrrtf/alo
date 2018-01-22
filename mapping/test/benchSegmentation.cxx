@@ -73,7 +73,7 @@ static void benchSegmentationConstruction(benchmark::State &state)
   }
 }
 
-BENCHMARK(benchSegmentationConstruction)->Unit(benchmark::kMicrosecond);
+BENCHMARK(benchSegmentationConstruction)->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchO2, ctor)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_MAIN();

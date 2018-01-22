@@ -15,6 +15,7 @@
 #include "generateTestPoints.h"
 #include "benchmark/benchmark.h"
 #include "segmentationContours.h"
+#include "segmentation.h"
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
@@ -31,12 +32,6 @@ using namespace o2::mch::contour;
 
 using Contours = std::vector<Contour<double>>;
 using TestPoints = std::vector<std::pair<double, double>>;
-
-Contours getSampaContours(int detElemId, bool isBendingPlane)
-{
-  o2::mch::mapping::Segmentation seg{ detElemId, isBendingPlane };
-  return getSampaContours(seg);
-}
 
 typedef bg::model::point<double, 2, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
@@ -91,7 +86,7 @@ static void benchImpl0(benchmark::State &state)
   bool isBendingPlane = state.range(1);
   int extent = state.range(2);
 
-  auto contours = getSampaContours(detElemId, isBendingPlane);
+  auto contours = getSampaContours(Segmentation{detElemId,isBendingPlane});
   auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
 
   int nin{0};
@@ -115,7 +110,7 @@ static void benchImpl1(benchmark::State &state)
   bool isBendingPlane = state.range(1);
   int extent = state.range(2);
 
-  Contours contours = getSampaContours(detElemId, isBendingPlane);
+  Contours contours = getSampaContours(Segmentation{detElemId,isBendingPlane});
 
   auto testPoints = point2bgi(generateTestPoints(NTESTPOINTS, detElemId, extent));
 

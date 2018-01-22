@@ -18,12 +18,13 @@
 
 #include <vector>
 #include "contour.h"
+#include "segmentation.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
-std::vector<o2::mch::contour::Contour<double>> getSampaContours(int detElemId, bool isBendingPlane);
+std::vector<o2::mch::contour::Contour<double>> getSampaContours(const Segmentation& seg);
 
 }
 }
