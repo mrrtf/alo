@@ -14,12 +14,9 @@
 
 #include "segmentationImpl2.h"
 #include "boost/format.hpp"
-#include "contourCreator.h"
 #include "genDetElemId2SegType.h"
 #include "padGroup.h"
-#include "padGroupTypeContour.h"
 #include "padSize.h"
-#include "polygon.h"
 #include "segmentation.h"
 #include "segmentationCreator.h"
 #include <array>
@@ -32,7 +29,6 @@
 #include <vector>
 
 using namespace o2::mch::mapping::impl2;
-using namespace o2::mch::contour;
 
 namespace o2 {
 namespace mch {
@@ -49,17 +45,11 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
   return creator(isBendingPlane);
 }
 
-Segmentation::Box pol2bgibox(const Polygon<double> &p)
-{
-  auto bbox = getBBox(p);
-  return Segmentation::Box{
-    Segmentation::Point(bbox.xmin(), bbox.ymin()), Segmentation::Point(bbox.xmax(), bbox.ymax())
-  };
-}
-
 void Segmentation::fillRtree()
 {
-  const double epsilon{0.0}; // artificially increase size of pads by 1 micron to avoid gaps
+  //const double epsilon{1E-3}; // artificially decrease size of pads by 10 microns to avoid overlaps
+  const double epsilon{1E-6}; // artificially increase size of pads by a smidge to avoid gaps
+  //const double epsilon{0.0};
 
   mPads={};
 
@@ -90,35 +80,6 @@ void Segmentation::fillRtree()
   }
 }
 
-#if 0
-std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
-                                                   const std::vector<PadGroupType> &padGroupTypes,
-                                                   const std::vector<std::pair<float, float>> &padSizes)
-{
-  //std::cout << boost::format("computeContours %3d padgroups %2d padgrouptypes %2d padsizes\n")
-  //             % padGroups.size() % padGroupTypes.size() % padSizes.size();
-
-  std::vector<o2::mch::contour::Polygon<double>> pgtContours = computeContours(padGroupTypes);
-
-  std::vector<Segmentation::Contour> contours;
-
-  for (auto &pg: padGroups) {
-    auto p = pgtContours[pg.mPadGroupTypeId];
-    double dx{padSizes[pg.mPadSizeId].first};
-    double dy{padSizes[pg.mPadSizeId].second};
-    p.scale(dx, dy);
-    p.translate(pg.mX, pg.mY);
-    if (!p.isCounterClockwiseOriented()) {
-      std::cout << p << "\n";
-      throw std::runtime_error("polygons must be counterclockwise oriented !");
-    }
-    contours.push_back(p);
-  }
-
-  return contours;
-}
-#endif
-
 std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
 {
   // extract from padGroup vector the unique integer values given by func
@@ -139,7 +100,6 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mDualSampaIds{getUnique(mPadGroups)},
   mPadGroupTypes{std::move(padGroupTypes)},
   mPadSizes{std::move(padSizes)},
-  //mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
   mPads{}
 {
   fillRtree();
@@ -171,24 +131,19 @@ bool Segmentation::hasPadByPosition(double x, double y) const
 
 int Segmentation::findPadByPosition(double x, double y) const
 {
+  static unsigned long one{0},moreThanOne{0};
   std::vector<Segmentation::Value> result_n;
   mRtree.query(boost::geometry::index::contains(Segmentation::Point(x,y)), std::back_inserter(result_n));
+  //mRtree.query(boost::geometry::index::nearest(Segmentation::Point(x,y),1), std::back_inserter(result_n));
   if (result_n.size()>1)
   {
-    std::cout << "pads ";
-    showPad(std::cout,result_n[0].second);
-    showPad(std::cout,result_n[1].second);
-    std::cout << "\n";
+    moreThanOne++;
+    std::cout << "moreThanOne in ppm " << 1E6*moreThanOne/one << "\n";
+  }
+  else {
+    one++;
   }
 
-#if 0
-  for (auto &c: mPadGroupContours) {
-    if (c.contains(x, y)) {
-      return true;
-    }
-  }
-  return false;
-#endif
   if ( result_n.size() > 0 ) {
     return result_n[0].second;
   }

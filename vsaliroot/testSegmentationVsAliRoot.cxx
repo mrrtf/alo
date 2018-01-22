@@ -135,7 +135,7 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendin
         std::cout << "detElemId=" << detElemId << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
         std::ostringstream filename;
-        filename << "bug-" << o2seg.id() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        filename << "bug-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
         ++ndiff;
         o2::mch::svg::writeContours(contours, filename.str().c_str(), x, y);
       }
