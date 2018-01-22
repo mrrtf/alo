@@ -22,6 +22,7 @@ namespace o2 {
 namespace mch {
 namespace contour {
 
+
 template<typename T>
 Contour<T> createContour(const std::vector<Polygon<T>> &polygons)
 {

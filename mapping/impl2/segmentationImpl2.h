@@ -21,7 +21,7 @@
 #include <vector>
 #include <set>
 #include <ostream>
-#include "contour.h"
+//#include "contour.h"
 #include <boost/geometry/index/rtree.hpp>
 
 namespace o2 {
@@ -32,7 +32,7 @@ namespace impl2 {
 class Segmentation
 {
   public:
-    using Contour = o2::mch::contour::Polygon<double>;
+    //using Contour = o2::mch::contour::Polygon<double>;
     using Point = boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian>;
     using Box = boost::geometry::model::box<Point>;
     using Value = std::pair<Box, unsigned>;
@@ -60,8 +60,8 @@ class Segmentation
       return mPadGroupTypes[padGroup.mPadGroupTypeId];
     }
 
-    Contour padGroupContour(int index) const
-    { return mPadGroupContours[index]; }
+//    Contour padGroupContour(int index) const
+//    { return mPadGroupContours[index]; }
 
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }
@@ -96,7 +96,7 @@ class Segmentation
     std::set<int> mDualSampaIds;
     std::vector<PadGroupType> mPadGroupTypes;
     std::vector<std::pair<float, float>> mPadSizes;
-    std::vector<Contour> mPadGroupContours;
+    //std::vector<Contour> mPadGroupContours;
     boost::geometry::index::rtree<Value, boost::geometry::index::quadratic<8>> mRtree;
     std::vector<std::pair<int, int>> mPads;
 };

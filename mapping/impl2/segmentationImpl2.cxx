@@ -90,6 +90,7 @@ void Segmentation::fillRtree()
   }
 }
 
+#if 0
 std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
                                                    const std::vector<PadGroupType> &padGroupTypes,
                                                    const std::vector<std::pair<float, float>> &padSizes)
@@ -116,6 +117,7 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
 
   return contours;
 }
+#endif
 
 std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
 {
@@ -137,7 +139,7 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mDualSampaIds{getUnique(mPadGroups)},
   mPadGroupTypes{std::move(padGroupTypes)},
   mPadSizes{std::move(padSizes)},
-  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
+  //mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
   mPads{}
 {
   fillRtree();

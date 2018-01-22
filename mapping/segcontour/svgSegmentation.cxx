@@ -13,41 +13,55 @@
 /// @author  Laurent Aphecetche
 
 
-#include "segmentationImpl2.h"
+#include "segmentation.h"
 #include "svgContour.h"
-#include "padGroupTypeContour.h"
 #include <ostream>
 #include <string>
 
 using namespace o2::mch::contour;
-using namespace o2::mch::mapping::impl2;
 using namespace o2::mch::svg;
+using namespace o2::mch::mapping;
 
 void asSVG(std::ostream &out, const Segmentation &seg, int scale)
 {
-  std::vector<Segmentation::Contour> contours;
-  for (auto i = 0; i < seg.nofPadGroups(); ++i) {
-    contours.push_back(seg.padGroupContour(i));
+  std::vector<Contour<double>> dualSampaContours;
+  std::vector<Polygon<double>> polygons;
+  std::vector<std::vector<Polygon<double>>> dualSampaPads;
+
+  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
+    std::vector<Polygon<double>> pads;
+    seg.forEachPadInDualSampa(seg.dualSampaId(i), [&pads,&seg](PadHandle ph) {
+      double x = seg.padPositionX(ph);
+      double y = seg.padPositionY(ph);
+      double dx = seg.padSizeX(ph)/2.0;
+      double dy = seg.padSizeY(ph)/2.0;
+
+      pads.emplace_back(Polygon<double>{{x - dx, y - dy},
+                                        {x + dx, y - dy},
+                                        {x + dx, y + dy},
+                                        {x - dx, y + dy},
+                                        {x - dx, y - dy}});
+    });
+    dualSampaPads.push_back(pads);
+    dualSampaContours.push_back(o2::mch::contour::createContour(pads));
+    for (auto& p : dualSampaContours.back().getPolygons()) {
+      polygons.push_back(p);
+    }
   }
-  auto env = o2::mch::contour::createContour(contours);
+
+  auto env = o2::mch::contour::createContour(polygons);
   auto box = getBBox(env);
   writeHeader(out, box, scale);
-  for (auto i = 0; i < contours.size(); ++i) {
-    auto &c = contours[i];
-    auto &pg = seg.padGroup(i);
-    auto &pgt = seg.padGroupType(pg);
-
+  for (auto i = 0; i < dualSampaContours.size(); ++i) {
+    auto &c = dualSampaContours[i];
     // pads
-    auto padPolygons = computePads(pgt);
-    for (auto &p: padPolygons) {
-      p.scale(seg.padSizeX(i), seg.padSizeY(i));
-      p.translate(pg.mX, pg.mY);
+    for (auto &p: dualSampaPads[i]) {
       writePolygon(out, scale, p, box, "fill:none;stroke-width:0.5px;stroke-opacity:0.5;stroke:#666666");
     }
 
     // dual sampas
     std::string style = "fill:none;stroke:black;stroke-width:1px";
-    writePolygon(out, scale, c, box, style.c_str());
+    writeContour(out, scale, c, box, style.c_str());
 
     // detection element
     writeContour(out, scale, env, box, "fill:none;stroke:blue;stroke-width:2px");
@@ -59,12 +73,12 @@ int main(int argc, char *argv[])
   int detElemId = atoi(argv[1]);
   bool isBendingPlane = atoi(argv[2]);
 
-  std::unique_ptr<Segmentation> seg{createSegmentation(detElemId, isBendingPlane)};
+  Segmentation seg{detElemId, isBendingPlane};
 
   std::ofstream out("seg-" + std::to_string(detElemId) + "-" + (isBendingPlane ? "B" : "NB") + ".html");
   int scale = 10;
   out << "<html><body style=\"background:white\">\n";
-  asSVG(out, *seg, scale);
+  asSVG(out, seg, scale);
   out << "</svg>\n";
   out << "</body></html>\n";
   return 0;

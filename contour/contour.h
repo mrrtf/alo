@@ -115,6 +115,9 @@ class Contour
     std::vector<o2::mch::contour::Vertex<T>> getSortedVertices() const
     { return o2::mch::contour::getSortedVertices(mPolygons); }
 
+    std::vector<o2::mch::contour::Polygon<T>> getPolygons() const {
+      return mPolygons;
+    }
 
     friend
     std::ostream& operator<<(std::ostream& os, const Contour<T>& contour)
