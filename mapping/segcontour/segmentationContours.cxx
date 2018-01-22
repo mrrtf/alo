@@ -16,13 +16,11 @@
 #include "segmentation.h"
 #include "contourCreator.h"
 #include "polygon.h"
-#include "segcontour_export.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
-SEGCONTOUR_EXPORT
 std::vector<o2::mch::contour::Contour<double>> getSampaContours(int detElemId, bool isBendingPlane)
 {
   Segmentation seg{detElemId, isBendingPlane};
