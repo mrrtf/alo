@@ -4,6 +4,7 @@
 #include "padSize.h"
 #include <utility>
 #include <array>
+#include "gsl/gsl"
 
 namespace o2 {
 namespace mch {
@@ -33,10 +34,10 @@ std::array<std::pair<float, float>, 18> arrayOfPadSizes{
 };
 }
 double padSizeX(int i)
-{ return arrayOfPadSizes[i].first; }
+{ return gsl::at(arrayOfPadSizes,i).first; }
 
 double padSizeY(int i)
-{ return arrayOfPadSizes[i].second; }
+{ return gsl::at(arrayOfPadSizes,i).second; }
 
 } // namespace impl2
 } // namespace mapping

@@ -26,7 +26,7 @@ namespace impl2 {
 
 struct PadGroupType
 {
-    PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int> &ids);
+    PadGroupType(int nofPadsX, int nofPadsY, std::vector<int> ids);
 
     int getNofPads() const
     { return mNofPads; }

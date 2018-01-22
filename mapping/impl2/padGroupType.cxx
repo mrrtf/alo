@@ -43,9 +43,9 @@ std::vector<int> validIndices(const std::vector<int>& ids)
   return v;
 }
 
-PadGroupType::PadGroupType(int nofPadsX, int nofPadsY, const std::vector<int> &ids)
+PadGroupType::PadGroupType(int nofPadsX, int nofPadsY, std::vector<int> ids)
   :
-  mFastId{ids},
+  mFastId{std::move(ids)},
   mFastIndices{validIndices(mFastId)},
   mNofPads{static_cast<int>(std::count_if(begin(mFastId), end(mFastId), [](int i) { return i >= 0; }))},
   mNofPadsX{nofPadsX},
@@ -69,8 +69,8 @@ bool PadGroupType::hasPadById(int id) const
 void dump(std::ostream &os, std::string msg, const std::vector<int> &v)
 {
   os << boost::format("%4s ") % msg;
-  for (auto i = 0; i < v.size(); ++i) {
-    os << boost::format("%2d ") % v[i];
+  for (auto value: v) {
+    os << boost::format("%2d ") % value;
   }
   os << "\n";
 }

@@ -43,7 +43,7 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 {
   int segType = detElemId2SegType(detElemId);
   SegmentationCreator creator = getSegmentationCreator(segType);
-  if (!creator) {
+  if (creator==nullptr) {
     return nullptr;
   }
   return creator(isBendingPlane);
@@ -92,10 +92,10 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   :
   mSegType{segType},
   mIsBendingPlane{isBendingPlane},
-  mDualSampaIds{getUnique(padGroups)},
-  mPadGroupTypes{padGroupTypes},
-  mPadSizes{padSizes},
-  mPadGroups{padGroups},
+  mPadGroups{std::move(padGroups)},
+  mDualSampaIds{getUnique(mPadGroups)},
+  mPadGroupTypes{std::move(padGroupTypes)},
+  mPadSizes{std::move(padSizes)},
   mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)}
 {
 }
@@ -177,7 +177,7 @@ std::ostream &operator<<(std::ostream &out, const std::pair<float, float> &p)
 }
 
 template<typename T>
-void dump(std::ostream &out, std::string msg, const std::vector<T> &v, int n)
+void dump(std::ostream &out, const std::string& msg, const std::vector<T> &v, int n)
 {
 
   out << msg << "\n";

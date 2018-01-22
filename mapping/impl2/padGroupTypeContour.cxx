@@ -18,6 +18,7 @@
 #include "contourCreator.h"
 #include "padGroupType.h"
 #include "boost/format.hpp"
+#include <vector>
 
 namespace o2 {
 namespace mch {
@@ -33,12 +34,12 @@ std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &p
   for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
     for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
       if (pgt.id(ix, iy) >= 0) {
-        pads.push_back({{ix - epsilon,     iy - epsilon},
-                        {ix + 1 + epsilon, iy - epsilon},
-                        {ix + 1 + epsilon, iy + 1 + epsilon},
-                        {ix - epsilon,     iy + 1 + epsilon},
-                        {ix - epsilon,     iy-epsilon},
-                       });
+        pads.emplace_back(o2::mch::contour::Polygon<double>({{ix - epsilon,     iy - epsilon},
+                                                             {ix + 1 + epsilon, iy - epsilon},
+                                                             {ix + 1 + epsilon, iy + 1 + epsilon},
+                                                             {ix - epsilon,     iy + 1 + epsilon},
+                                                             {ix - epsilon,     iy - epsilon}})
+        );
       }
     }
   }

@@ -63,7 +63,7 @@ class Segmentation
 
     bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const;
 
-    friend std::ostream &operator<<(std::ostream &os, const Segmentation &segmentation);
+    friend std::ostream &operator<<(std::ostream &os, const Segmentation &seg);
 
     double padPositionX(int padGroupIndex, int padIndex) const;
     double padPositionY(int padGroupIndex, int padIndex) const;
@@ -76,10 +76,10 @@ class Segmentation
   private:
     int mSegType;
     bool mIsBendingPlane;
+    std::vector<PadGroup> mPadGroups;
     std::set<int> mDualSampaIds;
     std::vector<PadGroupType> mPadGroupTypes;
     std::vector<std::pair<float, float>> mPadSizes;
-    std::vector<PadGroup> mPadGroups;
     std::vector<Contour> mPadGroupContours;
 };
 

@@ -17,6 +17,7 @@
 #include "motifType.h"
 #include "padGroupType.h"
 #include <vector>
+#include "gsl/gsl"
 
 using namespace o2::mch::mapping::impl1;
 using namespace o2::mch::mapping::impl2;
@@ -67,7 +68,7 @@ static void benchMotifType1(benchmark::State &state)
   for (auto _: state) {
     npads = 0;
     for (auto mtindex = 0; mtindex < 210; mtindex++) {
-      auto &mt = arrayOfMotifTypes[mtindex];
+      auto &mt = gsl::at(arrayOfMotifTypes,mtindex);
       for (int ix = 0; ix <= 27; ++ix) {
         for (int iy = 0; iy <= 63; ++iy) {
           int p = mt.padIdByIndices(ix, iy);

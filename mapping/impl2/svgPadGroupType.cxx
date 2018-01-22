@@ -67,7 +67,7 @@ int main()
     out << boost::format(
       "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" style=\"fill:none;stroke:#DDDDDD;fill:#AAAAAA;stroke-width:1px\"/>\n") %
            x % y % w % h;
-    out << boost::format("<text x=\"%d\" y=\"%d\">") % ( x + w*0.5 ) % ( y + h*0.8)
+    out << boost::format(R"(<text x="%d" y="%d">)") % ( x + w*0.5 ) % ( y + h*0.8)
         << "PG" + std::to_string(i) + "(" +std::to_string(pgt.getNofPads()) + ")" << "</text>\n";
     for (auto p : pgtPads[i]) {
       p.scale(scale, scale);
