@@ -32,11 +32,6 @@ struct IMPL1_EXPORT MchSegmentation
     std::unique_ptr<SegmentationInterface> impl;
 };
 
-struct IMPL1_EXPORT MchPad
-{
-    int padIndex;
-};
-
 IMPL1_EXPORT
 MchSegmentationHandle mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
@@ -56,37 +51,23 @@ int mchSegmentationId(MchSegmentationHandle segHandle)
 }
 
 IMPL1_EXPORT
-MchPadHandle mchSegmentationPadConstruct()
-{
-  return new MchPad;
-}
-
-IMPL1_EXPORT
-void mchSegmentationPadDestruct(MchPadHandle ph)
-{
-  delete ph;
-}
-
-IMPL1_EXPORT
-bool mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y,
-                                      MchPadHandle *ph)
+int mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y)
 {
   if (segHandle->impl->hasPadByPosition(x, y)) {
-    // todo: should fill up ph here
-    return true;
+    // todo: should get a valid paduid here
+    return 1;
   }
-  return false;
+  return -1;
 }
 
 IMPL1_EXPORT
-bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
-                                 MchPadHandle *padHandle)
+int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel)
 {
   if (segHandle->impl->hasPadByFEE(dualSampaId,dualSampaChannel)) {
-    // todo: should fill up ph here
-    return true;
+    // todo: should get a valid paduid here
+    return 1;
   }
-  return false;
+  return -1;
 }
 
 IMPL1_EXPORT
@@ -116,44 +97,49 @@ void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler 
 }
 
 IMPL1_EXPORT
+int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid)
+{
+  return paduid != -1;
+}
+
+IMPL1_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
   auto pads = segHandle->impl->getPads(dualSampaId);
   for (auto p: pads) {
-    MchPad pad{p};
-    handler(clientData, &pad);
+    handler(clientData, p);
   }
 }
 
 IMPL1_EXPORT
-double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, MchPadHandle padHandle)
+double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, int paduid)
 {
   double x, y;
-  segHandle->impl->getPadPosition(padHandle->padIndex, x, y);
+  segHandle->impl->getPadPosition(paduid, x, y);
   return x;
 }
 
 IMPL1_EXPORT
-double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, MchPadHandle padHandle)
+double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, int paduid)
 {
   double x, y;
-  segHandle->impl->getPadPosition(padHandle->padIndex, x, y);
+  segHandle->impl->getPadPosition(paduid, x, y);
   return y;
 }
 
 IMPL1_EXPORT
-double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, MchPadHandle padHandle)
+double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, int paduid)
 {
   double x, y;
-  segHandle->impl->getPadDimension(padHandle->padIndex, x, y);
+  segHandle->impl->getPadDimension(paduid, x, y);
   return x;
 }
 
 IMPL1_EXPORT
-double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, MchPadHandle padHandle)
+double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid)
 {
   double x, y;
-  segHandle->impl->getPadDimension(padHandle->padIndex, x, y);
+  segHandle->impl->getPadDimension(paduid, x, y);
   return y;
 }
 

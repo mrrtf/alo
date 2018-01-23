@@ -12,15 +12,15 @@
 ///
 /// @author  Laurent Aphecetche
 
-#ifndef O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
-#define O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
+#ifndef O2_MCH_MAPPING_impl3_SEGMENTATIONCREATOR_H
+#define O2_MCH_MAPPING_impl3_SEGMENTATIONCREATOR_H
 
 #include "segmentationImpl3.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl2 {
+namespace impl3 {
 
 using SegmentationCreator = Segmentation *(*)(bool);
 

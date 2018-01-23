@@ -12,21 +12,22 @@
 ///
 /// @author  Laurent Aphecetche
 
-#ifndef O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
-#define O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
 
-#include "segmentationImpl3.h"
+#ifndef O2_MCH_MAPPING_impl3_PADGROUPTYPECONTOUR_H
+#define O2_MCH_MAPPING_impl3_PADGROUPTYPECONTOUR_H
+
+#include "polygon.h"
+#include "padGroupType.h"
+#include <vector>
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl2 {
+namespace impl3 {
 
-using SegmentationCreator = Segmentation *(*)(bool);
+std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt);
 
-void registerSegmentationCreator(int segType, SegmentationCreator func);
-
-SegmentationCreator getSegmentationCreator(int segType);
+std::vector<o2::mch::contour::Polygon<double>> computeContours(const std::vector<PadGroupType> &padGroupTypes);
 
 }
 }
@@ -34,5 +35,3 @@ SegmentationCreator getSegmentationCreator(int segType);
 }
 
 #endif
-
-

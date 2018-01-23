@@ -22,9 +22,8 @@ extern "C"
 #endif
 
 typedef struct MchSegmentation *MchSegmentationHandle;
-typedef struct MchPad *MchPadHandle;
 typedef void (*MchDetectionElementHandler)(void *clientData, int detElemId);
-typedef void (*MchPadHandler)(void *clientData, MchPadHandle padHandle);
+typedef void (*MchPadHandler)(void *clientData, int paduid);
 typedef void (*MchDualSampaHandler)(void *clientData, int dualSampaId);
 
 /// Create a handle to a segmentation for a given plane of a detection element
@@ -33,17 +32,12 @@ MchSegmentationHandle mchSegmentationConstruct(int detElemId, bool isBendingPlan
 /// Delete a segmentation handle
 void mchSegmentationDestruct(MchSegmentationHandle segHandle);
 
-/// Create a pad handle
-MchPadHandle mchSegmentationPadConstruct();
+/// Return > 0 if paduid is a valid one or <= 1 if not
+int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid);
 
-/// Delete a pad handle
-void mchSegmentationPadDestruct(MchPadHandle padHandle);
+int mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y);
 
-bool mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y,
-                                      MchPadHandle *padHandle);
-
-bool mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel,
-                                 MchPadHandle *padHandle);
+int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel);
 
 int mchSegmentationId(MchSegmentationHandle segHandle);
 
@@ -55,10 +49,10 @@ void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler ha
 
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData);
 
-double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, MchPadHandle padHandle);
-double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, MchPadHandle padHandle);
-double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, MchPadHandle padHandle);
-double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, MchPadHandle padHandle);
+double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, int paduid);
+double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, int paduid);
+double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, int paduid);
+double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid);
 /*
 int mchPadDualSampaId(MchPadHandle ph, MchErrorHandle *error);
 

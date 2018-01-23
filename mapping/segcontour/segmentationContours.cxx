@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 
 ///
-/// @author  Laurent Aphecetche
+/// @author  Laurent Apaduidecetche
 
 #include "segmentationContours.h"
 #include "contourCreator.h"
@@ -26,11 +26,11 @@ std::vector<o2::mch::contour::Contour<double>> getSampaContours(const Segmentati
   for (auto i = 0; i < seg.nofDualSampas(); ++i) {
     std::vector<o2::mch::contour::Polygon<double>> cpads;
     seg.forEachPadInDualSampa(seg.dualSampaId(i),
-                              [&](PadHandle ph) {
-                                double x = seg.padPositionX(ph);
-                                double y = seg.padPositionY(ph);
-                                double dx = seg.padSizeX(ph) / 2.0;
-                                double dy = seg.padSizeY(ph) / 2.0;
+                              [&](int paduid) {
+                                double x = seg.padPositionX(paduid);
+                                double y = seg.padPositionY(paduid);
+                                double dx = seg.padSizeX(paduid) / 2.0;
+                                double dy = seg.padSizeY(paduid) / 2.0;
                                 double xBottomLeft = x - dx;
                                 double yBottomLeft = y - dy;
                                 double xTopRight = x + dx;

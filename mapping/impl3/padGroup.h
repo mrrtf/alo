@@ -12,27 +12,36 @@
 ///
 /// @author  Laurent Aphecetche
 
-#ifndef O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
-#define O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
 
-#include "segmentationImpl3.h"
+#ifndef O2_MCH_MAPPING_impl3_PADGROUP_H
+#define O2_MCH_MAPPING_impl3_PADGROUP_H
+
+#include <ostream>
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl2 {
+namespace impl3 {
 
-using SegmentationCreator = Segmentation *(*)(bool);
+struct PadGroup
+{
+    friend std::ostream &operator<<(std::ostream &os, const PadGroup &group)
+    {
+      os << "mFECId: " << group.mFECId << " mPadGroupTypeId: " << group.mPadGroupTypeId << " mPadSizeId: "
+         << group.mPadSizeId << " mX: " << group.mX << " mY: " << group.mY;
+      return os;
+    }
 
-void registerSegmentationCreator(int segType, SegmentationCreator func);
+    int mFECId;
+    int mPadGroupTypeId;
+    int mPadSizeId;
+    double mX;
+    double mY;
+};
 
-SegmentationCreator getSegmentationCreator(int segType);
 
 }
 }
 }
 }
-
 #endif
-
-

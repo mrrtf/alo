@@ -12,27 +12,22 @@
 ///
 /// @author  Laurent Aphecetche
 
-#ifndef O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
-#define O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
 
-#include "segmentationImpl3.h"
+#ifndef O2_MCH_MAPPING_impl3_PADSIZE_H
+#define O2_MCH_MAPPING_impl3_PADSIZE_H
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl2 {
+namespace impl3 {
 
-using SegmentationCreator = Segmentation *(*)(bool);
+double padSizeX(int i);
 
-void registerSegmentationCreator(int segType, SegmentationCreator func);
+double padSizeY(int i);
 
-SegmentationCreator getSegmentationCreator(int segType);
-
-}
-}
-}
-}
+} // namespace impl3
+} // namespace mapping
+} // namespace mch
+} // namespace o2
 
 #endif
-
-

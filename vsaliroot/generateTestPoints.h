@@ -22,7 +22,9 @@
 namespace o2 {
 namespace mch {
 namespace mapping {
-std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent);
+
+std::vector<std::pair<double, double>>
+generateTestPoints(int n, double xmin, double ymin, double xmax, double ymax, int extent);
 }
 }
 }

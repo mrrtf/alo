@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 
 ///
-/// @author  Laurent Aphecetche
+/// @author  Laurent Apaduidecetche
 
 
 #ifndef O2_MCH_MAPPING_SEGMENTATION_H
@@ -25,8 +25,6 @@
 namespace o2 {
 namespace mch {
 namespace mapping {
-
-using PadHandle = ::MchPadHandle;
 
 class Segmentation
 {
@@ -53,19 +51,22 @@ class Segmentation
     ~Segmentation()
     { mchSegmentationDestruct(mImpl); }
 
-    bool findPadByPosition(double x, double y, PadHandle *padHandle = nullptr) const
+    bool isValid(int paduid) const
     {
-      padHandle = nullptr;
-      return mchSegmentationFindPadByPosition(mImpl, x, y, padHandle);
+      return mchSegmentationIsPadValid(mImpl, paduid) > 0;
     }
 
-    bool findPadByFEE(int dualSampaId, int dualSampaChannel, PadHandle *padHandle = nullptr) const
+    int findPadByPosition(double x, double y) const
+    {
+      return mchSegmentationFindPadByPosition(mImpl, x, y);
+    }
+
+    int findPadByFEE(int dualSampaId, int dualSampaChannel) const
     {
       if (dualSampaChannel < 0 || dualSampaChannel > 63) {
         throw std::out_of_range("dualSampaChannel should be between 0 and 63");
       }
-      padHandle = nullptr;
-      return mchSegmentationFindPadByFEE(mImpl, dualSampaId, dualSampaChannel, padHandle);
+      return mchSegmentationFindPadByFEE(mImpl, dualSampaId, dualSampaChannel);
     }
 
     int id() const
@@ -77,31 +78,31 @@ class Segmentation
     int dualSampaId(int dualSampaIndex) const
     { return mDualSampaIds[dualSampaIndex]; }
 
-    double padPositionX(PadHandle ph) const
+    double padPositionX(int paduid) const
     {
-      return mchSegmentationPadPositionX(mImpl, ph);
+      return mchSegmentationPadPositionX(mImpl, paduid);
     }
 
-    double padPositionY(PadHandle ph) const
+    double padPositionY(int paduid) const
     {
-      return mchSegmentationPadPositionY(mImpl, ph);
+      return mchSegmentationPadPositionY(mImpl, paduid);
     }
 
-    double padSizeX(PadHandle ph) const
+    double padSizeX(int paduid) const
     {
-      return mchSegmentationPadSizeX(mImpl, ph);
+      return mchSegmentationPadSizeX(mImpl, paduid);
     }
 
-    double padSizeY(PadHandle ph) const
+    double padSizeY(int paduid) const
     {
-      return mchSegmentationPadSizeY(mImpl, ph);
+      return mchSegmentationPadSizeY(mImpl, paduid);
     }
 
     int nofPads() const
     {
       int n{0};
       for (auto i = 0; i < nofDualSampas(); ++i) {
-        forEachPadInDualSampa(dualSampaId(i), [&n](PadHandle /*ph*/) { ++n; });
+        forEachPadInDualSampa(dualSampaId(i), [&n](int /*paduid*/) { ++n; });
       }
       return n;
     }
@@ -117,9 +118,9 @@ class Segmentation
 template<typename CALLABLE>
 void Segmentation::forEachPadInDualSampa(int dualSampaId, CALLABLE &&func) const
 {
-  auto callback = [](void *data, PadHandle ph) {
+  auto callback = [](void *data, int paduid) {
     auto fn = static_cast<decltype(&func)>(data);
-    (*fn)(ph);
+    (*fn)(paduid);
   };
   mchForEachPadInDualSampa(mImpl, dualSampaId, callback, &func);
 }

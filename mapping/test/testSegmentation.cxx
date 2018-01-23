@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(DualSampasWithLessThan64Pads)
       Segmentation seg{detElemId, plane};
       for (int i = 0; i < seg.nofDualSampas(); ++i) {
         int n{0};
-        seg.forEachPadInDualSampa(seg.dualSampaId(i), [&n](PadHandle /*ph*/) {
+        seg.forEachPadInDualSampa(seg.dualSampaId(i), [&n](int /*paduid*/) {
           ++n;
         });
         if (n != 64) {
@@ -248,18 +248,18 @@ BOOST_AUTO_TEST_CASE(ThrowsIfDualSampaChannelIsNotBetween0And63)
 
 BOOST_AUTO_TEST_CASE(ReturnsTrueIfPadIsConnected)
 {
-  BOOST_CHECK_EQUAL(seg.findPadByFEE(102, 3), true);
+  BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByFEE(102, 3)),true);
 }
 
 BOOST_AUTO_TEST_CASE(ReturnsFalseIfPadIsNotConnected)
 {
-  BOOST_CHECK_EQUAL(seg.findPadByFEE(214, 14), false);
+  BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByFEE(214, 14)), false);
 }
 
 
 BOOST_AUTO_TEST_CASE(HasPadByPosition)
 {
-  BOOST_CHECK_EQUAL(seg.findPadByPosition(40.0, 30.0), true);
+  BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByPosition(40.0, 30.0)), true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

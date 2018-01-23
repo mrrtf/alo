@@ -12,7 +12,7 @@ set(SOURCES
         segmentationCreator.cxx
         segmentationCreator.h
         segmentationImpl2.cxx
-        segmentationImpl2.h
+        segmentationImpl3.h
         )
 
 # We add all segmentation creators by default,
@@ -29,7 +29,7 @@ target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl2 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl2 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 15
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 14
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl2_static STATIC ${SOURCES})

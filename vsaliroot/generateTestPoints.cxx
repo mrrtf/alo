@@ -15,36 +15,21 @@
 
 #include "generateTestPoints.h"
 #include <random>
-#include "segmentation.h"
-#include "segmentationContours.h"
-#include "contourCreator.h"
-
-using o2::mch::contour::getBBox;
-using o2::mch::contour::getEnvelop;
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
-
-std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, int extent)
+std::vector<std::pair<double, double>> generateTestPoints(int n, double xmin, double ymin, double xmax, double ymax, int extent)
 {
-  Segmentation seg{detElemId,true};
-  auto bbox = getBBox(getEnvelop(getSampaContours(seg)));
-
-  double offset{0.0};
-
   std::random_device rd;
   std::mt19937 mt(rd());
   std::vector<std::pair<double, double>> testPoints;
 
   if (extent == 0) {
-
     testPoints.resize(n);
-
-    std::uniform_real_distribution<double> distX{bbox.xmin() - offset, bbox.xmax() + offset};
-    std::uniform_real_distribution<double> distY{bbox.ymin() - offset, bbox.ymax() + offset};
-
+    std::uniform_real_distribution<double> distX{xmin,xmax};
+    std::uniform_real_distribution<double> distY{ymin,ymax};
     std::generate(testPoints.begin(), testPoints.end(),
                   [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
 
@@ -53,12 +38,15 @@ std::vector<std::pair<double, double>> generateTestPoints(int n, int detElemId, 
     while (testPoints.size() < n) {
       double x = dist(mt);
       double y = dist(mt);
-      if (x >= bbox.xmin() - offset && x <= bbox.xmax() + offset &&
-          y >= bbox.ymin() - offset && y <= bbox.ymax() + offset) {
+      if (x >= xmin && x <= xmax &&
+          y >= ymin && y <= ymax) {
         testPoints.push_back({x, y});
       }
     }
   }
   return testPoints;
 }
-}}}
+
+}
+}
+}

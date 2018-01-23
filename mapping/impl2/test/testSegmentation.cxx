@@ -25,11 +25,32 @@ using namespace o2::mch::mapping::impl2;
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation_impl2)
 
-BOOST_AUTO_TEST_CASE(MotifE14IsSplitIn3PadGroups)
+BOOST_AUTO_TEST_CASE(FractionOfRectangles)
 {
-  std::unique_ptr<Segmentation> seg{createSegmentation(701,true)};
+  int npolygons{0};
+  int nrectangles{0};
+  o2::mch::mapping::forOneDetElemPerSegmentationType([&](int detElemId){
 
-  BOOST_CHECK_EQUAL(seg->padGroupIndices(407).size(),3);
+    int np{0};
+    int nr{0};
+    for (auto isBendingPlane : {true, false}) {
+      auto contours = getSampaContours(detElemId, isBendingPlane);
+      for (auto &c: contours) {
+        for (auto i = 0; i < c.size(); ++i) {
+          ++npolygons;
+          ++np;
+          const auto &p = c[i];
+          if (p.size() == 5) {
+            ++nrectangles;
+            ++nr;
+          }
+        }
+      }
+    }
+
+    std::cout << boost::format("DE %4d nr/np = %7.2f%%\n") % detElemId % (nr*100.0/np);
+  });
+  std::cout << "npolygons=" << npolygons << " nrectangles=" << nrectangles << "\n";
 }
 
 BOOST_AUTO_TEST_SUITE_END()

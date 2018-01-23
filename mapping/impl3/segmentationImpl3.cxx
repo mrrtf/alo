@@ -19,8 +19,6 @@
 #include "padSize.h"
 #include "segmentation.h"
 #include "segmentationCreator.h"
-#include "contourCreator.h"
-#include "padGroupTypeContour.h"
 #include <array>
 #include <iostream>
 #include <map>
@@ -31,12 +29,12 @@
 #include <vector>
 #include <gsl/gsl>
 
-using namespace o2::mch::mapping::impl2;
+using namespace o2::mch::mapping::impl3;
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl2 {
+namespace impl3 {
 
 Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 {
@@ -48,31 +46,39 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
   return creator(isBendingPlane);
 }
 
-std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &padGroups,
-                                                   const std::vector<PadGroupType> &padGroupTypes,
-                                                   const std::vector<std::pair<float, float>> &padSizes)
+void Segmentation::fillRtree()
 {
-  //std::cout << boost::format("computeContours %3d padgroups %2d padgrouptypes %2d padsizes\n")
-  //             % padGroups.size() % padGroupTypes.size() % padSizes.size();
+  const double epsilon{1E-6}; // artificially increase size of pads by a smidge to avoid gaps
 
-  std::vector<o2::mch::contour::Polygon<double>> pgtContours = computeContours(padGroupTypes);
+  int paduid{0};
 
-  std::vector<Segmentation::Contour> contours;
+  for (auto padGroupIndex = 0; padGroupIndex < mPadGroups.size(); ++padGroupIndex) {
+    mPadGroupIndex2PadUidIndex.push_back(paduid);
+    auto &pg = mPadGroups[padGroupIndex];
+    auto &pgt = mPadGroupTypes[pg.mPadGroupTypeId];
+    double dx{mPadSizes[pg.mPadSizeId].first};
+    double dy{mPadSizes[pg.mPadSizeId].second};
+    for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
+      for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
+        if (pgt.id(ix, iy) >= 0) {
 
-  for (auto &pg: padGroups) {
-    auto p = pgtContours[pg.mPadGroupTypeId];
-    double dx{padSizes[pg.mPadSizeId].first};
-    double dy{padSizes[pg.mPadSizeId].second};
-    p.scale(dx, dy);
-    p.translate(pg.mX, pg.mY);
-    if (!p.isCounterClockwiseOriented()) {
-      std::cout << p << "\n";
-      throw std::runtime_error("polygons must be counterclockwise oriented !");
+          double xmin = ix * dx + pg.mX - epsilon;
+          double xmax = (ix + 1) * dx + pg.mX + epsilon;
+          double ymin = iy * dy + pg.mY - epsilon;
+          double ymax = (iy + 1) * dy + pg.mY + epsilon;
+
+          mRtree.insert(std::make_pair(Segmentation::Box{
+            Segmentation::Point(xmin, ymin),
+            Segmentation::Point(xmax, ymax)
+          }, paduid));
+
+          mPadUid2PadGroupIndex.push_back(padGroupIndex);
+          mPadUid2PadGroupTypeFastIndex.push_back(pgt.fastIndex(ix, iy));
+          ++paduid;
+        }
+      }
     }
-    contours.push_back(p);
   }
-
-  return contours;
 }
 
 std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
@@ -85,6 +91,18 @@ std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
   return u;
 }
 
+#if 0
+void dump(const std::string &msg, const std::vector<int> &v)
+{
+  std::cout << msg << " of size " << v.size() << " : ";
+
+  for (auto &value: v) {
+    std::cout << boost::format("%3d") % value << ",";
+  }
+  std::cout << "\n";
+}
+#endif
+
 Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups,
                            std::vector<PadGroupType> padGroupTypes,
                            std::vector<std::pair<float, float>> padSizes)
@@ -95,44 +113,11 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mDualSampaIds{getUnique(mPadGroups)},
   mPadGroupTypes{std::move(padGroupTypes)},
   mPadSizes{std::move(padSizes)},
-  mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
-  mMaxFastIndex{-1}
+  mPadUid2PadGroupIndex{},
+  mPadUid2PadGroupTypeFastIndex{},
+  mPadGroupIndex2PadUidIndex{}
 {
-  for (auto& pgt: mPadGroupTypes)
-  {
-    for (auto& fi : pgt.fastIndices()) {
-      mMaxFastIndex = std::max(mMaxFastIndex, fi);
-    }
-  }
-  mMaxFastIndex++;
-}
-
-int Segmentation::findPadGroupIndex(double x, double y) const
-{
-  for (auto i = 0; i < mPadGroupContours.size(); ++i  ){
-    if (mPadGroupContours[i].contains(x, y)) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-int Segmentation::findPadByPosition(double x, double y) const
-{
-  int pgi = findPadGroupIndex(x,y);
-  if (pgi < 0 )
-  {
-    return -1;
-  }
-
-  auto& pg = mPadGroups[pgi];
-  int ix = (x - pg.mX)/mPadSizes[pg.mPadSizeId].first;
-  int iy = (y - pg.mY)/mPadSizes[pg.mPadSizeId].second;
-  auto& pgt = mPadGroupTypes[pg.mPadGroupTypeId];
-  if ( pgt.hasPadById(pgt.id(ix,iy))) {
-    return padUid(pgi,pgt.fastIndex(ix,iy));
-  }
-  return -1;
+  fillRtree();
 }
 
 std::vector<int> Segmentation::getPadUids(int dualSampaId) const
@@ -142,17 +127,45 @@ std::vector<int> Segmentation::getPadUids(int dualSampaId) const
   for (auto padGroupIndex = 0; padGroupIndex < mPadGroups.size(); ++padGroupIndex) {
     if (mPadGroups[padGroupIndex].mFECId == dualSampaId) {
       auto &pgt = mPadGroupTypes[mPadGroups[padGroupIndex].mPadGroupTypeId];
-      for (auto& fi: pgt.fastIndices()) {
-        pi.push_back(padUid(padGroupIndex,fi));
+      auto i1 = mPadGroupIndex2PadUidIndex[padGroupIndex];
+      for (auto i = i1; i < i1 + pgt.getNofPads(); ++i) {
+        pi.push_back(i);
       }
     }
   }
 
   return pi;
 }
+
+double Segmentation::squaredDistance(int paduid, double x, double y) const
+{
+  double px = padPositionX(paduid) - x;
+  double py = padPositionY(paduid) - y;
+  return px * px + py * py;
+}
+
+int Segmentation::findPadByPosition(double x, double y) const
+{
+  std::vector<Segmentation::Value> result_n;
+  mRtree.query(boost::geometry::index::contains(Segmentation::Point(x, y)), std::back_inserter(result_n));
+  if (result_n.size() == 1) {
+    return result_n[0].second;
+  }
+  if (result_n.size() > 1) {
+    if (result_n.size() > 2) {
+      throw std::runtime_error("oups. assumption that size=2 is wrong!");
+    }
+    // compute distance of pads center to (x,y) and return closest one
+    double d1 = squaredDistance(result_n[0].second, x, y);
+    double d2 = squaredDistance(result_n[1].second, x, y);
+    return (d1 < d2) ? result_n[0].second : result_n[1].second;
+  }
+  return -1;
+}
+
 const PadGroup &Segmentation::padGroup(int paduid) const
 {
-  return gsl::at(mPadGroups, padUid2padGroupIndex(paduid));
+  return gsl::at(mPadGroups, mPadUid2PadGroupIndex[paduid]);
 }
 
 const PadGroupType &Segmentation::padGroupType(int paduid) const
@@ -174,14 +187,14 @@ double Segmentation::padPositionX(int paduid) const
 {
   auto &pg = padGroup(paduid);
   auto &pgt = padGroupType(paduid);
-  return pg.mX + (pgt.ix(padUid2padGroupTypeFastIndex(paduid)) + 0.5) * mPadSizes[pg.mPadSizeId].first;
+  return pg.mX + (pgt.ix(mPadUid2PadGroupTypeFastIndex[paduid]) + 0.5) * mPadSizes[pg.mPadSizeId].first;
 }
 
 double Segmentation::padPositionY(int paduid) const
 {
   auto &pg = padGroup(paduid);
   auto &pgt = padGroupType(paduid);
-  return pg.mY + (pgt.iy(padUid2padGroupTypeFastIndex(paduid)) + 0.5) * mPadSizes[pg.mPadSizeId].second;
+  return pg.mY + (pgt.iy(mPadUid2PadGroupTypeFastIndex[paduid]) + 0.5) * mPadSizes[pg.mPadSizeId].second;
 }
 
 double Segmentation::padSizeX(int paduid) const

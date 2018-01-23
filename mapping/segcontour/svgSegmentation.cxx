@@ -10,7 +10,7 @@
 // or submit itself to any jurisdiction.
 
 ///
-/// @author  Laurent Aphecetche
+/// @author  Laurent Apaduidecetche
 
 
 #include "segmentation.h"
@@ -30,11 +30,11 @@ void asSVG(std::ostream &out, const Segmentation &seg, int scale)
 
   for (auto i = 0; i < seg.nofDualSampas(); ++i) {
     std::vector<Polygon<double>> pads;
-    seg.forEachPadInDualSampa(seg.dualSampaId(i), [&pads,&seg](PadHandle ph) {
-      double x = seg.padPositionX(ph);
-      double y = seg.padPositionY(ph);
-      double dx = seg.padSizeX(ph)/2.0;
-      double dy = seg.padSizeY(ph)/2.0;
+    seg.forEachPadInDualSampa(seg.dualSampaId(i), [&pads,&seg](int paduid) {
+      double x = seg.padPositionX(paduid);
+      double y = seg.padPositionY(paduid);
+      double dx = seg.padSizeX(paduid)/2.0;
+      double dy = seg.padSizeY(paduid)/2.0;
 
       pads.emplace_back(Polygon<double>{{x - dx, y - dy},
                                         {x + dx, y - dy},

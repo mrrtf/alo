@@ -34,8 +34,8 @@ using o2::mch::mapping::generateTestPoints;
 static void segmentationList(benchmark::internal::Benchmark *b)
 {
   o2::mch::mapping::forOneDetectionElementOfEachSegmentationType([&b](int detElemId) {
-    for (auto bending : {true,false}) {
-      for (auto extent : {0 , 10}) {
+    for (auto bending : {true, false}) {
+      for (auto extent : {0, 10}) {
         b->Args({detElemId, bending, extent});
       }
     }
@@ -54,7 +54,9 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
 
   o2::mch::mapping::Segmentation seg{detElemId, isBendingPlane};
 
-  auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
+  auto bbox = getBBox(getEnvelop(getSampaContours(seg)));
+
+  auto testPoints = generateTestPoints(NTESTPOINTS, bbox.xmin(), bbox.ymin(), bbox.xmax(), bbox.ymax(), extent);
 
   int nin{0};
   int n{0};
@@ -82,7 +84,12 @@ BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
   auto seg = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
     isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
 
-  auto testPoints = generateTestPoints(NTESTPOINTS, detElemId, extent);
+  auto testPoints = generateTestPoints(NTESTPOINTS,
+                                       seg->GetPositionX() - seg->GetDimensionX(),
+                                       seg->GetPositionY() - seg->GetDimensionY(),
+                                       seg->GetPositionX() + seg->GetDimensionX(),
+                                       seg->GetPositionY() + seg->GetDimensionY(),
+                                       extent);
 
   double nin{0};
   double n{0};

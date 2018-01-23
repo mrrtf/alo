@@ -14,52 +14,52 @@
 
 #include <fstream>
 #include "segmentationCInterface.h"
-#include "impl2_export.h"
+#include "impl3_export.h"
 #include "segmentationImpl3.h"
 
 extern "C" {
 
-struct IMPL2_EXPORT MchSegmentation
+struct IMPL3_EXPORT MchSegmentation
 {
-    MchSegmentation(o2::mch::mapping::impl2::Segmentation *i) : impl{i}
+    MchSegmentation(o2::mch::mapping::impl3::Segmentation *i) : impl{i}
     {}
 
-    std::unique_ptr<o2::mch::mapping::impl2::Segmentation> impl;
+    std::unique_ptr<o2::mch::mapping::impl3::Segmentation> impl;
 };
 
-IMPL2_EXPORT MchSegmentationHandle
+IMPL3_EXPORT MchSegmentationHandle
 mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
-  auto seg = o2::mch::mapping::impl2::createSegmentation(detElemId, isBendingPlane);
+  auto seg = o2::mch::mapping::impl3::createSegmentation(detElemId, isBendingPlane);
   return seg ? new MchSegmentation{seg} : nullptr;
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 void mchSegmentationDestruct(MchSegmentationHandle sh)
 {
   delete sh;
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 int mchSegmentationId(MchSegmentationHandle segHandle)
 {
 // return segHandle->impl->getId();
   return -1;
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 int mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y)
 {
   return segHandle->impl->findPadByPosition(x, y);
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel)
 {
   return segHandle->impl->findPadByFEE(dualSampaId, dualSampaChannel);
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 void mchForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId: {
@@ -75,7 +75,7 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
   }
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
   for (auto dualSampaId: segHandle->impl->dualSampaIds()) {
@@ -83,7 +83,7 @@ void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler ha
   }
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId : {
@@ -93,13 +93,13 @@ void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler 
   }
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid)
 {
   return paduid != segHandle->impl->InvalidPadUid;
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
 {
   auto &seg = segHandle->impl;
@@ -108,25 +108,25 @@ void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, 
   }
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padPositionX(paduid);
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padPositionY(paduid);
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padSizeX(paduid);
 }
 
-IMPL2_EXPORT
+IMPL3_EXPORT
 double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padSizeY(paduid);
