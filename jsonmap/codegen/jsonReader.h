@@ -8,12 +8,15 @@
 // In applying this license CERN does not waive the privileges and immunities
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
-#ifndef ALO_JSONMAP_READER_JSONREADER_H
-#define ALO_JSONMAP_READER_JSONREADER_H
+#ifndef ALO_JSONMAP_CODEGEN_JSONREADER_H
+#define ALO_JSONMAP_CODEGEN_JSONREADER_H
 
 #include <cstdlib>
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/document.h"
+
+namespace jsonmap {
+namespace codegen {
 
 template<typename StreamType>
 class InputDocument {
@@ -40,5 +43,8 @@ class InputDocument {
 };
 
 using InputWrapper = InputDocument<rapidjson::FileReadStream>;
+
+}
+}
 
 #endif

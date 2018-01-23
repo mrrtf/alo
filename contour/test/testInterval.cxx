@@ -20,7 +20,7 @@
 #include <iostream>
 #include "interval.h"
 
-using namespace o2::mch::contour;
+using namespace o2::mch::contour::impl;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_contour)
 

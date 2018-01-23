@@ -16,95 +16,60 @@
 #ifndef O2_MCH_CONTOUR_CONTOURCREATOR_H
 #define O2_MCH_CONTOUR_CONTOURCREATOR_H
 
-#include <utility>
-#include <vector>
-#include <iostream>
-#include "edge.h"
-#include "polygon.h"
-#include "contour.h"
-#include "segmentTree.h"
-#include <algorithm>
+#include "contourCreator.inl"
 
 namespace o2 {
 namespace mch {
 namespace contour {
 
-Contour<double> createContour(const std::vector<Polygon<double>>& polygons);
-
-void sortVerticalEdges(std::vector<VerticalEdge<double>>& edges);
-
-std::vector<VerticalEdge<double>>
-sweep(Node<double>* segmentTree, const std::vector<VerticalEdge<double>>& polygonVerticalEdges);
-
-std::vector<HorizontalEdge<double>> verticalsToHorizontals(const std::vector<VerticalEdge<double>>& verticals);
-
-Contour<double>
-finalizeContour(const std::vector<VerticalEdge<double>>& verticals,
-                const std::vector<HorizontalEdge<double>>& horizontals);
-
 template<typename T>
-Interval<T> interval(const VerticalEdge<T>& edge)
+Contour<T> createContour(const std::vector<Polygon<T>> &polygons)
 {
-  auto y1 = edge.begin().y;
-  auto y2 = edge.end().y;
-  return y2 > y1 ? Interval<T>(y1, y2) : Interval<T>(y2, y1);
+  if (polygons.empty()) {
+    return {};
+  }
+
+  if (!isCounterClockwiseOriented(polygons)) {
+    throw std::invalid_argument("polygons should be oriented counterclockwise");
+  }
+
+// trivial case : only one input polygon
+  if (polygons.size() == 1) {
+    Contour<T> trivialContour;
+    trivialContour.addPolygon(polygons.front());
+    return trivialContour;
+  }
+
+  std::vector<impl::VerticalEdge<T>> polygonVerticalEdges{impl::getVerticalEdges(polygons)};
+
+  sortVerticalEdges(polygonVerticalEdges);
+
+// Initialize the segment tree that is used by the sweep() function
+  std::unique_ptr<impl::Node<T>> segmentTree{impl::createSegmentTree(impl::getYPositions(polygons))};
+
+// Find the vertical edges of the merged contour. This is the meat of the algorithm...
+  std::vector<impl::VerticalEdge<T>> contourVerticalEdges{impl::sweep(segmentTree.get(), polygonVerticalEdges)};
+
+// Deduce the horizontal edges from the vertical ones
+  std::vector<impl::HorizontalEdge<T>> contourHorizontalEdges{impl::verticalsToHorizontals(contourVerticalEdges)};
+
+  return impl::finalizeContour(contourVerticalEdges, contourHorizontalEdges);
 }
 
 template<typename T>
-std::vector<VerticalEdge<T>> getVerticalEdges(const Polygon<T>& polygon)
+Contour<T> getEnvelop(const std::vector<Contour<T>> &list)
 {
-  /// Return the vertical edges of the input polygon
-  std::vector<VerticalEdge<T>> edges;
-  for (auto i = 0; i < polygon.size() - 1; ++i) {
-    auto current = polygon[i];
-    auto next = polygon[i + 1];
-    if (current.x == next.x) {
-      edges.push_back({current.x, current.y, next.y});
+  /// get the envelop of a collection of contours
+  std::vector<o2::mch::contour::Polygon<T>> polygons;
+  for (const auto &c: list) {
+    for (auto j = 0; j < c.size(); ++j) {
+      polygons.push_back(c[j]);
     }
   }
-  return edges;
+  return createContour(polygons);
 }
 
-template<typename T>
-std::vector<VerticalEdge<T>> getVerticalEdges(const std::vector<Polygon<T>>& polygons)
-{
-  std::vector<VerticalEdge<T>> edges;
-  for (const auto& p: polygons) {
-    auto e = getVerticalEdges(p);
-    edges.insert(edges.end(), e.begin(), e.end());
-  }
-  return edges;
-}
 
-template<typename T>
-std::vector<T> getYPositions(const std::vector<Polygon<T>>& polygons)
-{
-  auto vertices = getVertices(polygons);
-  std::vector<T> ypos;
-  for (const auto& v: vertices) {
-    ypos.push_back(v.y);
-  }
-  std::sort(ypos.begin(),ypos.end());
-  auto last = std::unique(ypos.begin(), ypos.end(),
-                          [](const T& a, const T& b) { return areEqual(a, b); });
-  ypos.erase(last, ypos.end());
-  return ypos;
-}
-
-template<typename T>
-std::vector<T> getXPositions(const std::vector<Polygon<T>>& polygons)
-{
-  auto vertices = getVertices(polygons);
-  std::vector<T> xpos;
-  for (const auto& v: vertices) {
-    xpos.push_back(v.x);
-  }
-  std::sort(xpos.begin(),xpos.end());
-  auto last = std::unique(xpos.begin(), xpos.end(),
-                          [](const T& a, const T& b) { return areEqual(a, b); });
-  xpos.erase(last, xpos.end());
-  return xpos;
-}
 }
 }
 }

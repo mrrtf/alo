@@ -25,25 +25,28 @@
 #include "AliMpMotif.h"
 #include "AliMpMotifPosition.h"
 #include "AliMpMotifType.h"
+#include "AliMpPad.h"
 #include "AliMpSegmentation.h"
+#include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
 #include "contour.h"
-#include "genDESegmentationFactory.h"
-#include "genDetectionElement.h"
-#include "genSegmentationFactory.h"
-#include "genSegmentationInterface.h"
-#include "svgSegmentationInterface.h"
+#include "contourCreator.h"
+#include "svgContour.h"
+#include "segmentationContours.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
+#include <cmath>
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <utility>
 #include <vector>
+#include <segmentation.h>
 
 using namespace o2::mch::mapping;
 
@@ -62,15 +65,21 @@ struct MAPPING
 
     static AliMpDDLStore *ddlStore;
     static AliMpSegmentation *mseg;
+
+    static std::vector<int> detElemIds;
 };
 
 AliMpDDLStore *MAPPING::ddlStore{nullptr};
 AliMpSegmentation *MAPPING::mseg{nullptr};
+std::vector<int> MAPPING::detElemIds
+  {
+    100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905
+  };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
-BOOST_FIXTURE_TEST_SUITE(segmentation, MAPPING)
+BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot2, MAPPING)
 
-void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInterface &seg, double x, double y,
+void sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg, double x, double y,
                           double step, int ntimes, int &naliroot, int &no2)
 {
   // Check whether aliroot and o2 implementations give the same answer to
@@ -90,7 +99,7 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
     double xs = distX(mt);
     double ys = distY(mt);
     bool aliroot = alseg.PadByPosition(xs, ys, false).IsValid();
-    bool o2 = seg.hasPadByPosition(xs, ys);
+    bool o2 = seg.findPadByPosition(xs, ys);
 
     if (aliroot) { ++naliroot; }
     if (o2) { ++no2; }
@@ -98,27 +107,15 @@ void sameHasPadByPosition(const AliMpVSegmentation &alseg, const SegmentationInt
   }
 }
 
-std::pair<const AliMpVSegmentation *, SegmentationInterface *>
-getSegmentations(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane)
-{
-  AliMpDetElement *detElement = AliMpDDLStore::Instance()->GetDetElement(detElemId);
-
-  auto al = mseg->GetMpSegmentation(detElemId, detElement->GetCathodType(
-    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
-
-  auto o2 = getSegmentation(type, isBendingPlane);
-
-  return {al, o2.release()};
-}
-
-bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, bool isBendingPlane, double step,
+bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
                            int ntimes)
 {
-  auto pair = getSegmentations(mseg, detElemId, type, isBendingPlane);
-  auto al = pair.first;
-  auto o2 = pair.second;
+  auto al = mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
+    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
+  Segmentation o2seg{detElemId, isBendingPlane};
 
-  auto bbox = getBBox(o2->getEnvelop());
+  auto contours = o2::mch::mapping::getSampaContours(detElemId,isBendingPlane);
+  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(contours));
 
   bool same{true};
 
@@ -127,7 +124,7 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
   for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
     for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
       int naliroot, no2;
-      sameHasPadByPosition(*al, *o2, x, y, step, ntimes, naliroot, no2);
+      sameHasPadByPosition(*al, o2seg, x, y, step, ntimes, naliroot, no2);
       double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
       if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
         same = false;
@@ -136,31 +133,24 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, int type, boo
         std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
         std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
         std::cout << "detElemId=" << detElemId << "\n";
-        std::cout << "type=" << type << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
         std::ostringstream filename;
-        filename << "bug-" << type << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
+        filename << "bug-" << o2seg.id() << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
         ++ndiff;
-        auto seg = getSegmentation(type, isBendingPlane);
-        o2::mch::svg::writeSegmentationInterface(*seg, filename.str().c_str(), x, y);
+        o2::mch::svg::writeContours(contours, filename.str().c_str(), x, y);
       }
     }
   }
   return same;
 }
 
-//BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
-//  {0, 8, 16, 17, 18, 19, 20, 34, 35, 36, 52, 53, 54, 55, 56, 57, 58, 106, 107, 108, 109}), deIndex)
 BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2, boost::unit_test::data::make(
-  {0}), deIndex)
+  {100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}), detElemId)
 {
   double step{1}; // cm
-  int deId = o2::mch::mapping::getDetElemIdFromDetElemIndex(deIndex);
-  int segTypeIndex = o2::mch::mapping::getSegTypeIndexFromDetElemIndex(deIndex);
-  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, true, step, 100));
-  BOOST_TEST(checkHasPadByPosition(mseg, deId, segTypeIndex, false, step, 100));
+  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, true, step, 100));
+  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, false, step, 100));
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

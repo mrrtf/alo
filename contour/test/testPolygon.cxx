@@ -201,6 +201,21 @@ BOOST_AUTO_TEST_CASE(BBoxCreation)
   BOOST_TEST(getBBox(testPolygon2) == expected);
 }
 
+BOOST_AUTO_TEST_CASE(ConstructionByVectorIterators)
+{
+  std::vector<Vertex<int>> vertices{
+    {0, 0},
+    {1, 0},
+    {1, 1},
+    {0, 1},
+    {0, 0}
+  };
+
+  Polygon<int> p(vertices.begin(),vertices.end());
+
+  BOOST_CHECK_EQUAL(p,counterClockwisePolygon);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

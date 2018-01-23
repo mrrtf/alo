@@ -14,41 +14,68 @@
 
 #include "padSize.h"
 #include <sstream>
-#include "codeWriter.h"
+#include "writer.h"
+#include <vector>
 
-std::pair<std::string, std::string> generateCodeForPadSizes(const rapidjson::Value& padsizes)
+namespace jsonmap {
+namespace codegen {
+
+std::vector<std::pair<float,float>> getPadSizes(const rapidjson::Value& jsonPadSizes) {
+
+  std::vector<std::pair<float,float>> padSizes;
+
+  for (auto &ps: jsonPadSizes.GetArray()) {
+    padSizes.push_back(std::make_pair<float, float>(static_cast<float>(ps["x"].GetDouble()),
+                                              static_cast<float>(ps["y"].GetDouble())));
+  }
+
+  return padSizes;
+}
+
+std::ostream &operator<<(std::ostream &out, const std::pair<float,float>& padsize)
+{
+  out << "{" << padsize.first << "," << padsize.second << "}";
+  return out;
+}
+
+std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &jsonPadSizes)
 {
   assert(padsizes.IsArray());
 
-  std::ostringstream decl;
+  std::ostringstream code;
 
-  std::ostringstream returnType;
+  code << generateInclude({"padSize.h", "utility", "array"});
 
-
-  decl << "#include <array>\n";
-  decl << "#include <utility>\n";
-  decl << mappingNamespaceBegin();
-  decl << "using PadSizeArray = std::array<std::pair<float,float>," << padsizes.Size() << ">;\n";
-  decl << "extern PadSizeArray arrayOfPadSizes;\n";
-  decl << "inline double padSizeX(int i) { return arrayOfPadSizes[i].first; }\n";
-  decl << "inline double padSizeY(int i) { return arrayOfPadSizes[i].second; }\n";
-  decl << mappingNamespaceEnd();
-
-  std::ostringstream impl;
-
-  impl << mappingNamespaceBegin();
-  impl << "PadSizeArray arrayOfPadSizes {\n";
+  code << mappingNamespaceBegin(ns);
+  code << R"(namespace {
+std::array<std::pair<float, float>, 18> arrayOfPadSizes{
+)";
   int n{0};
-  for (auto& ps: padsizes.GetArray()) {
-    impl << "/* " << n << " */ std::make_pair<float,float>(" << static_cast<float>(ps["x"].GetDouble()) << "," << static_cast<float>(ps["y"].GetDouble()) << ")";
+  auto ps = getPadSizes(jsonPadSizes);
+  for (auto &p: ps) {
+    code << "/* " << n << " */ std::make_pair<float,float>(" << p.first << "," << p.second << ")";
     n++;
-    if (n<padsizes.Size()) impl << ",";
-    impl << "\n";
+    if (n < ps.size()) { code << ","; }
+    code << "\n";
   }
 
-  impl << "};\n";
-  impl << mappingNamespaceEnd();
+  code << R"(
+};
+}
+double padSizeX(int i)
+{ return arrayOfPadSizes[i].first; }
 
-  return std::make_pair<std::string,std::string>(decl.str(),impl.str());
+double padSizeY(int i)
+{ return arrayOfPadSizes[i].second; }
+)";
+  code << mappingNamespaceEnd(ns);
+
+  return code.str();
 
 }
+
+}
+}
+
+
+

@@ -22,6 +22,7 @@
 namespace o2 {
 namespace mch {
 namespace contour {
+namespace impl {
 
 template<typename T, typename U>
 bool CanTypeFitValue(const U value)
@@ -46,7 +47,7 @@ inline bool areEqual(int a, int b)
 inline bool isStrictlyBelow(double a, double b)
 {
 
-  return ( a < b ) && !areEqual(a, b);
+  return (a < b) && !areEqual(a, b);
 }
 
 inline bool isStrictlyBelow(int a, int b)
@@ -54,6 +55,7 @@ inline bool isStrictlyBelow(int a, int b)
   return a < b;
 }
 
+}
 }
 }
 }

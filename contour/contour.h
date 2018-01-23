@@ -31,7 +31,7 @@ std::vector<o2::mch::contour::Vertex<T> > getVertices(const std::vector<o2::mch:
   std::vector<o2::mch::contour::Vertex<T> > vertices;
 
   for (const auto& p: polygons) {
-    auto pv = p.getVertices();
+    auto pv = getVertices(p);
     vertices.insert(vertices.end(), pv.begin(), p.isClosed() ? pv.end() - 1 : pv.end());
   }
 

@@ -13,11 +13,17 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef ALO_JSONMAP_READER_CHAMBER_H
-#define ALO_JSONMAP_READER_CHAMBER_H
+#ifndef ALO_JSONMAP_CODEGEN_CHAMBER_H
+#define ALO_JSONMAP_CODEGEN_CHAMBER_H
 
 #include "rapidjson/document.h"
 
-void readChambers(rapidjson::Value& chambers);
+namespace jsonmap {
+namespace codegen {
+
+void readChambers(rapidjson::Value &chambers);
+
+}
+}
 
 #endif
