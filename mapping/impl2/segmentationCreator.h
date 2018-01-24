@@ -15,7 +15,7 @@
 #ifndef O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
 #define O2_MCH_MAPPING_IMPL2_SEGMENTATIONCREATOR_H
 
-#include "segmentationImpl3.h"
+#include "segmentationImpl2.h"
 
 namespace o2 {
 namespace mch {

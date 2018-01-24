@@ -50,6 +50,8 @@
 #include "generateTestPoints.h"
 
 using namespace o2::mch::mapping;
+using namespace o2::mch::contour;
+using namespace o2::mch::svg;
 
 struct MAPPING
 {
@@ -80,15 +82,15 @@ std::vector<int> MAPPING::detElemIds
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot2, MAPPING)
 
-std::vector<std::pair<bool,bool>> sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg,
-                          const std::vector<std::pair<double, double>> &testPoints)
+std::vector<std::pair<bool, bool>> sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg,
+                                                        const std::vector<std::pair<double, double>> &testPoints)
 {
   // Check whether aliroot and o2 implementations give the same answer to
   // hasPadByPosition for a small box around (x,y)
   //
   // (the test is not done on one point only to avoid edge effects)
 
-  std::vector<std::pair<bool,bool>> found;
+  std::vector<std::pair<bool, bool>> found;
 
   for (auto &p: testPoints) {
     double xs = p.first;
@@ -96,9 +98,66 @@ std::vector<std::pair<bool,bool>> sameHasPadByPosition(const AliMpVSegmentation 
     AliMpPad alPad = alseg.PadByPosition(xs, ys, false);
     bool o2Pad = seg.findPadByPosition(xs, ys);
 
-    found.push_back(std::make_pair(alPad.IsValid(),seg.isValid(o2Pad)));
+    found.push_back(std::make_pair(alPad.IsValid(), seg.isValid(o2Pad)));
   }
   return found;
+}
+
+void dumpSVGforDebug(const std::string filename, const std::vector<Contour<double>> &contours,
+                     const std::vector<std::pair<bool, bool>>& found, const std::vector<std::pair<double, double>> &testPoints)
+{
+  std::vector<std::pair<double, double>> o2Points;
+  std::vector<std::pair<double, double>> alPoints;
+  for (auto i = 0; i < found.size(); ++i) {
+    if (found[i].first) {
+      alPoints.push_back(testPoints[i]);
+    }
+    if (found[i].second) {
+      o2Points.push_back(testPoints[i]);
+    }
+  }
+
+  std::ofstream out(filename);
+  out << R"(
+<html>
+<style>
+.dualsampas {
+  fill:none;
+  stroke-width: 0.1px;
+  stroke: #333333;
+}
+.o2points {
+  fill:none;
+  radius: 1px;
+  stroke: red;
+}
+.alpoints {
+  fill:none;
+  radius: 1px;
+  stroke: blue;
+}
+</style>
+<body>
+)";
+  auto env = o2::mch::contour::getEnvelop(contours);
+  auto box = getBBox(env);
+  {
+    o2::mch::svg::Writer w(out, 1000, box);
+    w.svgGroupStart("dualsampas");
+    for (auto &c:contours) {
+      w.contour(c);
+    }
+    w.svgGroupEnd();
+
+    w.svgGroupStart("o2points");
+    w.points(o2Points);
+    w.svgGroupEnd();
+
+    w.svgGroupStart("alpoints");
+    w.points(alPoints);
+    w.svgGroupEnd();
+  }
+  out << "</html></body>\n";
 }
 
 bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
@@ -121,39 +180,25 @@ bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendin
       auto found = sameHasPadByPosition(*al, o2seg, testPoints);
       int no2{0};
       int naliroot{0};
-      for (auto& p: found) {
-        if ( p.first ) naliroot++;
-        if ( p.second) no2++;
+      for (auto &p: found) {
+        if (p.first) { naliroot++; }
+        if (p.second) { no2++; }
       }
       double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
       if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
         same = false;
       }
       if (!same) {
+
         std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
         std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
         std::cout << "detElemId=" << detElemId << "\n";
         std::cout << "isBendingPlane=" << isBendingPlane << "\n";
+
         std::ostringstream filename;
         filename << "bug-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
         ++ndiff;
-        std::ofstream out(filename.str());
-        out << "<html><body>\n";
-        auto env = o2::mch::contour::getEnvelop(contours);
-        auto box = getBBox(env);
-        //o2::mch::contour::BBox<double> box{10*(x-10*step),10*(x+10*step),10*(y-10*step),10*(y+10*step)};
-        o2::mch::svg::writeContours(out,box,10,contours);
-        std::vector<std::pair<double,double>> o2Points;
-        std::vector<std::pair<double,double>> alPoints;
-        for (auto i = 0; i < found.size(); ++i){
-          if (found[i].first) alPoints.push_back(testPoints[i]);
-          if (found[i].second) o2Points.push_back(testPoints[i]);
-        }
-
-        o2::mch::svg::writePoints(out,10,o2Points,2,"red");
-        o2::mch::svg::writePoints(out,10,alPoints,1,"blue");
-        out << "</html></body>\n";
-
+        dumpSVGforDebug(filename.str(), contours, found, testPoints);
       }
     }
   }

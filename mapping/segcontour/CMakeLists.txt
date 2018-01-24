@@ -1,3 +1,4 @@
+find_package(Boost COMPONENTS program_options REQUIRED)
 set(SRCS
         segmentationContours.cxx
         segmentationContours.h)
@@ -7,7 +8,7 @@ foreach (impl RANGE 1 3 1)
     target_include_directories(segcontour${impl} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
     target_link_libraries(segcontour${impl} PUBLIC mapping_interface contour impl${impl})
     add_executable(svgSegmentation${impl} svgSegmentation.cxx)
-    target_link_libraries(svgSegmentation${impl} PUBLIC mapping_interface contour impl${impl})
+    target_link_libraries(svgSegmentation${impl} PUBLIC segcontour${impl} Boost::program_options)
     install(TARGETS segcontour${impl} svgSegmentation${impl} LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 endforeach ()
 

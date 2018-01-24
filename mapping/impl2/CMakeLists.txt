@@ -12,7 +12,7 @@ set(SOURCES
         segmentationCreator.cxx
         segmentationCreator.h
         segmentationImpl2.cxx
-        segmentationImpl3.h
+        segmentationImpl2.h
         )
 
 # We add all segmentation creators by default,

@@ -5,7 +5,6 @@ add_executable(testContour
         testEdge.cxx
         testInterval.cxx
         testPolygon.cxx
-        testSVG.cxx
         testSegmentTree.cxx
         testVertex.cxx
         )

@@ -22,6 +22,7 @@
 #include "contourCreator.h"
 #include <utility>
 #include <boost/format.hpp>
+#include <cmath>
 
 namespace o2 {
 namespace mch {
@@ -31,10 +32,23 @@ class Writer
 {
 
   public:
-    Writer(std::ostream &os, int width, int height) : mOutputStream{os}, mWidth{width}, mHeight{height}, mScale(10),
-                                                      mViewingBox{0.0, 0.0 + mWidth, 0.0, 0.0 + mHeight}
-    {}
-    //Writer(std::ostream& os, double width, double height, o2::mch::contour::BBox<double>& viewingBox);
+    Writer(std::ostream &os, int size, o2::mch::contour::BBox<double> &viewingBox) :
+      mOutputStream{os},
+      mWidth{size},
+      mHeight{static_cast<int>(std::round(size * viewingBox.height() / viewingBox.width()))},
+      mScale(10),
+      mViewingBox{
+        viewingBox
+      }
+    {
+      svgStart();
+    }
+
+
+    ~Writer()
+    {
+      svgEnd();
+    }
 
     template<typename T>
     Writer &operator<<(T a)
@@ -43,19 +57,12 @@ class Writer
       return *this;
     }
 
-    void htmlStart()
-    {
-      mOutputStream << "<html><body>";
-    }
-
-    void htmlEnd()
-    {
-      mOutputStream << "</html></body>";
-    }
-
     void svgStart()
     {
-      mOutputStream << boost::format(R"(<svg width="%d" height="%d">)") % mWidth % mHeight;
+      mOutputStream << boost::format(R"(<svg width="%d" height="%d" viewBox="0 0 %f %f">
+)")
+                       % mWidth % mHeight
+                       % mViewingBox.width() % mViewingBox.height();
     }
 
     void svgEnd()
@@ -63,11 +70,48 @@ class Writer
       mOutputStream << "</svg>";
     }
 
+    void svgGroupStart(const std::string &classname)
+    {
+      mOutputStream << "<g class=\"" << classname << "\">\n";
+    }
+
+    void svgGroupEnd()
+    {
+      mOutputStream << "</g>\n";
+    }
+
     void scale(int s)
     { mScale = s; }
 
     int scale() const
     { return mScale; }
+
+    template<typename T>
+    void polygon(const o2::mch::contour::Polygon<T> &polygon)
+    {
+      mOutputStream << "<polygon points=\"";
+      auto vertices = getVertices(polygon);
+      for (auto j = 0; j < vertices.size(); ++j) {
+        auto v = vertices[j];
+        mOutputStream << v.x - mViewingBox.xmin() << "," << v.y - mViewingBox.ymin() << ' ';
+      }
+      mOutputStream << "\"/>\n";
+    }
+
+    template<typename T>
+    void contour(const o2::mch::contour::Contour<T> &contour)
+    {
+      for (auto& p: contour.getPolygons()) {
+        polygon(p);
+      }
+    }
+
+    void points(const std::vector<std::pair<double, double>> &points)
+    {
+      for (auto &p: points) {
+        mOutputStream << boost::format(R"(<circle cx="%f" cy="%f"/>\n)") % p.first % p.second;
+      }
+    }
 
   private:
     std::ostream &mOutputStream;
@@ -77,6 +121,7 @@ class Writer
     o2::mch::contour::BBox<double> mViewingBox;
 };
 
+#if 0
 void writeContours(const std::vector<o2::mch::contour::Contour<double>> &contours, const char *filename, double x,
                    double y);
 
@@ -204,6 +249,7 @@ void writeContours(const std::vector<o2::mch::contour::Contour<double>> &contour
   out << "</body></html>\n";
 }
 
+#endif
 
 }
 }

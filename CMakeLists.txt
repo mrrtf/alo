@@ -47,7 +47,6 @@ endif ()
 
 add_subdirectory(contour)
 add_subdirectory(mapping)
-add_subdirectory(svgwriter)
 
 find_package(Doxygen REQUIRED dot)
 if (DOXYGEN_FOUND)

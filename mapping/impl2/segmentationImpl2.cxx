@@ -12,7 +12,7 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include "segmentationImpl3.h"
+#include "segmentationImpl2.h"
 #include "boost/format.hpp"
 #include "genDetElemId2SegType.h"
 #include "padGroup.h"

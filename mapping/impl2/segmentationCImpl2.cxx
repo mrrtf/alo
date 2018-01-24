@@ -15,7 +15,7 @@
 #include <fstream>
 #include "segmentationCInterface.h"
 #include "impl2_export.h"
-#include "segmentationImpl3.h"
+#include "segmentationImpl2.h"
 
 extern "C" {
 

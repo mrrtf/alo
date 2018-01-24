@@ -36,9 +36,6 @@ add_library(impl3_static STATIC ${SOURCES})
 target_include_directories(impl3_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
 target_link_libraries(impl3_static PUBLIC mapping_interface contour Boost::boost)
 
-add_executable(svgPadGroupType3 svgPadGroupType3.cxx)
-target_link_libraries(svgPadGroupType3 PRIVATE impl3_static)
-
 install(TARGETS impl3 impl3_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
