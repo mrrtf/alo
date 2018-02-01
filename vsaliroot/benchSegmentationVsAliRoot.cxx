@@ -54,7 +54,7 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
 
   o2::mch::mapping::Segmentation seg{detElemId, isBendingPlane};
 
-  auto bbox = getBBox(getEnvelop(getSampaContours(seg)));
+  auto bbox = getBBox(seg);
 
   auto testPoints = generateTestPoints(NTESTPOINTS, bbox.xmin(), bbox.ymin(), bbox.xmax(), bbox.ymax(), extent);
 

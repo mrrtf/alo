@@ -66,6 +66,10 @@ class Segmentation
 
     double padSizeY(int paduid) const;
 
+    int padDualSampaId(int paduid) const;
+
+    int padDualSampaChannel(int paduid) const;
+
   private:
     int dualSampaIndex(int dualSampaId) const;
 

@@ -132,4 +132,16 @@ double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid)
   return segHandle->impl->padSizeY(paduid);
 }
 
+IMPL3_EXPORT
+int mchSegmentationPadDualSampaId(MchSegmentationHandle segHandle, int paduid)
+{
+  return segHandle->impl->padDualSampaId(paduid);
+}
+
+IMPL3_EXPORT
+int mchSegmentationPadDualSampaChannel(MchSegmentationHandle segHandle, int paduid)
+{
+  return segHandle->impl->padDualSampaChannel(paduid);
+
+}
 } // extern "C"

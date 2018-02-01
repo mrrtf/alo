@@ -43,6 +43,10 @@ class SegmentationInterface
     virtual void getPadPosition(int ph, double &x, double &y) const = 0;
 
     virtual void getPadDimension(int ph, double &dx, double &dy) const = 0;
+
+    virtual void getPad(int ph, int& dualSampaId, int& dualSampaChannel) const = 0;
+
+    virtual int findPadByFEE(int dualSampaId, int dualSampaChannel) const = 0;
 };
 
 /// Get the segmentation for the given plane of a detection element
@@ -108,12 +112,17 @@ class Segmentation : public SegmentationInterface
 
     bool hasPadByFEE(int dualSampaId, int dualSampaChannel) const override
     {
+      return findPadByFEE(dualSampaId,dualSampaChannel) != -1;
+    }
+
+    int findPadByFEE(int dualSampaId, int dualSampaChannel) const override
+    {
       if (dualSampaChannel < 0 || dualSampaChannel > 63) {
         throw std::out_of_range("dualSampaChannel should be between 0 and 63");
       }
       int index = getSampaIndex(dualSampaId);
       int padIndex = index * 64 + dualSampaChannel;
-      return mPads[padIndex].isValid();
+      return mPads[padIndex].isValid() ? padIndex : -1;
     }
 
     bool hasPadByPosition(double x, double y) const override
@@ -161,6 +170,13 @@ class Segmentation : public SegmentationInterface
         }
       }
       return pads;
+    }
+
+    void getPad(int ph, int& dualSampaId, int& dualSampaChannel) const override {
+      //int padIndex = index * 64 + fecChannel;
+      int index = ph/64;
+      dualSampaId = mMotifPositions[index].FECId();
+      dualSampaChannel = ph - index*64;
     }
 
   private:

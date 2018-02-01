@@ -27,8 +27,8 @@ namespace impl {
 template<typename T, typename U>
 bool CanTypeFitValue(const U value)
 {
-  const intmax_t botT = intmax_t(std::numeric_limits<T>::min());
-  const intmax_t botU = intmax_t(std::numeric_limits<U>::min());
+  const intmax_t botT = intmax_t(std::numeric_limits<T>::lowest());
+  const intmax_t botU = intmax_t(std::numeric_limits<U>::lowest());
   const uintmax_t topT = uintmax_t(std::numeric_limits<T>::max());
   const uintmax_t topU = uintmax_t(std::numeric_limits<U>::max());
   return !((botT > botU && value < static_cast<U> (botT)) || (topT < topU && value > static_cast<U> (topT)));

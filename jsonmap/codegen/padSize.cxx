@@ -20,9 +20,9 @@
 namespace jsonmap {
 namespace codegen {
 
-std::vector<std::pair<float,float>> getPadSizes(const rapidjson::Value& jsonPadSizes) {
+std::vector<std::pair<double,double>> getPadSizes(const rapidjson::Value& jsonPadSizes) {
 
-  std::vector<std::pair<float,float>> padSizes;
+  std::vector<std::pair<double,double>> padSizes;
 
   for (auto &ps: jsonPadSizes.GetArray()) {
     padSizes.push_back(std::make_pair<float, float>(static_cast<float>(ps["x"].GetDouble()),
@@ -32,7 +32,7 @@ std::vector<std::pair<float,float>> getPadSizes(const rapidjson::Value& jsonPadS
   return padSizes;
 }
 
-std::ostream &operator<<(std::ostream &out, const std::pair<float,float>& padsize)
+std::ostream &operator<<(std::ostream &out, const std::pair<double,double>& padsize)
 {
   out << "{" << padsize.first << "," << padsize.second << "}";
   return out;
@@ -40,7 +40,7 @@ std::ostream &operator<<(std::ostream &out, const std::pair<float,float>& padsiz
 
 std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &jsonPadSizes)
 {
-  assert(padsizes.IsArray());
+  assert(jsonPadSizes.IsArray());
 
   std::ostringstream code;
 
@@ -53,7 +53,7 @@ std::array<std::pair<float, float>, 18> arrayOfPadSizes{
   int n{0};
   auto ps = getPadSizes(jsonPadSizes);
   for (auto &p: ps) {
-    code << "/* " << n << " */ std::make_pair<float,float>(" << p.first << "," << p.second << ")";
+    code << "/* " << n << " */ std::make_pair<double,double>(" << p.first << "," << p.second << ")";
     n++;
     if (n < ps.size()) { code << ","; }
     code << "\n";

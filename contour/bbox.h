@@ -28,7 +28,7 @@ template<typename T>
 class BBox
 {
   public:
-    BBox(T xmin, T xmax, T ymin, T ymax) : mXmin{xmin}, mXmax{xmax}, mYmin{ymin}, mYmax{ymax}
+    BBox(T xmin, T ymin, T xmax, T ymax) : mXmin{xmin}, mXmax{xmax}, mYmin{ymin}, mYmax{ymax}
     {
       if (xmin >= xmax || ymin >= ymax) {
         throw std::invalid_argument("BBox should be created valid (xmin<xmax and ymin<ymax)");
@@ -47,12 +47,14 @@ class BBox
     T ymax() const
     { return mYmax; }
 
-    T xcenter() const {
-      return (xmin()+xmax())/T{2};
+    T xcenter() const
+    {
+      return (xmin() + xmax()) / T{2};
     }
 
-    T ycenter() const {
-      return (ymin()+ymax())/T{2};
+    T ycenter() const
+    {
+      return (ymin() + ymax()) / T{2};
     }
 
     T width() const
@@ -63,10 +65,10 @@ class BBox
 
     friend bool operator==(const BBox &lhs, const BBox &rhs)
     {
-      return impl::areEqual(lhs.xmin(),rhs.xmin()) &&
-        impl::areEqual(lhs.ymin(),rhs.ymin()) &&
-        impl::areEqual(lhs.xmax(),rhs.xmax()) &&
-        impl::areEqual(lhs.ymax(),rhs.ymax());
+      return impl::areEqual(lhs.xmin(), rhs.xmin()) &&
+             impl::areEqual(lhs.ymin(), rhs.ymin()) &&
+             impl::areEqual(lhs.xmax(), rhs.xmax()) &&
+             impl::areEqual(lhs.ymax(), rhs.ymax());
     }
 
     friend bool operator!=(const BBox &lhs, const BBox &rhs)
@@ -87,6 +89,12 @@ class BBox
     T mYmax;
 };
 
+template<typename T>
+BBox<T> enlarge(const BBox<T> &box, T extraWidth, T extraHeight)
+{
+  return BBox<T>(box.xmin() - extraWidth / 2.0, box.ymin() - extraHeight / 2.0,
+                 box.xmax() + extraWidth / 2.0, box.ymax() + extraHeight / 2.0);
+}
 }
 }
 }

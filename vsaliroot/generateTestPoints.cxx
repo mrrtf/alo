@@ -33,7 +33,14 @@ std::vector<std::pair<double, double>> generateTestPoints(int n, double xmin, do
     std::generate(testPoints.begin(), testPoints.end(),
                   [&distX, &distY, &mt] { return std::make_pair<double, double>(distX(mt), distY(mt)); });
 
-  } else {
+  } else if (extent == -1) {
+    for (auto x = xmin; x < xmax; x += (xmax-xmin)/n) {
+      for (auto y = ymin; y < ymax; y += (ymax - ymin) / n) {
+        testPoints.push_back({x, y});
+      }
+    }
+  }
+  else {
     std::normal_distribution<double> dist(0.0, extent * 1.0);
     while (testPoints.size() < n) {
       double x = dist(mt);

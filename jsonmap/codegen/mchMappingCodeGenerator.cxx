@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
 {
   po::variables_map vm;
   po::options_description generic("Generic options");
+  int implToUse{1};
+
   generic.add_options()
     ("help", "produce help message")
     ("detection_elements", "read detection element information")
@@ -44,7 +46,8 @@ int main(int argc, char *argv[])
     ("segmentations", "read segmentation information")
     ("bergs", "read berg connector information")
     ("padsizes", "read padsize information")
-    ("motiftypes", "read motif type information");
+    ("motiftypes", "read motif type information")
+    ("impl", po::value<int>(&implToUse), "implementation to generate");
 
   po::options_description hidden("hidden options");
   hidden.add_options()
@@ -88,27 +91,28 @@ int main(int argc, char *argv[])
     readChambers(documents["chambers"]->document());
   }
 
-  if (documents.count("motiftypes")) {
+  std::cout << "implToUse=" << implToUse << "\n";
+
+  if (implToUse == 1 && documents.count("motiftypes")) {
     Document &doc = documents["motiftypes"]->document();
     auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
     outputCode("", impl, "genMotifType");
   }
 
-  if ( documents.count("motiftypes") && documents.count("bergs")) {
+  if (implToUse == 2 && documents.count("motiftypes") && documents.count("bergs")) {
     Document &motiftypes = documents["motiftypes"]->document();
     Document &bergs = documents["bergs"]->document();
-    auto impl = impl2::generateCodeForPadGroupTypes(motiftypes["motiftypes"],bergs["bergs"]);
-    outputCode("",impl,"genPadGroupType");
+    auto impl = impl2::generateCodeForPadGroupTypes(motiftypes["motiftypes"], bergs["bergs"]);
+    outputCode("", impl, "genPadGroupType");
   }
 
-  if (documents.count("padsizes")) {
+  if ((implToUse == 1 || implToUse == 2) && documents.count("padsizes")) {
     Document &doc = documents["padsizes"]->document();
-    for (std::string ns: {"impl1","impl2"}) {
-      outputCode("", generateCodeForPadSizes(ns,doc["padsizes"]), ns + "-genPadSize",true,true);
-    }
+    outputCode("", generateCodeForPadSizes("impl" + std::to_string(implToUse), doc["padsizes"]), "genPadSize", true,
+               true);
   }
 
-  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
+  if (implToUse == 1 && documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
       && documents.count("detection_elements")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();
@@ -120,21 +124,23 @@ int main(int argc, char *argv[])
                                         detection_elements["detection_elements"]);
   }
 
-  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes")
+  if ((implToUse == 2 || implToUse == 3) && documents.count("segmentations") && documents.count("motiftypes") &&
+      documents.count("padsizes")
       && documents.count("detection_elements") && documents.count("bergs")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();
     Document &padsizes = documents["padsizes"]->document();
     Document &detection_elements = documents["detection_elements"]->document();
     Document &bergs = documents["bergs"]->document();
-    impl2::generateCodeForSegmentations(segmentations["segmentations"],
+
+    impl2::generateCodeForSegmentations("impl" + std::to_string(implToUse), segmentations["segmentations"],
                                         motiftypes["motiftypes"],
                                         padsizes["padsizes"],
                                         detection_elements["detection_elements"],
                                         bergs["bergs"]);
   }
 
-  if (documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&
+  if (implToUse==1 && documents.count("segmentations") && documents.count("motiftypes") && documents.count("padsizes") &&
       documents.count("bergs")) {
     Document &segmentations = documents["segmentations"]->document();
     Document &motiftypes = documents["motiftypes"]->document();

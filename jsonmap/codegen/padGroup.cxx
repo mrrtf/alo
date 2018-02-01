@@ -25,7 +25,8 @@ namespace impl2 {
 
 std::ostream &operator<<(std::ostream &os, const PadGroup &pg)
 {
-  os << "{" << pg.fecId << "," << pg.padGroupTypeId << "," << pg.padSizeId << "," << std::setprecision(10) << pg.x << "," << pg.y << "}";
+  os << "{" << pg.fecId << "," << pg.padGroupTypeId << "," << pg.padSizeId << "," << std::setprecision(10) << pg.x
+     << "," << pg.y << "}";
   return os;
 }
 
@@ -44,7 +45,7 @@ void getPosition(const MotifPosition &mp, const PadGroupType &pgt, double &x, do
                                  {"1NH", 12, 0.0,      1.68 * 3},
                                  {"E14", 57, 2.5 * 1,  0.5 * 9},
                                  {"E14", 5,  2.5 * 1,  0.5 * 2},
-                                 {"E15", 60,  2.5 * 1,  0.5 * 5},
+                                 {"E15", 60, 2.5 * 1,  0.5 * 5},
     //{"E15", 4,  1 * 2.5,  5 * 0.5}
 
   };
@@ -116,12 +117,12 @@ getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGr
   return pgts;
 }
 
-std::vector<std::pair<float, float>>
-getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<float, float>> &allPadSizes)
+std::vector<std::pair<double, double>>
+getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<double, double>> &allPadSizes)
 {
   std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
 
-  std::vector<std::pair<float, float>> padSizes;
+  std::vector<std::pair<double, double>> padSizes;
   for (auto &sid: padSizeIds) {
     padSizes.push_back(allPadSizes[sid]);
   }
@@ -149,7 +150,7 @@ getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector
 
 std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
                             const std::vector<PadGroupType> &padGroupTypes,
-                            const std::vector<std::pair<float, float>> &padSizes)
+                            const std::vector<std::pair<double, double>> &padSizes)
 {
   // change the padGroupType ids in padGroups vector to
   // be from 0 to number of different padgrouptypes in padGroups vector

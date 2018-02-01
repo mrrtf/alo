@@ -197,9 +197,26 @@ BOOST_AUTO_TEST_CASE(IsInsideReturnsFalseIfPointIsExactlyOnAPolygonEdge)
 
 BOOST_AUTO_TEST_CASE(BBoxCreation)
 {
-  BBox<double> expected{-5.0, 5.0, -10.0, 10.0};
+  BBox<double> expected{-5.0, -10.0, 5.0, 10.0};
   BOOST_TEST(getBBox(testPolygon2) == expected);
 }
+
+
+BOOST_AUTO_TEST_CASE(PolygonCenter)
+{
+  Polygon<double> p{{-80, -20},
+                    {-70, -20},
+                    {-70, -19.5},
+                    {-80, -19.5},
+                    {-80, -20}
+  };
+
+  auto box = getBBox(p);
+  std::cout << box << "\n";
+  BOOST_CHECK_EQUAL(box.xcenter(),-75.0);
+  BOOST_CHECK_EQUAL(box.ycenter(),-19.75);
+}
+
 
 BOOST_AUTO_TEST_CASE(ConstructionByVectorIterators)
 {
@@ -211,9 +228,9 @@ BOOST_AUTO_TEST_CASE(ConstructionByVectorIterators)
     {0, 0}
   };
 
-  Polygon<int> p(vertices.begin(),vertices.end());
+  Polygon<int> p(vertices.begin(), vertices.end());
 
-  BOOST_CHECK_EQUAL(p,counterClockwisePolygon);
+  BOOST_CHECK_EQUAL(p, counterClockwisePolygon);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

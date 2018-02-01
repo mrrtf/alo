@@ -24,7 +24,7 @@ target_link_libraries(impl1 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl1 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl1 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl1> 14
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl1> 16
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl1_static STATIC ${SOURCES})

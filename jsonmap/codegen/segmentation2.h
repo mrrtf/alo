@@ -17,12 +17,14 @@
 #define ALO_JSONMAP_CODEGEN_SEGMENTATION2_H
 
 #include "rapidjson/document.h"
+#include <string>
 
 namespace jsonmap {
 namespace codegen {
 namespace impl2 {
 
-void generateCodeForSegmentations(const rapidjson::Value &segmentations,
+void generateCodeForSegmentations(const std::string& ns,
+                                  const rapidjson::Value &segmentations,
                                   const rapidjson::Value &motiftypes,
                                   const rapidjson::Value &padsizes,
                                   const rapidjson::Value &detection_elements,

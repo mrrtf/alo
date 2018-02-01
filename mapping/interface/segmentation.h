@@ -21,6 +21,7 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <boost/format.hpp>
 
 namespace o2 {
 namespace mch {
@@ -29,7 +30,8 @@ namespace mapping {
 class Segmentation
 {
   public:
-    Segmentation(int detElemId, bool isBendingPlane) : mImpl(nullptr), mDualSampaIds{}
+    Segmentation(int detElemId, bool isBendingPlane) : mImpl{nullptr}, mDualSampaIds{},
+                                                       mIsBendingPlane{isBendingPlane}
     {
       mImpl = mchSegmentationConstruct(detElemId, isBendingPlane);
       if (!mImpl) {
@@ -50,6 +52,10 @@ class Segmentation
 
     ~Segmentation()
     { mchSegmentationDestruct(mImpl); }
+
+    bool isBendingPlane() const {
+      return mIsBendingPlane;
+    }
 
     bool isValid(int paduid) const
     {
@@ -98,6 +104,14 @@ class Segmentation
       return mchSegmentationPadSizeY(mImpl, paduid);
     }
 
+    int padDualSampaId(int paduid) const {
+      return mchSegmentationPadDualSampaId(mImpl,paduid);
+    }
+
+    int padDualSampaChannel(int paduid) const {
+      return mchSegmentationPadDualSampaChannel(mImpl,paduid);
+    }
+
     int nofPads() const
     {
       int n{0};
@@ -110,9 +124,13 @@ class Segmentation
     template<typename CALLABLE>
     void forEachPadInDualSampa(int dualSampaId, CALLABLE &&func) const;
 
+    template<typename CALLABLE>
+    void forEachPadInArea(double xmin, double ymin, double xmax, double ymax, CALLABLE&& func) const;
+
   private:
     MchSegmentationHandle mImpl;
     std::vector<int> mDualSampaIds;
+    bool mIsBendingPlane;
 };
 
 template<typename CALLABLE>
@@ -123,6 +141,16 @@ void Segmentation::forEachPadInDualSampa(int dualSampaId, CALLABLE &&func) const
     (*fn)(paduid);
   };
   mchForEachPadInDualSampa(mImpl, dualSampaId, callback, &func);
+}
+
+template<typename CALLABLE>
+void Segmentation::forEachPadInArea(double xmin, double ymin, double xmax, double ymax, CALLABLE &&func) const
+{
+  auto callback = [](void *data, int paduid) {
+    auto fn = static_cast<decltype(&func)>(data);
+    (*fn)(paduid);
+  };
+  mchSegmentationForEachPadInArea(mImpl, xmin, ymin, xmax, ymax, callback, &func);
 }
 
 template<typename CALLABLE>
@@ -145,6 +173,19 @@ void forOneDetectionElementOfEachSegmentationType(CALLABLE &&func)
   mchForOneDetectionElementOfEachSegmentationType(callback, &func);
 }
 
+inline std::string padAsString(const Segmentation &seg, int paduid)
+{
+  if (seg.isValid(paduid)) {
+    return boost::str(boost::format("Pad %10d FEC %4d CH %2d X %7.3f Y %7.3f SX %7.3f SY %7.3f") % paduid
+                      % seg.padDualSampaId(paduid) % seg.padDualSampaChannel(paduid) % seg.padPositionX(paduid) %
+                      seg.padPositionY(paduid)
+                      % seg.padSizeX(paduid) % seg.padSizeY(paduid));
+  }
+  else
+  {
+    return "invalid pad with uid=" + std::to_string(paduid);
+  }
+}
 }
 }
 }

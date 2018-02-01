@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
 
 namespace o2 {
 namespace mch {

@@ -27,7 +27,7 @@ namespace impl2 {
 
 std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt)
 {
-  const double epsilon{1e-4}; // artificially increase size of pads by 1 micron to avoid gaps
+  const double epsilon{1e-3}; // artificially increase size of pads by 10 microns to avoid gaps
 
   std::vector<o2::mch::contour::Polygon<double>> pads;
 

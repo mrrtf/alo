@@ -63,11 +63,7 @@ int mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, 
 IMPL1_EXPORT
 int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel)
 {
-  if (segHandle->impl->hasPadByFEE(dualSampaId,dualSampaChannel)) {
-    // todo: should get a valid paduid here
-    return 1;
-  }
-  return -1;
+  return segHandle->impl->findPadByFEE(dualSampaId,dualSampaChannel);
 }
 
 IMPL1_EXPORT
@@ -141,6 +137,22 @@ double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid)
   double x, y;
   segHandle->impl->getPadDimension(paduid, x, y);
   return y;
+}
+
+IMPL1_EXPORT
+int mchSegmentationPadDualSampaId(MchSegmentationHandle segHandle, int paduid)
+{
+  int dualSampaId, dualSampaChannel;
+  segHandle->impl->getPad(paduid,dualSampaId,dualSampaChannel);
+  return dualSampaId;
+}
+
+IMPL1_EXPORT
+int mchSegmentationPadDualSampaChannel(MchSegmentationHandle segHandle, int paduid)
+{
+  int dualSampaId, dualSampaChannel;
+  segHandle->impl->getPad(paduid,dualSampaId,dualSampaChannel);
+  return dualSampaChannel;
 }
 
 } // extern "C"

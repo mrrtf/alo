@@ -15,15 +15,15 @@
 /// Small program which creates an HTML file with a SVG representation of
 /// all the pad group types
 
+#include <fstream>
 #include "contour.h"
-#include "svgContour.h"
+#include "svgWriter.h"
 #include "padGroupType.h"
 #include "padGroupTypeContour.h"
 #include "boost/format.hpp"
 
 using namespace o2::mch::contour;
 using namespace o2::mch::mapping::impl2;
-using namespace o2::mch::svg;
 
 int main()
 {
@@ -45,13 +45,17 @@ int main()
     maxHeight = std::max(maxHeight, b.height());
   }
 
-  BBox<double> maxBox(0, maxWidth, 0, maxHeight);
+  BBox<double> maxBox(0, 0, maxWidth, maxHeight);
 
   auto style = "fill:#eeeeee;stroke:black;stroke-width:1px";
   std::ofstream out("pgt-all.html");
-  out << R"(
-<html>
-<style>
+  int ncols{5};
+  int nlines{1 + NPG / ncols};
+  int gutter{2};
+  BBox<double> box(0, 0, ncols * (maxBox.width() + gutter), nlines * (maxBox.height() + gutter));
+
+  SVGWriter writer(box);
+  writer.addStyle(R"(
 .padGroupType rect {
   stroke:#333333;
   fill:none;
@@ -67,41 +71,28 @@ int main()
   stroke:black;
   stroke-width:0.1px;
 }
-</style>
-<body>
-)";
-  int ncols{5};
-  int nlines{1 + NPG / ncols};
-  int gutter{2};
-  o2::mch::contour::BBox<double> box(0, ncols * (maxBox.width() + gutter), 0,
-                                  nlines * (maxBox.height() + gutter));
-
-  {
-    o2::mch::svg::Writer writer(out, 1000, box);
-    float x{0};
-    float y{0};
-    float w = maxBox.width();
-    float h = maxBox.height();
-    for (auto i = 0; i < boxes.size(); ++i) {
-      auto pgt = getPadGroupType(i);
-      writer.svgGroupStart("padGroupType");
-      out << boost::format(
-        "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" />\n") %
-             x % y % w % h;
-      out << boost::format(R"(<text x="%d" y="%d">)") % (x + w * 0.5) % (y + h * 0.8)
-          << "PG" + std::to_string(i) + "(" + std::to_string(pgt.getNofPads()) + ")" << "</text>\n";
-      for (auto p : pgtPads[i]) {
-        p.translate(x, y);
-        writer.polygon(p);
-      }
-      writer.svgGroupEnd();
-      x +=maxBox.width() + gutter;
-      if ((i + 1) % ncols == 0) {
-        x = 0;
-        y += maxBox.height() + gutter;
-      }
+)");
+  float x{0};
+  float y{0};
+  float w = maxBox.width();
+  float h = maxBox.height();
+  for (auto i = 0; i < boxes.size(); ++i) {
+    auto pgt = getPadGroupType(i);
+    writer.svgGroupStart("padGroupType");
+    writer << boost::format("<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" />\n") % x % y % w % h;
+    writer << boost::format(R"(<text x="%d" y="%d">)") % (x + w * 0.5) % (y + h * 0.8)
+        << "PG" + std::to_string(i) + "(" + std::to_string(pgt.getNofPads()) + ")" << "</text>\n";
+    for (auto p : pgtPads[i]) {
+      p.translate(x, y);
+      writer.polygon(p);
+    }
+    writer.svgGroupEnd();
+    x += maxBox.width() + gutter;
+    if ((i + 1) % ncols == 0) {
+      x = 0;
+      y += maxBox.height() + gutter;
     }
   }
-  out << "</body></html>\n";
+  writer.writeHTML(out);
 }
 

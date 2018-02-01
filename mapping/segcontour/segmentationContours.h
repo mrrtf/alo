@@ -18,14 +18,23 @@
 
 #include <vector>
 #include "contour.h"
+#include "polygon.h"
+#include "bbox.h"
 #include "segmentation.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
-std::vector<o2::mch::contour::Contour<double>> getSampaContours(const Segmentation& seg);
+std::vector<std::vector<o2::mch::contour::Polygon<double>>> getPadPolygons(const Segmentation &seg);
 
+std::vector<std::vector<int>> getPadChannels(const Segmentation &seg);
+
+std::vector<o2::mch::contour::Contour<double>> getDualSampaContours(const Segmentation &seg);
+
+o2::mch::contour::Contour<double> getEnvelop(const Segmentation &seg);
+
+o2::mch::contour::BBox<double> getBBox(const Segmentation &seg);
 }
 }
 }

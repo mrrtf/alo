@@ -31,27 +31,27 @@
 #include "AliMpVSegmentation.h"
 #include "contour.h"
 #include "contourCreator.h"
-#include "svgContour.h"
+#include "generateTestPoints.h"
 #include "segmentationContours.h"
+#include "segmentationSVGWriter.h"
+#include "svgWriter.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <cmath>
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <iostream>
+#include <segmentation.h>
 #include <set>
 #include <utility>
 #include <vector>
-#include <segmentation.h>
-#include "generateTestPoints.h"
 
 using namespace o2::mch::mapping;
 using namespace o2::mch::contour;
-using namespace o2::mch::svg;
 
 struct MAPPING
 {
@@ -80,143 +80,322 @@ std::vector<int> MAPPING::detElemIds
   };
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
-BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot2, MAPPING)
+BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot, MAPPING)
 
-std::vector<std::pair<bool, bool>> sameHasPadByPosition(const AliMpVSegmentation &alseg, const Segmentation &seg,
-                                                        const std::vector<std::pair<double, double>> &testPoints)
+bool comparePads(const AliMpPad &alPad, const Segmentation &o2Seg, int paduid)
 {
-  // Check whether aliroot and o2 implementations give the same answer to
-  // hasPadByPosition for a small box around (x,y)
-  //
-  // (the test is not done on one point only to avoid edge effects)
-
-  std::vector<std::pair<bool, bool>> found;
-
-  for (auto &p: testPoints) {
-    double xs = p.first;
-    double ys = p.second;
-    AliMpPad alPad = alseg.PadByPosition(xs, ys, false);
-    bool o2Pad = seg.findPadByPosition(xs, ys);
-
-    found.push_back(std::make_pair(alPad.IsValid(), seg.isValid(o2Pad)));
-  }
-  return found;
-}
-
-void dumpSVGforDebug(const std::string filename, const std::vector<Contour<double>> &contours,
-                     const std::vector<std::pair<bool, bool>>& found, const std::vector<std::pair<double, double>> &testPoints)
-{
-  std::vector<std::pair<double, double>> o2Points;
-  std::vector<std::pair<double, double>> alPoints;
-  for (auto i = 0; i < found.size(); ++i) {
-    if (found[i].first) {
-      alPoints.push_back(testPoints[i]);
-    }
-    if (found[i].second) {
-      o2Points.push_back(testPoints[i]);
-    }
+  if (alPad.IsValid() != o2Seg.isValid(paduid)) {
+    return false;
   }
 
-  std::ofstream out(filename);
-  out << R"(
-<html>
-<style>
-.dualsampas {
-  fill:none;
-  stroke-width: 0.1px;
-  stroke: #333333;
+  if (alPad.IsValid()) {
+    if (alPad.GetManuId() != o2Seg.padDualSampaId(paduid) ||
+        alPad.GetManuChannel() != o2Seg.padDualSampaChannel(paduid)) {
+      return false;
+    }
+  }
+  return true;
 }
-.o2points {
+
+std::string padAsString(const AliMpPad &p)
+{
+  if (p.IsValid()) {
+    return boost::str(boost::format("Pad %10d FEC %4d CH %2d X %7.3f Y %7.3f SX %7.3f SY %7.3f") % -1
+                      % p.GetManuId() % p.GetManuChannel() % p.GetPositionX() %
+                      p.GetPositionY() % (p.GetDimensionX() * 2.0) % (p.GetDimensionY() * 2.0));
+  } else {
+    return "invalid pad";
+  }
+}
+
+// filter out test points to remove those that are close to the pad edges
+// (closer to margin, where closer is defined by AliRoot version of the segmentation)
+std::vector<std::pair<double, double>> filterTestPoints(const std::vector<std::pair<double, double>> &origTestPoints,
+                                                        const AliMpVSegmentation &seg,
+                                                        double margin)
+{
+  std::vector<std::pair<double, double>> testPoints;
+
+  for (auto &tp: origTestPoints) {
+    const AliMpPad &pad = seg.PadByPosition(tp.first, tp.second, kFALSE);
+    if (pad.IsValid()) {
+      double xmin{pad.GetPositionX() - pad.GetDimensionX()};
+      double xmax{pad.GetPositionX() + pad.GetDimensionX()};
+      double ymin{pad.GetPositionY() - pad.GetDimensionY()};
+      double ymax{pad.GetPositionY() + pad.GetDimensionY()};
+      if (
+        tp.first > (xmin + margin) &&
+        tp.first<(xmax - margin) &&
+                 tp.second>(ymin + margin) &&
+        tp.second < (ymax - margin)) {
+        testPoints.push_back(tp);
+      }
+    }
+  }
+  return testPoints;
+}
+
+std::vector<std::pair<double, double>> boxTestPoints(const std::vector<std::pair<double, double>> &testPoints,
+                                                     double xmin, double ymin, double xmax, double ymax)
+{
+  std::vector<std::pair<double, double>> filtered;
+
+  for (const auto &tp: testPoints) {
+    if (tp.first > xmin && tp.first < xmax && tp.second > ymin && tp.second < ymax) {
+      filtered.push_back(tp);
+    }
+  }
+
+  return filtered;
+}
+
+BBox<double> getBBox(const std::vector<std::pair<double, double>> &points)
+{
+  double xmin{std::numeric_limits<double>::max()};
+  double xmax{std::numeric_limits<double>::lowest()};
+  double ymin{std::numeric_limits<double>::max()};
+  double ymax{std::numeric_limits<double>::lowest()};
+
+  for (const auto &p: points) {
+    xmin = std::min(xmin, p.first);
+    xmax = std::max(xmax, p.first);
+    ymin = std::min(ymin, p.second);
+    ymax = std::max(ymax, p.second);
+  }
+  return {
+    xmin-5.0, ymin-5.0, xmax+5.0, ymax+5.0
+  };
+}
+
+SVGWriter writeSegmentation(const Segmentation &o2Seg, const BBox<double> &box)
+{
+  SVGWriter w(box);
+
+  w.addStyle(svgSegmentationDefaultStyle());
+
+  w.addStyle(R"(
+.diffpoints {
   fill:none;
-  radius: 1px;
+  stroke-width:0.25px;
   stroke: red;
+  opacity: 0.25;
 }
-.alpoints {
+.testpoints {
   fill:none;
-  radius: 1px;
+  stroke-width:0.01px;
   stroke: blue;
 }
-</style>
-<body>
-)";
-  auto env = o2::mch::contour::getEnvelop(contours);
-  auto box = getBBox(env);
-  {
-    o2::mch::svg::Writer w(out, 1000, box);
-    w.svgGroupStart("dualsampas");
-    for (auto &c:contours) {
-      w.contour(c);
-    }
-    w.svgGroupEnd();
+.usedtestpoints {
+  fill:none;
+  stroke-width:0.01px;
+  stroke: red;
+}
+)");
 
-    w.svgGroupStart("o2points");
-    w.points(o2Points);
-    w.svgGroupEnd();
+  svgSegmentation(o2Seg, w, true, true, true);
 
-    w.svgGroupStart("alpoints");
-    w.points(alPoints);
-    w.svgGroupEnd();
-  }
-  out << "</html></body>\n";
+  return w;
 }
 
-bool checkHasPadByPosition(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane, double step,
-                           int ntimes)
+bool checkHasPadByPosition(int detElemId, const AliMpVSegmentation &alSeg,
+                           const Segmentation &o2Seg,
+                           const std::vector<std::pair<double, double>> &testPoints)
 {
-  auto al = mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
+  SVGWriter w = writeSegmentation(o2Seg, getBBox(testPoints));
+
+  std::vector<std::pair<double, double>> diffPoints;
+
+  for (auto i = 0; i < testPoints.size(); ++i) {
+    double x = testPoints[i].first;
+    double y = testPoints[i].second;
+    const AliMpPad alPad = alSeg.PadByPosition(x, y, kFALSE);
+    int paduid = o2Seg.findPadByPosition(x, y);
+    if (!comparePads(alPad, o2Seg, paduid)) {
+      diffPoints.push_back(testPoints[i]);
+#if 0
+      std::cout
+        << boost::format("\nDIFF for x=%7.3f y=%7.3f\n") % x % y;
+      std::cout << "    " << padAsString(alPad) << "\n";
+      std::cout << "    " << padAsString(o2Seg, paduid);
+#endif
+    }
+  }
+
+  if (diffPoints.empty()) {
+    return true;
+
+  }
+
+  w.svgGroupStart("diffpoints");
+  w.points(diffPoints);
+  w.svgGroupEnd();
+
+  bool isBendingPlane = o2Seg.isBendingPlane();
+  std::ostringstream filename;
+  filename << "bug-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << ".html";
+  std::ofstream out(filename.str());
+  w.writeHTML(out);
+
+  return false;
+}
+
+std::vector<std::pair<double, double>>
+generateManyTestPoints(const AliMpVSegmentation &alSeg, double step, int ntimes)
+{
+  const double offset{1}; // cm
+  const double margin{0.005}; // margin in cm. Do not go below 50-100 micrometers, there's no point.
+  int extent{0}; // -1 for fixed matrix, 0 for flat, > 0 for gaussian
+
+  double xmin{alSeg.GetPositionX() - alSeg.GetDimensionX() - offset};
+  double ymin{alSeg.GetPositionY() - alSeg.GetDimensionY() - offset};
+  double xmax{alSeg.GetPositionX() + alSeg.GetDimensionX() + offset};
+  double ymax{alSeg.GetPositionY() + alSeg.GetDimensionY() + offset};
+
+  std::vector<std::pair<double, double>> testPoints;
+
+  for (double x = xmin; x < xmax; x += step) {
+    for (double y = ymin; y < ymax; y += step) {
+      auto origTestPoints = boxTestPoints(generateTestPoints(ntimes, x, y, x + step, y + step, extent), xmin, ymin,
+                                          xmax, ymax);
+      auto filteredTestPoints = filterTestPoints(origTestPoints, alSeg, margin);
+      std::copy(filteredTestPoints.begin(), filteredTestPoints.end(), std::back_inserter(testPoints));
+    }
+  }
+
+  return testPoints;
+}
+
+std::vector<std::pair<double, double>>
+generateOneTestPointPerPad(const AliMpVSegmentation &alSeg)
+{
+  std::vector<std::pair<double, double>> testPoints;
+  std::unique_ptr<AliMpVPadIterator> it{alSeg.CreateIterator()};
+  it->First();
+  while (!it->IsDone()) {
+    const AliMpPad &p = it->CurrentItem();
+    testPoints.push_back({p.GetPositionX(), p.GetPositionY()});
+    it->Next();
+  }
+  return testPoints;
+}
+
+const AliMpVSegmentation *alirootSegmentation(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
+{
+  return mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
     isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
-  Segmentation o2seg{detElemId, isBendingPlane};
+}
 
-  auto contours = o2::mch::mapping::getSampaContours(o2seg);
-  auto bbox = o2::mch::contour::getBBox(o2::mch::contour::getEnvelop(contours));
+BOOST_AUTO_TEST_CASE(One)
+{
+  int detElemId{100};
+  bool isBendingPlane{true};
+  Segmentation seg{detElemId, isBendingPlane};
+  auto box{enlarge(getBBox(seg), 10.0, 2.0)};
 
-  bool same{true};
+  std::vector<std::pair<double, double>> testPoints;
+  std::vector<int> pads;
 
-  int ndiff{0};
-
-  for (double x = bbox.xmin() + step; x < bbox.xmax() && same; x += step) {
-    for (double y = bbox.ymin() + step; y < bbox.ymax() && same; y += step) {
-      auto testPoints = generateTestPoints(ntimes, x, y, x + step, y + step, 0);
-      auto found = sameHasPadByPosition(*al, o2seg, testPoints);
-      int no2{0};
-      int naliroot{0};
-      for (auto &p: found) {
-        if (p.first) { naliroot++; }
-        if (p.second) { no2++; }
-      }
-      double diff{std::fabs(1.0 * (no2 - naliroot) / ntimes)};
-      if (no2 < naliroot || (diff > 0.02 && no2 > ntimes / 2.0 && naliroot > ntimes / 2.0)) {
-        same = false;
-      }
-      if (!same) {
-
-        std::cout << "diff(%)=" << diff * 100.0 << " for x=" << x << " and y=" << y << "\n";
-        std::cout << "o2=" << no2 << " and aliroot=" << naliroot << " for x=" << x << " and y=" << y << "\n";
-        std::cout << "detElemId=" << detElemId << "\n";
-        std::cout << "isBendingPlane=" << isBendingPlane << "\n";
-
-        std::ostringstream filename;
-        filename << "bug-" << detElemId << "-" << (isBendingPlane ? "B" : "NB") << "-" << ndiff << ".html";
-        ++ndiff;
-        dumpSVGforDebug(filename.str(), contours, found, testPoints);
-      }
+#if 0
+  for (double x = 1.3; x < 1.6; x += 0.1) {
+    for (double y = box.ymin(); y < box.ymax(); y += 0.25) {
+      testPoints.push_back({x, y});
+      pads.push_back(seg.findPadByPosition(x, y));
     }
   }
-  return same;
+#endif
+  double y = 18.27;
+  for (double x = box.xmin(); x < box.xmax(); x += 0.25) {
+    testPoints.push_back({x, y});
+    pads.push_back(seg.findPadByPosition(x, y));
+  }
+
+  std::vector<std::pair<double, double>> there;
+  std::vector<std::pair<double, double>> notthere;
+  for (auto i = 0; i < testPoints.size(); ++i) {
+    if (seg.isValid(pads[i])) {
+      there.push_back(testPoints[i]);
+      //there.push_back({seg.padPositionX(pads[i]),seg.padPositionY(pads[i])});
+      std::cout << boost::format("x %7.2f") % (seg.padPositionX(pads[i]) - seg.padSizeX(pads[i]) / 2.0) << "\n";
+    } else {
+      notthere.push_back(testPoints[i]);
+    }
+  }
+
+  SVGWriter w(box);
+
+  svgSegmentation(seg, w, true, true, true);
+  w.addStyle(svgSegmentationDefaultStyle());
+  w.addStyle(R"(
+.there {
+  fill:none;
+  stroke-width:0.01px;
+  stroke: green;
+}
+.notthere {
+  fill:none;
+  stroke-width:0.01px;
+  stroke: pink;
+}
+)");
+
+  w.svgGroupStart("there");
+  w.points(there);
+  w.svgGroupEnd();
+
+  w.svgGroupStart("notthere");
+  w.points(notthere);
+  w.svgGroupEnd();
+
+  std::ofstream out("one.html");
+  w.writeHTML(out);
+
+  BOOST_TEST(false);
 }
 
-BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2Bending, boost::unit_test::data::make(
-  {100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}), detElemId)
+bool SamePadsRandom(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
 {
   double step{1}; // cm
-  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, true, step, 100));
+  int ntimes{10};
+  auto alSeg = alirootSegmentation(mseg, detElemId, isBendingPlane);
+  Segmentation o2Seg{detElemId, isBendingPlane};
+  return checkHasPadByPosition(detElemId, *alSeg, o2Seg,
+                               generateManyTestPoints(*alSeg, step, ntimes));
 }
 
-BOOST_DATA_TEST_CASE(HasPadByPositionIsTheSameForAliRootAndO2NonBending, boost::unit_test::data::make(
-  {100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}), detElemId)
+bool SamePadsSingle(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
 {
-  double step{1}; // cm
-  BOOST_TEST(checkHasPadByPosition(mseg, detElemId, false, step, 100));
+  auto alSeg = alirootSegmentation(mseg, detElemId, isBendingPlane);
+  Segmentation o2Seg{detElemId, isBendingPlane};
+  return checkHasPadByPosition(detElemId, *alSeg, o2Seg,
+                               generateOneTestPointPerPad(*alSeg));
+}
+
+BOOST_DATA_TEST_CASE(SamePadsRandomBending,
+                     boost::unit_test::data::make(MAPPING::detElemIds),
+                     detElemId)
+{
+  BOOST_TEST(SamePadsRandom(mseg, detElemId, true));
+}
+
+BOOST_DATA_TEST_CASE(SamePadsRandomNonBending,
+                     boost::unit_test::data::make(MAPPING::detElemIds),
+                     detElemId)
+{
+  BOOST_TEST(SamePadsRandom(mseg, detElemId, false));
+}
+
+BOOST_DATA_TEST_CASE(SamePadsSingleBending,
+                     boost::unit_test::data::make(MAPPING::detElemIds),
+                     detElemId)
+{
+  BOOST_TEST(SamePadsSingle(mseg, detElemId, true));
+}
+
+BOOST_DATA_TEST_CASE(SamePadsSingleNonBending,
+                     boost::unit_test::data::make(MAPPING::detElemIds),
+                     detElemId)
+{
+  BOOST_TEST(SamePadsSingle(mseg, detElemId, false));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -126,8 +126,8 @@ int Segmentation::findPadByPosition(double x, double y) const
   }
 
   auto& pg = mPadGroups[pgi];
-  int ix = (x - pg.mX)/mPadSizes[pg.mPadSizeId].first;
-  int iy = (y - pg.mY)/mPadSizes[pg.mPadSizeId].second;
+  int ix = static_cast<int>(std::floor((x - pg.mX)/mPadSizes[pg.mPadSizeId].first));
+  int iy = static_cast<int>(std::floor((y - pg.mY)/mPadSizes[pg.mPadSizeId].second));
   auto& pgt = mPadGroupTypes[pg.mPadGroupTypeId];
   if ( pgt.hasPadById(pgt.id(ix,iy))) {
     return padUid(pgi,pgt.fastIndex(ix,iy));
@@ -163,7 +163,7 @@ const PadGroupType &Segmentation::padGroupType(int paduid) const
 int Segmentation::findPadByFEE(int dualSampaId, int dualSampaChannel) const
 {
   for (auto paduid: getPadUids(dualSampaId)) {
-    if (padGroupType(paduid).hasPadById(dualSampaChannel)) {
+    if (padGroupType(paduid).id(padUid2padGroupTypeFastIndex(paduid)) == dualSampaChannel) {
       return paduid;
     }
   }
@@ -193,6 +193,17 @@ double Segmentation::padSizeY(int paduid) const
 {
   return mPadSizes[padGroup(paduid).mPadSizeId].second;
 }
+
+int Segmentation::padDualSampaId(int paduid) const
+{
+  return padGroup(paduid).mFECId;
+}
+
+int Segmentation::padDualSampaChannel(int paduid) const
+{
+  return padGroupType(paduid).id(padUid2padGroupTypeFastIndex(paduid));
+}
+
 
 std::ostream &operator<<(std::ostream &out, const std::pair<float, float> &p)
 {

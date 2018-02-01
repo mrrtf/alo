@@ -196,7 +196,17 @@ getPadGroupTypes(int regIndex, int nonRegIndex, const rapidjson::Value &motifTyp
     assert(p["berg"].IsInt());
     assert(p["ix"].IsInt());
     assert(p["iy"].IsInt());
-    v.channelId.push_back(berg2manu[p["berg"].GetInt()]);
+    int bergNumber = p["berg"].GetInt();
+    auto it = berg2manu.find(bergNumber);
+    if (it == berg2manu.end()) {
+      std::cout << "did not find berg " << bergNumber << " ! for "
+                << v.originalMotifTypeIdString
+                << " " << berg2manu.size() << "\n";
+
+      v.channelId.push_back(99);
+    } else {
+      v.channelId.push_back(it->second);
+    }
     v.ix.push_back(p["ix"].GetInt());
     v.iy.push_back(p["iy"].GetInt());
   }
@@ -219,7 +229,7 @@ getPadGroupTypes(int regIndex, int nonRegIndex, const rapidjson::Value &motifTyp
 std::map<int, int> getBerg2Manu(const rapidjson::Value &berg, bool is80pins)
 {
   std::map<int, int> b2m;
-  int npins{is80pins ? 80:100};
+  int npins{is80pins ? 80 : 100};
   int ipin{0};
   if (berg[ipin]["id"].GetInt() != npins) { ipin = 1; }
   if (berg[ipin]["id"].GetInt() != npins) { throw std::runtime_error("number of pins can only be 80 or 100"); }
@@ -249,7 +259,7 @@ std::vector<PadGroupType> getPadGroupTypes(const rapidjson::Value &motiftypes, c
     assert(motifType.IsObject());
     std::string motifTypeId = motifType["id"].GetString();
     std::map<int, int> *b2m{nullptr};
-    if (motifTypeId[0] == '1' || motifTypeId[1] == '2') {
+    if (motifTypeId[0] == '1' || motifTypeId[0] == '2') {
       b2m = &berg2manuMaps[0];
     } else {
       b2m = &berg2manuMaps[1];

@@ -53,12 +53,10 @@ double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, int paduid);
 double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, int paduid);
 double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, int paduid);
 double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid);
-/*
-int mchPadDualSampaId(MchPadHandle ph, MchErrorHandle *error);
 
-int mchPadDualSampaChannel(MchPadHandle ph, MchErrorHandle *error);
-
- */
+void mchSegmentationForEachPadInArea(MchSegmentationHandle segHAndle, double xmin, double ymin, double xmax, double ymax, void* clientData);
+int mchSegmentationPadDualSampaId(MchSegmentationHandle segHandle, int paduid);
+int mchSegmentationPadDualSampaChannel(MchSegmentationHandle segHandle, int paduid);
 
 #ifdef __cplusplus
 };

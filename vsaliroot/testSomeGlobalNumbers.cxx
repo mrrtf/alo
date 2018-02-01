@@ -31,7 +31,6 @@
 #include "AliMpVSegmentation.h"
 #include "contour.h"
 #include "contourCreator.h"
-#include "svgContour.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>

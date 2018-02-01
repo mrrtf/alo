@@ -27,18 +27,24 @@ BOOST_AUTO_TEST_SUITE(bbox)
 
 BOOST_AUTO_TEST_CASE(BBoxMustBeCreatedValid)
 {
-  BOOST_CHECK_THROW(BBox<int>(2,0,2,0),std::invalid_argument);
+  BOOST_CHECK_THROW(BBox<int>(2, 2, 0, 0), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(CheckBBoxBoundaries)
 {
-  BBox<double> test{ -15.0, 5.0, -10.0, 20.0 };
+  BBox<double> test{-15.0, -10.0, 5.0, 20.0};
   BOOST_TEST(test.xmin()==-15.0);
   BOOST_TEST(test.xmax()==5.0);
   BOOST_TEST(test.ymin()==-10.0);
   BOOST_TEST(test.ymax()==20.0);
 }
 
+BOOST_AUTO_TEST_CASE(CheckBBoxCenter)
+{
+  BBox<double> test{-15.0, -10.0, 5.0, 20.0};
+  BOOST_TEST(test.xcenter()==-5.0);
+  BOOST_TEST(test.ycenter()==5.0);
+}
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

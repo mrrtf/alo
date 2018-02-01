@@ -14,36 +14,82 @@
 
 #include "segmentationContours.h"
 #include "contourCreator.h"
-#include "polygon.h"
+
+using namespace o2::mch::contour;
 
 namespace o2 {
 namespace mch {
 namespace mapping {
 
-std::vector<o2::mch::contour::Contour<double>> getSampaContours(const Segmentation& seg)
+BBox<double> getBBox(const Segmentation &seg)
+{
+  return getBBox(getEnvelop(seg));
+}
+
+Contour<double> getEnvelop(const Segmentation &seg)
+{
+  std::vector<Polygon<double>> polygons;
+
+  for (auto &contour: getDualSampaContours(seg)) {
+    for (auto &p : contour.getPolygons()) {
+      polygons.push_back(p);
+    }
+  }
+
+  return o2::mch::contour::createContour(polygons);
+}
+
+std::vector<std::vector<int>> getPadChannels(const Segmentation &seg)
+{
+  std::vector<std::vector<int>> dualSampaPads;
+
+  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
+    std::vector<int> pads;
+    seg.forEachPadInDualSampa(seg.dualSampaId(i), [&pads, &seg](int paduid) {
+      double x = seg.padPositionX(paduid);
+      double y = seg.padPositionY(paduid);
+      double dx = seg.padSizeX(paduid) / 2.0;
+      double dy = seg.padSizeY(paduid) / 2.0;
+
+      pads.emplace_back(seg.padDualSampaChannel(paduid));
+    });
+    dualSampaPads.push_back(pads);
+  }
+
+  return dualSampaPads;
+}
+
+std::vector<std::vector<Polygon<double>>> getPadPolygons(const Segmentation &seg)
+{
+  std::vector<std::vector<Polygon<double>>> dualSampaPads;
+
+  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
+    std::vector<Polygon<double>> pads;
+    seg.forEachPadInDualSampa(seg.dualSampaId(i), [&pads, &seg](int paduid) {
+      double x = seg.padPositionX(paduid);
+      double y = seg.padPositionY(paduid);
+      double dx = seg.padSizeX(paduid) / 2.0;
+      double dy = seg.padSizeY(paduid) / 2.0;
+
+      pads.emplace_back(Polygon<double> {{x - dx, y - dy},
+                                         {x + dx, y - dy},
+                                         {x + dx, y + dy},
+                                         {x - dx, y + dy},
+                                         {x - dx, y - dy}});
+    });
+    dualSampaPads.push_back(pads);
+  }
+
+  return dualSampaPads;
+}
+
+std::vector<o2::mch::contour::Contour<double>> getDualSampaContours(const Segmentation &seg)
 {
   std::vector<o2::mch::contour::Contour<double>> contours;
-  for (auto i = 0; i < seg.nofDualSampas(); ++i) {
-    std::vector<o2::mch::contour::Polygon<double>> cpads;
-    seg.forEachPadInDualSampa(seg.dualSampaId(i),
-                              [&](int paduid) {
-                                double x = seg.padPositionX(paduid);
-                                double y = seg.padPositionY(paduid);
-                                double dx = seg.padSizeX(paduid) / 2.0;
-                                double dy = seg.padSizeY(paduid) / 2.0;
-                                double xBottomLeft = x - dx;
-                                double yBottomLeft = y - dy;
-                                double xTopRight = x + dx;
-                                double yTopRight = y + dy;
-                                cpads.push_back({
-                                                  {xBottomLeft, yBottomLeft},
-                                                  {xTopRight,   yBottomLeft},
-                                                  {xTopRight,   yTopRight},
-                                                  {xBottomLeft, yTopRight},
-                                                  {xBottomLeft, yBottomLeft}
-                                                });
-                              });
-    contours.push_back(o2::mch::contour::createContour(cpads));
+  auto padPolygons = getPadPolygons(seg);
+
+  for (auto &vpads: padPolygons) {
+    contours.push_back(o2::mch::contour::createContour(vpads));
   }
   return contours;
 }

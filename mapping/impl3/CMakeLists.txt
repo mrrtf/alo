@@ -1,13 +1,9 @@
 set(SOURCES
         genDetElemId2SegType.cxx
         genDetElemId2SegType.h
-        genPadGroupType.cxx
-        genPadSize.cxx
         padGroup.h
         padGroupType.cxx
         padGroupType.h
-        padGroupTypeContour.cxx
-        padGroupTypeContour.h
         segmentationCImpl3.cxx
         segmentationCreator.cxx
         segmentationCreator.h
@@ -25,16 +21,16 @@ endforeach ()
 
 add_library(impl3 SHARED ${SOURCES})
 target_include_directories(impl3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
-target_link_libraries(impl3 PUBLIC mapping_interface contour Boost::boost)
+target_link_libraries(impl3 PUBLIC mapping_interface Boost::boost)
 set_target_properties(impl3 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl3 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 14
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 16
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl3_static STATIC ${SOURCES})
 target_include_directories(impl3_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
-target_link_libraries(impl3_static PUBLIC mapping_interface contour Boost::boost)
+target_link_libraries(impl3_static PUBLIC mapping_interface Boost::boost)
 
 install(TARGETS impl3 impl3_static
         LIBRARY DESTINATION lib

@@ -48,7 +48,7 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 
 void Segmentation::fillRtree()
 {
-  const double epsilon{1E-6}; // artificially increase size of pads by a smidge to avoid gaps
+  const double epsilon{0}; // artificially increase size of pads by a smidge to avoid gaps
 
   int paduid{0};
 
@@ -176,7 +176,7 @@ const PadGroupType &Segmentation::padGroupType(int paduid) const
 int Segmentation::findPadByFEE(int dualSampaId, int dualSampaChannel) const
 {
   for (auto paduid: getPadUids(dualSampaId)) {
-    if (padGroupType(paduid).hasPadById(dualSampaChannel)) {
+    if (padGroupType(paduid).id(mPadUid2PadGroupTypeFastIndex[paduid]) == dualSampaChannel) {
       return paduid;
     }
   }
@@ -205,6 +205,16 @@ double Segmentation::padSizeX(int paduid) const
 double Segmentation::padSizeY(int paduid) const
 {
   return mPadSizes[padGroup(paduid).mPadSizeId].second;
+}
+
+int Segmentation::padDualSampaId(int paduid) const
+{
+  return padGroup(paduid).mFECId;
+}
+
+int Segmentation::padDualSampaChannel(int paduid) const
+{
+  return padGroupType(paduid).id(mPadUid2PadGroupTypeFastIndex[paduid]);
 }
 
 std::ostream &operator<<(std::ostream &out, const std::pair<float, float> &p)

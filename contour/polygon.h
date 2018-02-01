@@ -236,9 +236,9 @@ template<typename T>
 BBox<T> getBBox(const std::vector<Vertex<T>>& vertices) {
 
   T xmin{std::numeric_limits<T>::max()};
-  T xmax{std::numeric_limits<T>::min()};
+  T xmax{std::numeric_limits<T>::lowest()};
   T ymin{std::numeric_limits<T>::max()};
-  T ymax{std::numeric_limits<T>::min()};
+  T ymax{std::numeric_limits<T>::lowest()};
 
   for (const auto &v:vertices) {
     xmin = std::min(xmin, v.x);
@@ -247,7 +247,7 @@ BBox<T> getBBox(const std::vector<Vertex<T>>& vertices) {
     ymax = std::max(ymax, v.y);
   }
   return {
-    xmin, xmax, ymin, ymax
+    xmin, ymin, xmax, ymax
   };
 }
 
@@ -268,9 +268,9 @@ BBox<T> getBBox(const std::vector<Polygon<T>> &polygons)
   /// of this vector of polygons
 
   T xmin{std::numeric_limits<T>::max()};
-  T xmax{std::numeric_limits<T>::min()};
+  T xmax{std::numeric_limits<T>::lowest()};
   T ymin{std::numeric_limits<T>::max()};
-  T ymax{std::numeric_limits<T>::min()};
+  T ymax{std::numeric_limits<T>::lowest()};
 
   for (const auto &p: polygons) {
     auto b = getBBox(p);
@@ -280,7 +280,7 @@ BBox<T> getBBox(const std::vector<Polygon<T>> &polygons)
     ymax = std::max(ymax, b.ymax());
   }
   return {
-    xmin, xmax, ymin, ymax
+    xmin, ymin, xmax, ymax
   };
 }
 

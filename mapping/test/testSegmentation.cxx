@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE(DualSampasWithLessThan64Pads)
 
 struct SEG
 {
-Segmentation seg{100,true};
+    Segmentation seg{100, true};
 };
 
 BOOST_FIXTURE_TEST_SUITE(HasPadBy, SEG)
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(ThrowsIfDualSampaChannelIsNotBetween0And63)
 
 BOOST_AUTO_TEST_CASE(ReturnsTrueIfPadIsConnected)
 {
-  BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByFEE(102, 3)),true);
+  BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByFEE(102, 3)), true);
 }
 
 BOOST_AUTO_TEST_CASE(ReturnsFalseIfPadIsNotConnected)
@@ -261,6 +261,18 @@ BOOST_AUTO_TEST_CASE(HasPadByPosition)
 {
   BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByPosition(40.0, 30.0)), true);
 }
+
+
+BOOST_AUTO_TEST_CASE(CheckPositionOfOnePadInDE100Bending)
+{
+  Segmentation seg(100, true);
+  std::cout << padAsString(seg, seg.findPadByFEE(76, 9)) << "\n";
+  std::cout << padAsString(seg, seg.findPadByFEE(76, 7)) << "\n";
+  std::cout << padAsString(seg, -1) << "\n";
+  std::cout << padAsString(seg, seg.findPadByPosition(1.575, 18.69)) << "\n";
+  BOOST_CHECK(false);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

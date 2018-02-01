@@ -13,23 +13,21 @@
 /// @author  Laurent Aphecetche
 
 
-#ifndef O2_MCH_MAPPING_impl3_PADGROUPTYPECONTOUR_H
-#define O2_MCH_MAPPING_impl3_PADGROUPTYPECONTOUR_H
+#ifndef O2_MCH_MAPPING_SEGMENTATIONSVGWRITER_H
+#define O2_MCH_MAPPING_SEGMENTATIONSVGWRITER_H
 
-#include "polygon.h"
-#include "padGroupType.h"
-#include <vector>
+#include <string>
+#include "svgWriter.h"
 
 namespace o2 {
 namespace mch {
 namespace mapping {
-namespace impl3 {
 
-std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt);
+class Segmentation;
 
-std::vector<o2::mch::contour::Polygon<double>> computeContours(const std::vector<PadGroupType> &padGroupTypes);
+std::string svgSegmentationDefaultStyle();
 
-}
+void svgSegmentation(const Segmentation &seg, o2::mch::contour::SVGWriter &writer, bool showdes, bool showdualsampas, bool showpads);
 }
 }
 }

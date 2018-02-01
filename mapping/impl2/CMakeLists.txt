@@ -1,8 +1,6 @@
 set(SOURCES
         genDetElemId2SegType.cxx
         genDetElemId2SegType.h
-        genPadGroupType.cxx
-        genPadSize.cxx
         padGroup.h
         padGroupType.cxx
         padGroupType.h
@@ -29,14 +27,14 @@ target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl2 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl2 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 14
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 16
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl2_static STATIC ${SOURCES})
 target_include_directories(impl2_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
 target_link_libraries(impl2_static PUBLIC mapping_interface contour Boost::boost)
 
-add_executable(svgPadGroupType svgPadGroupType.cxx)
+add_executable(svgPadGroupType svgPadGroupType.cxx genPadGroupType.cxx)
 target_link_libraries(svgPadGroupType PRIVATE impl2_static)
 
 install(TARGETS impl2 impl2_static

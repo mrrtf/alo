@@ -82,20 +82,20 @@ int detElemId2SegType(int detElemId)
   return impl.str();
 }
 
-void generateCodeForDetElemId2SegType(const Value &segmentation, const Value &detection_elements)
+void generateCodeForDetElemId2SegType(const std::string& ns, const Value &segmentation, const Value &detection_elements)
 {
   bool includeGuards{true};
   bool standalone{true};
   std::stringstream decl, impl;
 
-  decl << mappingNamespaceBegin("impl2");
+  decl << mappingNamespaceBegin(ns);
   decl << "int detElemId2SegType(int detElemId);";
-  decl << mappingNamespaceEnd("impl2");
+  decl << mappingNamespaceEnd(ns);
 
   impl << generateInclude({"array"});
-  impl << mappingNamespaceBegin("impl2");
+  impl << mappingNamespaceBegin(ns);
   impl << codeForDetElemId2SegType(segmentation, detection_elements);
-  impl << mappingNamespaceEnd("impl2");
+  impl << mappingNamespaceEnd(ns);
   outputCode(decl.str(), impl.str(),
              "genDetElemId2SegType",
              includeGuards, !standalone);
@@ -113,28 +113,29 @@ std::map<int, int> getManu2Berg(const Value &bergs, bool is80pins)
 }
 
 template<typename T>
-void output(std::ostream& code, T& value)
+void output(std::ostream &code, T &value)
 {
   code << value;
 }
 
 template<>
-void output(std::ostream &code, std::pair<float, float> &value)
+void output(std::ostream &code, std::pair<double, double> &value)
 {
   code << "{" << value.first << "," << value.second << "}";
 }
 
 
 template<>
-void output(std::ostream& code, PadGroupType& pgt) {
+void output(std::ostream &code, PadGroupType &pgt)
+{
 
   code << "/* " << pgt.originalMotifTypeIdString << " */ ";
   code << "{" << pgt.nofPadsX() << "," << pgt.nofPadsY() << ",";
   auto indices = pgt.fastIndex();
   code << "{";
-  for ( auto i = 0; i < indices.size(); i++) {
+  for (auto i = 0; i < indices.size(); i++) {
     code << indices[i];
-    if (i<indices.size()-1) {
+    if (i < indices.size() - 1) {
       code << ",";
     }
   }
@@ -143,12 +144,12 @@ void output(std::ostream& code, PadGroupType& pgt) {
 }
 
 template<typename T>
-void output(std::ostream& code, std::vector<T>& v)
+void output(std::ostream &code, std::vector<T> &v)
 {
   code << "{";
-  for ( auto i = 0; i< v.size(); i++ ) {
-    output(code,v[i]);
-    if  (i < v.size()-1) {
+  for (auto i = 0; i < v.size(); i++) {
+    output(code, v[i]);
+    if (i < v.size() - 1) {
       code << ",";
     }
     code << "\n";
@@ -158,39 +159,39 @@ void output(std::ostream& code, std::vector<T>& v)
 
 std::string getCodeForSegmentationCtor(const std::vector<MotifPosition> &motifPositions,
                                        const std::vector<PadGroupType> &allPadGroupTypes,
-                                       const std::vector<std::pair<float, float>> &allPadSizes,
+                                       const std::vector<std::pair<double, double>> &allPadSizes,
                                        const std::map<int, int> &manu2berg)
 {
   // get the padgroups corresponding to the motif positions
-  std::vector<PadGroup> padGroups = getPadGroups(motifPositions,allPadGroupTypes, manu2berg);
+  std::vector<PadGroup> padGroups = getPadGroups(motifPositions, allPadGroupTypes, manu2berg);
 
   // get only the padgrouptypes present in original padgroups
-  std::vector<PadGroupType> pgts = getPadGroupTypes(padGroups,allPadGroupTypes);
+  std::vector<PadGroupType> pgts = getPadGroupTypes(padGroups, allPadGroupTypes);
 
   // get only the padsizes present in original padgroups
-  std::vector<std::pair<float,float>> padsizes = getPadSizes(padGroups,allPadSizes);
+  std::vector<std::pair<double,double>> padsizes = getPadSizes(padGroups, allPadSizes);
 
-  std::vector<PadGroup> remappedGroups = remap(padGroups,pgts,padsizes);
+  std::vector<PadGroup> remappedGroups = remap(padGroups, pgts, padsizes);
 
   std::stringstream code;
 
   code << "\n/* PG */\n";
-  output(code,remappedGroups);
+  output(code, remappedGroups);
   code << ",\n /* PGT */\n";
-  output(code,pgts);
+  output(code, pgts);
   code << ",\n /* PS */\n";
-  output(code,padsizes);
+  output(code, padsizes);
 
   return code.str();
 }
 
 void
-generateCodeForSegmentationCreator(int segType, std::string codeForBendingCtor, std::string codeForNonBendingCtor)
+generateCodeForSegmentationCreator(const std::string& ns, int segType, std::string codeForBendingCtor, std::string codeForNonBendingCtor)
 {
   std::stringstream impl;
 
   impl << generateInclude({"segmentationCreator.h"});
-  impl << mappingNamespaceBegin("impl2");
+  impl << mappingNamespaceBegin(ns);
 
   std::string creatorName{"createSegType" + std::to_string(segType)};
   impl << "Segmentation* " << creatorName << "(bool isBendingPlane) {\n";
@@ -207,11 +208,28 @@ generateCodeForSegmentationCreator(int segType, std::string codeForBendingCtor, 
        << "); }\n";
   impl << "} a" << registerName << ";\n";
 
-  impl << mappingNamespaceEnd("impl2");
+  impl << mappingNamespaceEnd(ns);
   outputCode("", impl.str(), "genSegmentationCreatorForSegType" + std::to_string(segType), true, true);
 }
 
-void generateCodeForSegmentations2(const Value &segmentations, const Value &motiftypes,
+bool checkPadGroupType(const PadGroupType& pgt) {
+
+  // check that each pad group type has only each pad id once ...
+
+  auto t = pgt.channelId;
+  std::sort(t.begin(),t.end());
+  auto last = std::unique(t.begin(),t.end());
+  t.erase(last,t.end());
+  std::vector<int> a;
+  std::copy_if(t.begin(),t.end(),std::back_inserter(a),[](int i) { return i>=0; });
+  if ( a.size() != pgt.ix.size() ) {
+    std::cout << a.size() << " != " << pgt.ix.size() << " " << pgt.originalMotifTypeIdString;
+    return false;
+  }
+  return true;
+}
+
+void generateCodeForSegmentations2(const std::string& ns, const Value &segmentations, const Value &motiftypes,
                                    const Value &jsonPadSizes,
                                    const Value &detection_elements,
                                    const Value &bergs)
@@ -219,7 +237,14 @@ void generateCodeForSegmentations2(const Value &segmentations, const Value &moti
   // generate code for the segmentation creators
   auto padGroupTypes = getPadGroupTypes(motiftypes, bergs);
 
-  std::vector<std::pair<float, float>> padSizes{jsonmap::codegen::getPadSizes(jsonPadSizes)};
+  int n{0};
+  for (auto& pgt: padGroupTypes) {
+    if (!checkPadGroupType(pgt)) {
+      std::cout << " | " << n++ << "\n";
+    }
+  }
+
+  std::vector<std::pair<double, double>> padSizes{jsonmap::codegen::getPadSizes(jsonPadSizes)};
 
   for (int segType = 0; segType < 21; ++segType) {
     std::map<int, int> manu2berg = getManu2Berg(bergs, segType < 2);
@@ -229,17 +254,18 @@ void generateCodeForSegmentations2(const Value &segmentations, const Value &moti
       auto mp = getMotifPositions(segType, isBendingPlane, segmentations, motiftypes, jsonPadSizes);
       code[i] = getCodeForSegmentationCtor(mp, padGroupTypes, padSizes, manu2berg);
     }
-    generateCodeForSegmentationCreator(segType, code[0], code[1]);
+    generateCodeForSegmentationCreator(ns,segType, code[0], code[1]);
   }
 }
 
-void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
+void generateCodeForSegmentations(const std::string& ns,
+                                  const Value &segmentations, const Value &motiftypes,
                                   const Value &padsizes,
                                   const Value &detection_elements,
                                   const Value &bergs)
 {
-  generateCodeForDetElemId2SegType(segmentations, detection_elements);
-  generateCodeForSegmentations2(segmentations, motiftypes, padsizes, detection_elements, bergs);
+  generateCodeForDetElemId2SegType(ns,segmentations, detection_elements);
+  generateCodeForSegmentations2(ns,segmentations, motiftypes, padsizes, detection_elements, bergs);
 }
 }
 }
