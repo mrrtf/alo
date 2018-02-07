@@ -41,7 +41,11 @@ class Segmentation
                  std::vector<PadGroupType> padGroupTypes,
                  std::vector<std::pair<float, float>> padSizes);
 
+    /// Return the list of paduids for the pads of the given dual sampa.
     std::vector<int> getPadUids(int dualSampaIds) const;
+
+    /// Return the list of paduids for the pads contained in the box {xmin,ymin,xmax,ymax}.
+    std::vector<int> getPadUids(double xmin, double ymin, double xmax, double ymax) const;
 
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }

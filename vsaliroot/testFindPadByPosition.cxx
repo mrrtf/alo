@@ -18,20 +18,18 @@
 #include <boost/test/unit_test.hpp>
 
 #include "AliMpDDLStore.h"
-#include "AliMpDataProcessor.h"
-#include "AliMpDataStreams.h"
 #include "AliMpDetElement.h"
 #include "AliMpManuIterator.h"
 #include "AliMpMotif.h"
 #include "AliMpMotifPosition.h"
 #include "AliMpMotifType.h"
 #include "AliMpPad.h"
-#include "AliMpSegmentation.h"
 #include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
 #include "contour.h"
 #include "contourCreator.h"
 #include "generateTestPoints.h"
+#include "mappingFixture.h"
 #include "segmentationContours.h"
 #include "segmentationSVGWriter.h"
 #include "svgWriter.h"
@@ -53,49 +51,8 @@
 using namespace o2::mch::mapping;
 using namespace o2::mch::contour;
 
-struct MAPPING
-{
-    MAPPING()
-    {
-      if (!ddlStore) {
-        AliMpDataProcessor mp;
-        AliMpDataMap *dataMap = mp.CreateDataMap("data");
-        AliMpDataStreams dataStreams(dataMap);
-        ddlStore = AliMpDDLStore::ReadData(dataStreams);
-        mseg = AliMpSegmentation::Instance();
-      }
-    }
-
-    static AliMpDDLStore *ddlStore;
-    static AliMpSegmentation *mseg;
-
-    static std::vector<int> detElemIds;
-};
-
-AliMpDDLStore *MAPPING::ddlStore{nullptr};
-AliMpSegmentation *MAPPING::mseg{nullptr};
-std::vector<int> MAPPING::detElemIds
-  {
-    100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905
-  };
-
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot, MAPPING)
-
-bool comparePads(const AliMpPad &alPad, const Segmentation &o2Seg, int paduid)
-{
-  if (alPad.IsValid() != o2Seg.isValid(paduid)) {
-    return false;
-  }
-
-  if (alPad.IsValid()) {
-    if (alPad.GetManuId() != o2Seg.padDualSampaId(paduid) ||
-        alPad.GetManuChannel() != o2Seg.padDualSampaChannel(paduid)) {
-      return false;
-    }
-  }
-  return true;
-}
 
 std::string padAsString(const AliMpPad &p)
 {
@@ -163,7 +120,7 @@ BBox<double> getBBox(const std::vector<std::pair<double, double>> &points)
     ymax = std::max(ymax, p.second);
   }
   return {
-    xmin-5.0, ymin-5.0, xmax+5.0, ymax+5.0
+    xmin - 5.0, ymin - 5.0, xmax + 5.0, ymax + 5.0
   };
 }
 
@@ -180,11 +137,6 @@ SVGWriter writeSegmentation(const Segmentation &o2Seg, const BBox<double> &box)
   stroke: red;
   opacity: 0.25;
 }
-.testpoints {
-  fill:none;
-  stroke-width:0.01px;
-  stroke: blue;
-}
 .usedtestpoints {
   fill:none;
   stroke-width:0.01px;
@@ -192,7 +144,7 @@ SVGWriter writeSegmentation(const Segmentation &o2Seg, const BBox<double> &box)
 }
 )");
 
-  svgSegmentation(o2Seg, w, true, true, true);
+  svgSegmentation(o2Seg, w, true, true, true, false);
 
   return w;
 }
@@ -243,7 +195,7 @@ std::vector<std::pair<double, double>>
 generateManyTestPoints(const AliMpVSegmentation &alSeg, double step, int ntimes)
 {
   const double offset{1}; // cm
-  const double margin{0.005}; // margin in cm. Do not go below 50-100 micrometers, there's no point.
+  const double margin{0.01}; // margin in cm. Do not go below 100 micrometers, there's no point.
   int extent{0}; // -1 for fixed matrix, 0 for flat, > 0 for gaussian
 
   double xmin{alSeg.GetPositionX() - alSeg.GetDimensionX() - offset};
@@ -277,12 +229,6 @@ generateOneTestPointPerPad(const AliMpVSegmentation &alSeg)
     it->Next();
   }
   return testPoints;
-}
-
-const AliMpVSegmentation *alirootSegmentation(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
-{
-  return mseg->GetMpSegmentation(detElemId, AliMpDDLStore::Instance()->GetDetElement(detElemId)->GetCathodType(
-    isBendingPlane ? AliMp::kBendingPlane : AliMp::kNonBendingPlane));
 }
 
 BOOST_AUTO_TEST_CASE(One)
@@ -323,7 +269,7 @@ BOOST_AUTO_TEST_CASE(One)
 
   SVGWriter w(box);
 
-  svgSegmentation(seg, w, true, true, true);
+  svgSegmentation(seg, w, true, true, true, false);
   w.addStyle(svgSegmentationDefaultStyle());
   w.addStyle(R"(
 .there {

@@ -6,7 +6,7 @@ set(SRCS
         segmentationSVGWriter.h
         segmentationSVGWriter.cxx)
 
-foreach (impl RANGE 1 3 1)
+foreach (impl RANGE 2 3 1)
 
     add_library(segcontour${impl} SHARED ${SRCS})
     target_include_directories(segcontour${impl} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

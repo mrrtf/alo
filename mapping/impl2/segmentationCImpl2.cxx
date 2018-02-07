@@ -60,7 +60,7 @@ int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId
 }
 
 IMPL2_EXPORT
-void mchForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
+void mchSegmentationForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId: {
     100, 101, 102, 103, 200, 201, 202, 203, 300, 301, 302, 303, 400, 401, 402, 403, 500, 501, 502, 503, 504, 505, 506,
@@ -76,7 +76,7 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
 }
 
 IMPL2_EXPORT
-void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
+void mchSegmentationForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
   for (auto dualSampaId: segHandle->impl->dualSampaIds()) {
     handler(clientData, dualSampaId);
@@ -84,7 +84,7 @@ void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler ha
 }
 
 IMPL2_EXPORT
-void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData)
+void mchSegmentationForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId : {
     100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905
@@ -100,7 +100,8 @@ int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid)
 }
 
 IMPL2_EXPORT
-void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
+void mchSegmentationForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler,
+                                          void *clientData)
 {
   auto &seg = segHandle->impl;
   for (auto p: segHandle->impl->getPadUids(dualSampaId)) {
@@ -142,6 +143,18 @@ IMPL2_EXPORT
 int mchSegmentationPadDualSampaChannel(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padDualSampaChannel(paduid);
+
+}
+
+IMPL2_EXPORT
+void
+mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, double ymin, double xmax, double ymax,
+                                MchPadHandler handler, void *clientData)
+{
+  auto &seg = segHandle->impl;
+  for (auto p: segHandle->impl->getPadUids(xmin,ymin,xmax,ymax)) {
+    handler(clientData, p);
+  }
 
 }
 

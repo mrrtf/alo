@@ -27,7 +27,8 @@ class Segmentation;
 
 std::string svgSegmentationDefaultStyle();
 
-void svgSegmentation(const Segmentation &seg, o2::mch::contour::SVGWriter &writer, bool showdes, bool showdualsampas, bool showpads);
+void svgSegmentation(const Segmentation &seg, o2::mch::contour::SVGWriter &writer, bool showdes, bool showdualsampas,
+                     bool showpads, bool showpadchannels);
 }
 }
 }

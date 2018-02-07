@@ -67,7 +67,7 @@ int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId
 }
 
 IMPL1_EXPORT
-void mchForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
+void mchSegmentationForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto i = 0; i < 156; ++i ) {
     handler(clientData, o2::mch::mapping::impl1::getDetElemIdFromDetElemIndex(i));
@@ -75,7 +75,7 @@ void mchForEachDetectionElement(MchDetectionElementHandler handler, void *client
 }
 
 IMPL1_EXPORT
-void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void* clientData)
+void mchSegmentationForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
   for (auto i = 0; i < segHandle->impl->nofDualSampas(); ++i )
   {
@@ -84,7 +84,7 @@ void mchForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler ha
 }
 
 IMPL1_EXPORT
-void mchForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void* clientData)
+void mchSegmentationForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData)
 {
   for ( auto detElemId : {100,300,500,501,502,503,504,600,601,602,700,701,702,703,704,705,706,902,903,904,905})
   {
@@ -99,7 +99,8 @@ int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid)
 }
 
 IMPL1_EXPORT
-void mchForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler, void *clientData)
+void mchSegmentationForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler,
+                                          void *clientData)
 {
   auto pads = segHandle->impl->getPads(dualSampaId);
   for (auto p: pads) {

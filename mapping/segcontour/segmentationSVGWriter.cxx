@@ -48,12 +48,18 @@ std::string svgSegmentationDefaultStyle()
   stroke-width:0.025px;
   stroke: #000000;
 }
+.testpoints {
+  fill:red;
+  stroke-width:0.025px;
+  stroke: black;
+  opacity: 0.5;
+}
 )";
-
 }
 
 void svgSegmentation(const Segmentation &seg, SVGWriter &w,
-                     bool showdes, bool showdualsampas, bool showpads)
+                     bool showdes, bool showdualsampas, bool showpads,
+                     bool showpadchannels)
 {
   std::vector<Contour<double>> dualSampaContours = getDualSampaContours(seg);
   std::vector<std::vector<Polygon<double>>> dualSampaPads = getPadPolygons(seg);
@@ -74,13 +80,17 @@ void svgSegmentation(const Segmentation &seg, SVGWriter &w,
       }
     }
     w.svgGroupEnd();
+  }
+ 
+  if (showpadchannels) {
     w.svgGroupStart("padchannels");
     for (auto i = 0; i < dualSampaPads.size(); ++i) {
       auto &dsp = dualSampaPads[i];
       auto &dspch = dualSampaPadChannels[i];
       for (auto j = 0; j < dsp.size(); j++) {
         auto bbox = getBBox(dsp[j]);
-        w.text(std::to_string(dspch[j]), bbox.xcenter(), bbox.ymax()- 0.05*bbox.height()); // SVG text y position is the bottom of the text
+        w.text(std::to_string(dspch[j]), bbox.xcenter(),
+               bbox.ymax() - 0.05 * bbox.height()); // SVG text y position is the bottom of the text
       }
     }
     w.svgGroupEnd();

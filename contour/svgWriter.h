@@ -68,6 +68,11 @@ class SVGWriter
     int scale() const
     { return mScale; }
 
+    void box(double x, double y, double w, double h) {
+      mSVGBuffer << boost::format(R"(<rect x="%f" y="%f" width="%f" height="%f"/>)") % x % y % w % h
+                 << "\n";
+    }
+
     void text(const std::string &text, double x, double y)
     {
       mSVGBuffer << boost::format(R"(<text x="%f" y="%f">%s</text>)") % x % y % text.c_str()

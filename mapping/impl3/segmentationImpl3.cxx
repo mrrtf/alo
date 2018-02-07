@@ -137,6 +137,18 @@ std::vector<int> Segmentation::getPadUids(int dualSampaId) const
   return pi;
 }
 
+std::vector<int> Segmentation::getPadUids(double xmin, double ymin, double xmax, double ymax) const
+{
+  std::vector<Segmentation::Value> result_n;
+  mRtree.query(boost::geometry::index::intersects(Segmentation::Box({xmin, ymin},{xmax,ymax})), std::back_inserter(result_n));
+  //mRtree.query(boost::geometry::index::covered_by(Segmentation::Box({xmin, ymin},{xmax,ymax})), std::back_inserter(result_n));
+  std::vector<int> paduids;
+  for (auto& r: result_n) {
+    paduids.push_back(r.second);
+  }
+  return paduids;
+}
+
 double Segmentation::squaredDistance(int paduid, double x, double y) const
 {
   double px = padPositionX(paduid) - x;

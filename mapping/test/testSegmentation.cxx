@@ -22,6 +22,7 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
 #include "boost/format.hpp"
+#include "../segcontour/segmentationContours.h"
 #include <iostream>
 
 using namespace o2::mch::mapping;
@@ -233,6 +234,34 @@ BOOST_AUTO_TEST_CASE(DualSampasWithLessThan64Pads)
   BOOST_CHECK_EQUAL(n, 166);
 }
 
+/// Check that for all points within the segmentation contour
+/// the findPadByPosition actually returns a valid pad
+bool checkGaps(const Segmentation &seg, double xstep = 0.25, double ystep = 0.25)
+{
+  auto bbox = o2::mch::mapping::getBBox(seg);
+  auto env = o2::mch::mapping::getEnvelop(seg);
+
+  for (double x = bbox.xmin(); x < bbox.xmax(); x += xstep) {
+    for (double y = bbox.ymin(); y < bbox.ymax(); y += ystep) {
+      if (env.contains(x, y) && !seg.isValid(seg.findPadByPosition(x, y))) {
+        std::cout << boost::format("position %7.2f,%7.2f is within segmentation but findPadByPosition is invalid\n")
+                  % x % y;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
+BOOST_DATA_TEST_CASE(NoGapWithinPads,
+                     boost::unit_test::data::make({100, 500}) * boost::unit_test::data::make({ true }),
+                     detElemId, isBendingPlane)
+{
+  Segmentation seg{detElemId, isBendingPlane};
+  BOOST_TEST(checkGaps(seg));
+}
+
 struct SEG
 {
     Segmentation seg{100, true};
@@ -266,11 +295,7 @@ BOOST_AUTO_TEST_CASE(HasPadByPosition)
 BOOST_AUTO_TEST_CASE(CheckPositionOfOnePadInDE100Bending)
 {
   Segmentation seg(100, true);
-  std::cout << padAsString(seg, seg.findPadByFEE(76, 9)) << "\n";
-  std::cout << padAsString(seg, seg.findPadByFEE(76, 7)) << "\n";
-  std::cout << padAsString(seg, -1) << "\n";
-  std::cout << padAsString(seg, seg.findPadByPosition(1.575, 18.69)) << "\n";
-  BOOST_CHECK(false);
+  BOOST_CHECK_EQUAL(seg.findPadByFEE(76, 9),seg.findPadByPosition(1.575, 18.69));
 }
 
 

@@ -27,7 +27,7 @@ target_link_libraries(impl2 PUBLIC mapping_interface contour Boost::boost)
 set_target_properties(impl2 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl2 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 16
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl2> 17
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl2_static STATIC ${SOURCES})
@@ -44,8 +44,8 @@ install(TARGETS impl2 impl2_static
 include(GenerateExportHeader)
 generate_export_header(impl2)
 
-if (BUILD_TESTING)
-    add_subdirectory(test)
-endif ()
+#if (BUILD_TESTING)
+#    add_subdirectory(test)
+#endif ()
 
 add_custom_target(impl2_ide SOURCES padSize.h)

@@ -27,18 +27,17 @@ namespace impl2 {
 
 std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt)
 {
-  const double epsilon{1e-3}; // artificially increase size of pads by 10 microns to avoid gaps
 
   std::vector<o2::mch::contour::Polygon<double>> pads;
 
   for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
     for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
       if (pgt.id(ix, iy) >= 0) {
-        pads.emplace_back(o2::mch::contour::Polygon<double>({{ix - epsilon,     iy - epsilon},
-                                                             {ix + 1 + epsilon, iy - epsilon},
-                                                             {ix + 1 + epsilon, iy + 1 + epsilon},
-                                                             {ix - epsilon,     iy + 1 + epsilon},
-                                                             {ix - epsilon,     iy - epsilon}})
+        pads.emplace_back(o2::mch::contour::Polygon<double>({{ix - COMPUTEPADPRECISION,     iy - COMPUTEPADPRECISION},
+                                                             {ix + 1 + COMPUTEPADPRECISION, iy - COMPUTEPADPRECISION},
+                                                             {ix + 1 + COMPUTEPADPRECISION, iy + 1 + COMPUTEPADPRECISION},
+                                                             {ix - COMPUTEPADPRECISION,     iy + 1 + COMPUTEPADPRECISION},
+                                                             {ix - COMPUTEPADPRECISION,     iy - COMPUTEPADPRECISION}})
         );
       }
     }

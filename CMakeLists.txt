@@ -50,5 +50,9 @@ add_subdirectory(mapping)
 
 find_package(Doxygen REQUIRED dot)
 if (DOXYGEN_FOUND)
-    doxygen_add_docs(doc)
+    set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+    set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES)
+    set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
+
+    doxygen_add_docs(doc mapping/interface)
 endif ()

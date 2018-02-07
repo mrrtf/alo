@@ -25,7 +25,7 @@ target_link_libraries(impl3 PUBLIC mapping_interface Boost::boost)
 set_target_properties(impl3 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 add_custom_command(TARGET impl3 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 16
+        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 17
         COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl3_static STATIC ${SOURCES})

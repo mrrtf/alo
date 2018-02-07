@@ -25,6 +25,8 @@ namespace mch {
 namespace mapping {
 namespace impl2 {
 
+constexpr double COMPUTEPADPRECISION = 1E-3; // artificially increase size of pads by 10 microns to avoid gaps
+
 std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt);
 
 std::vector<o2::mch::contour::Polygon<double>> computeContours(const std::vector<PadGroupType> &padGroupTypes);

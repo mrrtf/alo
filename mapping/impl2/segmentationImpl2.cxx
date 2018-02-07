@@ -52,9 +52,6 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
                                                    const std::vector<PadGroupType> &padGroupTypes,
                                                    const std::vector<std::pair<float, float>> &padSizes)
 {
-  //std::cout << boost::format("computeContours %3d padgroups %2d padgrouptypes %2d padsizes\n")
-  //             % padGroups.size() % padGroupTypes.size() % padSizes.size();
-
   std::vector<o2::mch::contour::Polygon<double>> pgtContours = computeContours(padGroupTypes);
 
   std::vector<Segmentation::Contour> contours;
@@ -77,7 +74,7 @@ std::vector<Segmentation::Contour> computeContours(const std::vector<PadGroup> &
 
 std::set<int> getUnique(const std::vector<PadGroup> &padGroups)
 {
-  // extract from padGroup vector the unique integer values given by func
+  // extract from padGroup vector the unique FECids
   std::set<int> u;
   for (auto &pg: padGroups) {
     u.insert(pg.mFECId);
@@ -98,9 +95,8 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
   mPadGroupContours{computeContours(mPadGroups, mPadGroupTypes, mPadSizes)},
   mMaxFastIndex{-1}
 {
-  for (auto& pgt: mPadGroupTypes)
-  {
-    for (auto& fi : pgt.fastIndices()) {
+  for (auto &pgt: mPadGroupTypes) {
+    for (auto &fi : pgt.fastIndices()) {
       mMaxFastIndex = std::max(mMaxFastIndex, fi);
     }
   }
@@ -109,7 +105,7 @@ Segmentation::Segmentation(int segType, bool isBendingPlane, std::vector<PadGrou
 
 int Segmentation::findPadGroupIndex(double x, double y) const
 {
-  for (auto i = 0; i < mPadGroupContours.size(); ++i  ){
+  for (auto i = 0; i < mPadGroupContours.size(); ++i) {
     if (mPadGroupContours[i].contains(x, y)) {
       return i;
     }
@@ -119,19 +115,20 @@ int Segmentation::findPadGroupIndex(double x, double y) const
 
 int Segmentation::findPadByPosition(double x, double y) const
 {
-  int pgi = findPadGroupIndex(x,y);
-  if (pgi < 0 )
-  {
+  int pgi = findPadGroupIndex(x, y);
+  if (pgi < 0) {
+    std::cout << boost::format("did not find pgi for %f %f\n") % x % y;
     return -1;
   }
 
-  auto& pg = mPadGroups[pgi];
-  int ix = static_cast<int>(std::floor((x - pg.mX)/mPadSizes[pg.mPadSizeId].first));
-  int iy = static_cast<int>(std::floor((y - pg.mY)/mPadSizes[pg.mPadSizeId].second));
-  auto& pgt = mPadGroupTypes[pg.mPadGroupTypeId];
-  if ( pgt.hasPadById(pgt.id(ix,iy))) {
-    return padUid(pgi,pgt.fastIndex(ix,iy));
+  auto &pg = mPadGroups[pgi];
+  int ix = static_cast<int>(std::floor((x - pg.mX) / (mPadSizes[pg.mPadSizeId].first + COMPUTEPADPRECISION)));
+  int iy = static_cast<int>(std::floor((y - pg.mY) / (mPadSizes[pg.mPadSizeId].second + COMPUTEPADPRECISION)));
+  auto &pgt = mPadGroupTypes[pg.mPadGroupTypeId];
+  if (pgt.hasPadById(pgt.id(ix, iy))) {
+    return padUid(pgi, pgt.fastIndex(ix, iy));
   }
+  std::cout << boost::format("did not find pad in pgt %d %d  = %d for %f %f\n") % ix % iy % pgt.id(ix,iy) % x % y;
   return -1;
 }
 
@@ -142,14 +139,37 @@ std::vector<int> Segmentation::getPadUids(int dualSampaId) const
   for (auto padGroupIndex = 0; padGroupIndex < mPadGroups.size(); ++padGroupIndex) {
     if (mPadGroups[padGroupIndex].mFECId == dualSampaId) {
       auto &pgt = mPadGroupTypes[mPadGroups[padGroupIndex].mPadGroupTypeId];
-      for (auto& fi: pgt.fastIndices()) {
-        pi.push_back(padUid(padGroupIndex,fi));
+      for (auto &fi: pgt.fastIndices()) {
+        pi.push_back(padUid(padGroupIndex, fi));
       }
     }
   }
 
   return pi;
 }
+
+std::vector<int> Segmentation::getPadUids(double xmin, double ymin, double xmax, double ymax) const
+{
+  double xstep = mPadSizes[0].first; // here we use the fact that pad sizes are guaranteed to be ordered by size
+  double ystep = mPadSizes[0].second;
+
+  std::vector<int> paduids;
+
+  for (double x = xmin; x <= xmax; x += xstep) {
+    for (double y = ymin; y <= ymax; y += ystep) {
+      int paduid = findPadByPosition(x, y);
+      if (paduid != InvalidPadUid) {
+        paduids.push_back(paduid);
+      }
+    }
+  }
+
+  std::vector<int> rv;
+  std::sort(begin(paduids),end(paduids));
+  std::unique_copy(begin(paduids),end(paduids),std::back_inserter(rv));
+  return rv;
+}
+
 const PadGroup &Segmentation::padGroup(int paduid) const
 {
   return gsl::at(mPadGroups, padUid2padGroupIndex(paduid));
