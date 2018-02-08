@@ -38,7 +38,6 @@ class SVGWriter
       mStyleBuffer{},
       mWidth{size},
       mHeight{static_cast<int>(std::round(size * viewingBox.height() / viewingBox.width()))},
-      mScale(10),
       mViewingBox{
         viewingBox
       }
@@ -61,12 +60,6 @@ class SVGWriter
     {
       mSVGBuffer << "</g>\n";
     }
-
-    void scale(int s)
-    { mScale = s; }
-
-    int scale() const
-    { return mScale; }
 
     void box(double x, double y, double w, double h) {
       mSVGBuffer << boost::format(R"(<rect x="%f" y="%f" width="%f" height="%f"/>)") % x % y % w % h
@@ -145,7 +138,6 @@ class SVGWriter
     std::stringstream mStyleBuffer;
     int mWidth;
     int mHeight;
-    int mScale;
     o2::mch::contour::BBox<double> mViewingBox;
 };
 
