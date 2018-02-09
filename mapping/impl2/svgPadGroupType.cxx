@@ -19,7 +19,6 @@
 #include "contour.h"
 #include "svgWriter.h"
 #include "padGroupType.h"
-#include "padGroupTypeContour.h"
 #include "boost/format.hpp"
 
 using namespace o2::mch::contour;
@@ -37,7 +36,7 @@ int main()
 
   for (int i = 0; i < NPG; ++i) {
     auto pgt = getPadGroupType(i);
-    auto pads = computePads(pgt);
+    auto pads = computePads(pgt,1.0,1.0);
     pgtPads.push_back(pads);
     boxes.push_back(getBBox(pgtPads.back()));
     auto &b = boxes.back();

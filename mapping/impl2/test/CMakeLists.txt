@@ -1,6 +1,3 @@
-find_package(benchmark)
-if (benchmark_FOUND)
-    add_executable(benchMotifTypes benchMotifTypes.cxx )
-    target_link_libraries(benchMotifTypes impl2_static motiftype1 benchmark::benchmark)
-endif ()
 
+add_executable(testimpl2 testimpl2.cxx ../genSegmentationCreatorForSegType2.cxx)
+target_link_libraries(testimpl2 PUBLIC impl2_static segcontour2 Boost::unit_test_framework)

@@ -82,6 +82,15 @@ class BBox
       return os;
     }
 
+    bool contains(const BBox<T> &a) const
+    {
+      return !(
+        a.xmin() < xmin() ||
+        a.xmax() > xmax() ||
+        a.ymin() < ymin() ||
+        a.ymax() > ymax());
+    }
+
   private:
     T mXmin;
     T mXmax;
@@ -95,6 +104,18 @@ BBox<T> enlarge(const BBox<T> &box, T extraWidth, T extraHeight)
   return BBox<T>(box.xmin() - extraWidth / 2.0, box.ymin() - extraHeight / 2.0,
                  box.xmax() + extraWidth / 2.0, box.ymax() + extraHeight / 2.0);
 }
+
+template<typename T>
+BBox<T> intersect(const BBox<T> &a, const BBox<T> &b)
+{
+  return BBox<T>{
+    std::max(a.xmin(), b.xmin()),
+    std::max(a.ymin(), b.ymin()),
+    std::min(a.xmax(), b.xmax()),
+    std::min(a.ymax(), b.ymax())
+  };
+}
+
 }
 }
 }

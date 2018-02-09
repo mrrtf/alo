@@ -15,18 +15,22 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN
 
-#include "segmentation.h"
-
 #include <boost/test/unit_test.hpp>
+
+#include "boost/format.hpp"
+#include "segmentation.h"
+#include "segmentationContours.h"
+#include "segmentationSVGWriter.h"
+#include "svgWriter.h"
+#include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/monomorphic/generators/xrange.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/data/monomorphic.hpp>
-#include "boost/format.hpp"
-#include "../segcontour/segmentationContours.h"
+#include <fstream>
 #include <iostream>
 
 using namespace o2::mch::mapping;
 namespace bdata = boost::unit_test::data;
+using Point = std::pair<double, double>;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_AUTO_TEST_SUITE(segmentation)
@@ -234,32 +238,62 @@ BOOST_AUTO_TEST_CASE(DualSampasWithLessThan64Pads)
   BOOST_CHECK_EQUAL(n, 166);
 }
 
+void dumpToFile(std::string fileName, const Segmentation &seg, const std::vector<Point> &points)
+{
+  std::ofstream out(fileName);
+  o2::mch::contour::SVGWriter w(getBBox(seg));
+
+  w.addStyle(svgSegmentationDefaultStyle());
+
+  svgSegmentation(seg, w, true, true, true, false);
+
+  w.svgGroupStart("testpoints");
+  w.points(points, 0.1);
+  w.svgGroupEnd();
+  w.writeHTML(out);
+}
+
 /// Check that for all points within the segmentation contour
 /// the findPadByPosition actually returns a valid pad
-bool checkGaps(const Segmentation &seg, double xstep = 0.25, double ystep = 0.25)
+std::vector<Point> checkGaps(const Segmentation &seg, double xstep = 0.25, double ystep = 0.25)
 {
+  std::vector<Point> gaps;
   auto bbox = o2::mch::mapping::getBBox(seg);
   auto env = o2::mch::mapping::getEnvelop(seg);
 
-  for (double x = bbox.xmin(); x < bbox.xmax(); x += xstep) {
-    for (double y = bbox.ymin(); y < bbox.ymax(); y += ystep) {
-      if (env.contains(x, y) && !seg.isValid(seg.findPadByPosition(x, y))) {
-        std::cout << boost::format("position %7.2f,%7.2f is within segmentation but findPadByPosition is invalid\n")
-                  % x % y;
-        return false;
+  if (env.size()!=1) {
+    throw std::runtime_error("assumption env contour = one polygon is not verified");
+  }
+
+  for (double x = bbox.xmin() - xstep; x <= bbox.xmax() + xstep; x += xstep) {
+    for (double y = bbox.ymin() - ystep; y <= bbox.ymax() + ystep; y += ystep) {
+      double distanceToEnveloppe = std::sqrt(o2::mch::contour::squaredDistancePointToPolygon({x, y}, env[0]));
+      bool withinEnveloppe = env.contains(x,y) && (distanceToEnveloppe > 1E-5);
+      if (withinEnveloppe && !seg.isValid(seg.findPadByPosition(x, y))) {
+        std::cout
+          << boost::format("----- position %7.2f,%7.2f is within segmentation but findPadByPosition is invalid\n")
+             % x % y;
+        gaps.push_back(std::make_pair(x, y));
+        goto end;
       }
     }
   }
-  return true;
+  end:
+  return gaps;
 }
 
 
 BOOST_DATA_TEST_CASE(NoGapWithinPads,
-                     boost::unit_test::data::make({100, 500}) * boost::unit_test::data::make({ true }),
+                     boost::unit_test::data::make({100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}) * boost::unit_test::data::make({true,false}),
                      detElemId, isBendingPlane)
 {
   Segmentation seg{detElemId, isBendingPlane};
-  BOOST_TEST(checkGaps(seg));
+  auto g = checkGaps(seg);
+
+  if (!g.empty()) {
+    dumpToFile("bug-gap-" + std::to_string(detElemId) + "-" + (isBendingPlane ? "B" : "NB") + ".html", seg, g);
+  }
+  BOOST_TEST(g.empty());
 }
 
 struct SEG
@@ -285,19 +319,16 @@ BOOST_AUTO_TEST_CASE(ReturnsFalseIfPadIsNotConnected)
   BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByFEE(214, 14)), false);
 }
 
-
 BOOST_AUTO_TEST_CASE(HasPadByPosition)
 {
   BOOST_CHECK_EQUAL(seg.isValid(seg.findPadByPosition(40.0, 30.0)), true);
 }
 
-
 BOOST_AUTO_TEST_CASE(CheckPositionOfOnePadInDE100Bending)
 {
   Segmentation seg(100, true);
-  BOOST_CHECK_EQUAL(seg.findPadByFEE(76, 9),seg.findPadByPosition(1.575, 18.69));
+  BOOST_CHECK_EQUAL(seg.findPadByFEE(76, 9), seg.findPadByPosition(1.575, 18.69));
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

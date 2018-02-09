@@ -233,6 +233,18 @@ BOOST_AUTO_TEST_CASE(ConstructionByVectorIterators)
   BOOST_CHECK_EQUAL(p, counterClockwisePolygon);
 }
 
+BOOST_AUTO_TEST_CASE(PointOutsidePolygonDistanceToPolygonClosestToOneSegment)
+{
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{-1.0,-6.0},testPolygon2),1.0);
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{3.0,-14.0},testPolygon2),16.0);
+}
+
+BOOST_AUTO_TEST_CASE(PointOutsidePolygonDistanceToPolygonClosestToOneSegmentEndPoint)
+{
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{-1.0,-14.0},testPolygon2),17.0);
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{7.0,-14.0},testPolygon2),20.0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

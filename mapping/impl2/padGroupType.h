@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <ostream>
+#include "polygon.h"
 
 namespace o2 {
 namespace mch {
@@ -82,6 +83,9 @@ struct PadGroupType
 };
 
 PadGroupType getPadGroupType(int i);
+
+
+std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt, double padSizeX, double padSizeY);
 
 }
 }

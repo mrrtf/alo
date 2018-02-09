@@ -233,7 +233,8 @@ std::vector<o2::mch::contour::Vertex<T>> getSortedVertices(const Polygon<T> &pol
 }
 
 template<typename T>
-BBox<T> getBBox(const std::vector<Vertex<T>>& vertices) {
+BBox<T> getBBox(const std::vector<Vertex<T>> &vertices)
+{
 
   T xmin{std::numeric_limits<T>::max()};
   T xmax{std::numeric_limits<T>::lowest()};
@@ -282,6 +283,19 @@ BBox<T> getBBox(const std::vector<Polygon<T>> &polygons)
   return {
     xmin, ymin, xmax, ymax
   };
+}
+
+template<typename T>
+auto squaredDistancePointToPolygon(const Vertex<T> &point, const Polygon<T> &polygon) -> decltype(point.x * point.x)
+{
+  T d{std::numeric_limits<T>::max()};
+  for (auto i = 0; i < polygon.size() - 1; ++i) {
+    auto s0 = polygon[i];
+    auto s1 = polygon[i + 1];
+    auto d2 = squaredDistanceOfPointToSegment(point, s0, s1);
+    d = std::min(d2, d);
+  }
+  return d;
 }
 
 }

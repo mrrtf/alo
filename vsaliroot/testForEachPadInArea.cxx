@@ -200,7 +200,7 @@ bool comparePadsInArea(AliMpSegmentation *mseg, int detElemId, bool isBendingPla
       o2Pads.push_back(paduid);
     });
 
-  if (alPads.size() != o2Pads.size()) {
+  if (1==1) { // alPads.size() != o2Pads.size()) {
     static int n{0};
     std::cout << "+++ alPads.size()= " << alPads.size() << " o2Pads.size()= "
               << o2Pads.size() << "\n";
@@ -214,10 +214,13 @@ bool comparePadsInArea(AliMpSegmentation *mseg, int detElemId, bool isBendingPla
 
 BOOST_DATA_TEST_CASE(SamePadsInAreaSt12,
                      boost::unit_test::data::make({
-                                                    AliMpArea{0.0, 0.0, 0.0, 0.0},
-                                                    AliMpArea{20.0, 20.0, 10.0, 10.0}}) *
-                     boost::unit_test::data::make(MAPPING::st12DetElemIds) *
-                     boost::unit_test::data::make({true, false}),
+                                                    /*AliMpArea{0.0, 0.0, 0.0, 0.0}*/
+                                                    AliMpArea{40.0, 40.0, 10.0, 10.0},
+                                                    AliMpArea{60, 60, 20, 20},
+                                                    AliMpArea{10,10,7,7}
+                                                  }) *
+                     boost::unit_test::data::make(100) *
+                     boost::unit_test::data::make({true,false}),
                      area, detElemId, isBendingPlane)
 {
   BOOST_TEST(comparePadsInArea(mseg, detElemId, isBendingPlane, area));
@@ -225,11 +228,24 @@ BOOST_DATA_TEST_CASE(SamePadsInAreaSt12,
 
 BOOST_DATA_TEST_CASE(SamePadsInAreaSt345,
                      boost::unit_test::data::make({
-                                                    AliMpArea{0.0, 0.0, 0.0, 0.0},
-                                                    AliMpArea{2.3, -5.5, 3.0, 20.0},
+                                                    /*AliMpArea{0.0, 0.0, 0.0, 0.0},*/
+                                                    /*AliMpArea{2.3, -5.5, 3.0, 20.0},*/
+                                                    /*AliMpArea{2.3, 15.25, 3.5, 2.4}*/
+//                                                     AliMpArea{0.0,0.0,50.0,10.0}, /* fully contained */
+//                                                    AliMpArea{-30.0,0.0,50.0,10.0}, /* overflow left */
+//                                                    AliMpArea{0.0,-15.0,50.0,10.0}, /* overflow top */
+//                                                    AliMpArea{0.0,15.0,50.0,10.0}, /* overflow bottom */
+//                                                    AliMpArea{-30.0,15.0,50.0,10.0}, /* overflow bottom-left */
+//                                                    AliMpArea{-30.0,-15.0,50.0,10.0}, /* overflow top-left */
+                                                    AliMpArea{30.0,0.0,50.0,10.0}, /* overflow right */
+                                                    //AliMpArea{30.0,-15.0,50.0,10.0}, /* overflow top-right */
+                                                    //AliMpArea{30.0,15.0,50.0,10.0} /* overflow bottom-right */
+
+
                                                   }) *
-                     boost::unit_test::data::make(MAPPING::st345DetElemIds) *
-                     boost::unit_test::data::make({true, false}),
+                       /*boost::unit_test::data::make(MAPPING::st345DetElemIds) * */
+                     boost::unit_test::data::make({500}) *
+                     boost::unit_test::data::make({true}),
                      area, detElemId, isBendingPlane)
 {
   BOOST_TEST(comparePadsInArea(mseg, detElemId, isBendingPlane, area));

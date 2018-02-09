@@ -152,7 +152,8 @@ mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, do
                                 MchPadHandler handler, void *clientData)
 {
   auto &seg = segHandle->impl;
-  for (auto p: segHandle->impl->getPadUids(xmin,ymin,xmax,ymax)) {
+  o2::mch::mapping::impl2::Segmentation::BBox box{xmin,ymin,xmax,ymax};
+  for (auto p: segHandle->impl->getPadUids(box)) {
     handler(clientData, p);
   }
 

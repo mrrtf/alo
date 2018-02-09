@@ -82,6 +82,40 @@ std::ostream &operator<<(std::ostream &os, const PadGroupType &pgt)
   return os;
 }
 
+std::vector<o2::mch::contour::Polygon<double>> computePads(const PadGroupType &pgt, double padSizeX, double padSizeY)
+{
+  constexpr double EXTRAPADSIZE = 1E-4; // artificially increase size of pads by a smidge (1 micron) to avoid gaps
+  // between pads
+
+  std::vector<o2::mch::contour::Polygon<double>> pads;
+
+  for (int ix = 0; ix < pgt.getNofPadsX(); ++ix) {
+    for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
+      if (pgt.id(ix, iy) >= 0) {
+
+        double xmin = ix * padSizeX;
+        double ymin = iy * padSizeY;
+        double xmax = xmin + padSizeX;
+        double ymax = ymin + padSizeY;
+
+        // grow a bit to avoid gaps
+        xmin -= EXTRAPADSIZE;
+        ymin -= EXTRAPADSIZE;
+        xmax += EXTRAPADSIZE;
+        ymax += EXTRAPADSIZE;
+
+        pads.emplace_back(o2::mch::contour::Polygon<double>({{xmin, ymin},
+                                                             {xmax, ymin},
+                                                             {xmax, ymax},
+                                                             {xmin, ymax},
+                                                             {xmin, ymin}})
+        );
+      }
+    }
+  }
+  return pads;
+}
+
 }
 }
 }

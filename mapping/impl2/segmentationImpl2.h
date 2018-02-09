@@ -22,6 +22,7 @@
 #include <set>
 #include <ostream>
 #include "polygon.h"
+#include "bbox.h"
 
 namespace o2 {
 namespace mch {
@@ -33,7 +34,8 @@ class Segmentation
   public:
 
     static constexpr int InvalidPadUid{-1};
-    using Contour = o2::mch::contour::Polygon<double>;
+    using Polygon = o2::mch::contour::Polygon<double>;
+    using BBox = o2::mch::contour::BBox<double>;
 
     Segmentation(int segType, bool isBendingPlane, std::vector<PadGroup> padGroups);
 
@@ -44,8 +46,8 @@ class Segmentation
     /// Return the list of paduids for the pads of the given dual sampa.
     std::vector<int> getPadUids(int dualSampaIds) const;
 
-    /// Return the list of paduids for the pads contained in the box {xmin,ymin,xmax,ymax}.
-    std::vector<int> getPadUids(double xmin, double ymin, double xmax, double ymax) const;
+    /// Return the list of paduids for the pads contained in the box
+    std::vector<int> getPadUids(const BBox &box) const;
 
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }
@@ -74,6 +76,11 @@ class Segmentation
 
     int padDualSampaChannel(int paduid) const;
 
+    BBox bbox() const
+    { return mBBox; }
+
+    std::vector<int> intersect(const BBox &box) const;
+
   private:
     int dualSampaIndex(int dualSampaId) const;
 
@@ -81,7 +88,7 @@ class Segmentation
 
     const PadGroupType &padGroupType(int paduid) const;
 
-    int findPadGroupIndex(double x, double y) const;
+    std::vector<int> findPadGroupIndices(double x, double y) const;
 
     int padUid2padGroupIndex(int paduid) const
     {
@@ -92,12 +99,22 @@ class Segmentation
     {
       return paduid - padUid2padGroupIndex(paduid) * mMaxFastIndex;
     }
-    
-    int padUid(int padGroupIndex, int padGroupTypeFastIndex) const {
+
+    int padUid(int padGroupIndex, int padGroupTypeFastIndex) const
+    {
 
       return padGroupIndex * mMaxFastIndex + padGroupTypeFastIndex;
     }
 
+    int padUid(int padGroupIndex, double x, double y) const;
+
+    std::vector<int> uniqueAndValid(std::vector<int> paduids) const;
+
+    bool isValid(int paduid) const
+    { return paduid != InvalidPadUid; }
+
+    int findClosestX(double xstart, double ystart, double xend) const;
+    int findClosestY(double xstart, double ystart, double yend) const;
 
   private:
     int mSegType;
@@ -106,7 +123,9 @@ class Segmentation
     std::set<int> mDualSampaIds;
     std::vector<PadGroupType> mPadGroupTypes;
     std::vector<std::pair<float, float>> mPadSizes;
-    std::vector<Contour> mPadGroupContours;
+    std::vector<Polygon> mPadGroupContours;
+    Polygon mEnvelop;
+    BBox mBBox;
     int mMaxFastIndex;
 };
 

@@ -94,6 +94,49 @@ bool isHorizontal(const Vertex<T>& a, const Vertex<T>& b)
 }
 
 template<typename T>
+Vertex<T> operator-(const Vertex<T>& a, const Vertex<T>& b)
+{
+  return {a.x-b.x,a.y-b.y};
+}
+
+template<typename T>
+auto dot(const Vertex<T>& a, const Vertex<T>& b) -> decltype(a.x*b.x)
+{
+  // dot product
+  return a.x*b.x + a.y*b.y;
+}
+
+template<typename T>
+auto squaredDistance(const Vertex<T>& a, const Vertex<T>& b) -> decltype(a.x*b.x)
+{
+  return dot(a-b,a-b);
+}
+
+template<typename T>
+auto squaredDistanceOfPointToSegment(const Vertex<T>& p, const Vertex<T>& p0, const Vertex<T>& p1) -> decltype(p0.x*p1.x)
+{
+  /// distance^2 of p to segment (p0,p1)
+  auto v = p1 - p0;
+  auto w = p - p0;
+
+  auto c1 = dot(w,v);
+
+  if ( c1 <= 0 ) {
+    return squaredDistance(p,p0);
+  }
+
+  auto c2 = dot(v,v);
+  if ( c2 <= c1)
+  {
+    return squaredDistance(p,p1);
+  }
+
+  auto b = c1/c2;
+  Vertex<T> pbase{p0.x+b*v.x,p0.y+b*v.y};
+  return squaredDistance(p,pbase);
+}
+
+template<typename T>
 bool operator==(const Vertex<T>& lhs, const Vertex<T>& rhs)
 {
   return impl::areEqual(lhs.x, rhs.x) && impl::areEqual(lhs.y, rhs.y);
