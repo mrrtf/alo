@@ -140,13 +140,27 @@ std::vector<int> Segmentation::getPadUids(int dualSampaId) const
 std::vector<int> Segmentation::getPadUids(double xmin, double ymin, double xmax, double ymax) const
 {
   std::vector<Segmentation::Value> result_n;
-  mRtree.query(boost::geometry::index::intersects(Segmentation::Box({xmin, ymin},{xmax,ymax})), std::back_inserter(result_n));
-  //mRtree.query(boost::geometry::index::covered_by(Segmentation::Box({xmin, ymin},{xmax,ymax})), std::back_inserter(result_n));
+  mRtree.query(boost::geometry::index::intersects(Segmentation::Box({xmin, ymin}, {xmax, ymax})),
+               std::back_inserter(result_n));
   std::vector<int> paduids;
-  for (auto& r: result_n) {
+  for (auto &r: result_n) {
     paduids.push_back(r.second);
   }
   return paduids;
+}
+
+std::vector<int> Segmentation::getNeighbouringPadUids(int paduid) const
+{
+  double x = padPositionX(paduid);
+  double y = padPositionY(paduid);
+  double dx = padSizeX(paduid) / 2.0;
+  double dy = padSizeY(paduid) / 2.0;
+
+  const double offset{0.1}; // 1 mm
+
+  auto pads = getPadUids(x - dx - offset, y - dy - offset, x + dx + offset, y + dy + offset);
+  pads.erase(std::remove(begin(pads),end(pads),paduid),end(pads));
+  return pads;
 }
 
 double Segmentation::squaredDistance(int paduid, double x, double y) const

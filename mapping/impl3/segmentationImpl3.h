@@ -50,6 +50,9 @@ class Segmentation
     /// Return the list of paduids for the pads contained in the box {xmin,ymin,xmax,ymax}.
     std::vector<int> getPadUids(double xmin, double ymin, double xmax, double ymax) const;
 
+    /// Return the list of paduids of the pads which are neighbours to paduid
+    std::vector<int> getNeighbouringPadUids(int paduid) const;
+
     std::set<int> dualSampaIds() const
     { return mDualSampaIds; }
 

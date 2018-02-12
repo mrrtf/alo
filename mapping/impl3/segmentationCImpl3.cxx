@@ -157,4 +157,15 @@ mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, do
   }
 
 }
+
+IMPL3_EXPORT
+void
+mchSegmentationForEachNeighbouringPad(MchSegmentationHandle segHandle, int paduid, MchPadHandler handler,
+                                      void *userData)
+{
+  auto &seg = segHandle->impl;
+  for (auto p: segHandle->impl->getNeighbouringPadUids(paduid)) {
+    handler(userData, p);
+  }
+}
 } // extern "C"

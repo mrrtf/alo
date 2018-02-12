@@ -159,4 +159,12 @@ mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, do
 
 }
 
+IMPL2_EXPORT
+void
+mchSegmentationForEachNeighbouringPad(MchSegmentationHandle segHandle, int paduid, MchPadHandler handler,
+                                      void *userData)
+{
+
+}
+
 } // extern "C"

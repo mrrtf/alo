@@ -8,7 +8,7 @@ add_test(NAME testContourCreatorVsAliRoot COMMAND testContourCreatorVsAliRoot)
 
 foreach (impl RANGE 2 3 1)
 
-    add_executable(testSegmentationVsAliroot${impl} testFindPadByPosition.cxx testForEachPadInArea.cxx generateTestPoints.cxx generateTestPoints.h mappingFixture.cxx mappingFixture.h)
+    add_executable(testSegmentationVsAliroot${impl} testFindPadByPosition.cxx testForEachPadInArea.cxx generateTestPoints.cxx generateTestPoints.h mappingFixture.cxx mappingFixture.h testForEachNeighbouringPad.cxx)
     target_link_libraries(testSegmentationVsAliroot${impl} PUBLIC MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework segcontour${impl})
     add_test(NAME testSegmentationVsAliroot${impl} COMMAND testSegmentationVsAliroot${impl})
 
