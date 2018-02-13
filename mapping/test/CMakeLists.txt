@@ -1,6 +1,6 @@
 find_package(benchmark)
 
-foreach (impl RANGE 2 3 1)
+foreach (impl RANGE 3 3 1)
 
     add_executable(testSegmentation${impl} testSegmentation.cxx)
     target_link_libraries(testSegmentation${impl} PRIVATE Boost::unit_test_framework impl${impl} segcontour${impl})

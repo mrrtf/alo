@@ -6,7 +6,7 @@ add_executable(testContourCreatorVsAliRoot
 target_link_libraries(testContourCreatorVsAliRoot PUBLIC contour MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework)
 add_test(NAME testContourCreatorVsAliRoot COMMAND testContourCreatorVsAliRoot)
 
-foreach (impl RANGE 2 3 1)
+foreach (impl RANGE 3 3 1)
 
     add_executable(testSegmentationVsAliroot${impl} testFindPadByPosition.cxx testForEachPadInArea.cxx generateTestPoints.cxx generateTestPoints.h mappingFixture.cxx mappingFixture.h testForEachNeighbouringPad.cxx)
     target_link_libraries(testSegmentationVsAliroot${impl} PUBLIC MUONmapping STEERBase ROOT::Core MUONgraphics Boost::unit_test_framework segcontour${impl})
@@ -21,7 +21,7 @@ endforeach ()
 find_package(benchmark)
 
 if (benchmark_FOUND)
-    foreach (impl RANGE 2 3 1)
+    foreach (impl RANGE 3 3 1)
 
         add_executable(benchSegmentationVsAliRoot${impl} benchNeighbouringPad.cxx benchPadInArea.cxx benchPadByPosition.cxx commonBench.h commonContour.cxx commonBench.cxx generateTestPoints.cxx generateTestPoints.h)
         target_link_libraries(benchSegmentationVsAliRoot${impl} PUBLIC benchmark::benchmark segcontour${impl} MUONmapping MUONgraphics STEERBase ROOT::Core)
