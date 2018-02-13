@@ -23,7 +23,7 @@ find_package(benchmark)
 if (benchmark_FOUND)
     foreach (impl RANGE 2 3 1)
 
-        add_executable(benchSegmentationVsAliRoot${impl} benchSegmentationVsAliRoot.cxx commonBench.h commonContour.cxx commonBench.cxx generateTestPoints.cxx generateTestPoints.h)
+        add_executable(benchSegmentationVsAliRoot${impl} benchNeighbouringPad.cxx benchPadInArea.cxx benchPadByPosition.cxx commonBench.h commonContour.cxx commonBench.cxx generateTestPoints.cxx generateTestPoints.h)
         target_link_libraries(benchSegmentationVsAliRoot${impl} PUBLIC benchmark::benchmark segcontour${impl} MUONmapping MUONgraphics STEERBase ROOT::Core)
 
     endforeach ()

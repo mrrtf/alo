@@ -31,7 +31,7 @@ constexpr int NTESTPOINTS{1000};
 
 using o2::mch::mapping::generateTestPoints;
 
-static void segmentationList(benchmark::internal::Benchmark *b)
+static void segmentationListWithExtent(benchmark::internal::Benchmark *b)
 {
   o2::mch::mapping::forOneDetectionElementOfEachSegmentationType([&b](int detElemId) {
     for (auto bending : {true, false}) {
@@ -72,7 +72,7 @@ BENCHMARK_DEFINE_F(BenchO2, hasPadByPosition)(benchmark::State &state)
   state.counters["n"] = benchmark::Counter(n, benchmark::Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(BenchO2, hasPadByPosition)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);
+BENCHMARK_REGISTER_F(BenchO2, hasPadByPosition)->Apply(segmentationListWithExtent)->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
 {
@@ -105,6 +105,6 @@ BENCHMARK_DEFINE_F(BenchAliRoot, PadByPosition)(benchmark::State &state)
   state.counters["n"] = benchmark::Counter(n, benchmark::Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(BenchAliRoot, PadByPosition)->Apply(segmentationList)->Unit(benchmark::kMicrosecond);
+BENCHMARK_REGISTER_F(BenchAliRoot, PadByPosition)->Apply(segmentationListWithExtent)->Unit(benchmark::kMicrosecond);
 
 BENCHMARK_MAIN();
