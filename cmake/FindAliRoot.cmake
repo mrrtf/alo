@@ -59,59 +59,62 @@ if (ALIROOT)
         # the correct alternative would be the change AliRoot to properly export its targets, but
         # that alone would require some more work...
 
+        # we specify the first level dependencies of each library
 
         depends_on_root(STEERBase Core EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net Physics RIO Tree TreePlayer VMC)
 
-        depends_on_aliroot(STEER CDB ESD HLTbase RAWDatabase RAWDatarec STEERBase)
-        depends_on_root(STEER Core EG GenVector GeomPainter Geom Gpad Graf Hist MathCore Matrix Minuit Net Physics Proof RIO Tree VMC GeomBuilder RHTTP Gui TreePlayer Graf3d XMLParser Cling)
+        depends_on_aliroot(STEER CDB ANALYSIS RAWDatarec HLTbase)
+        depends_on_root(STEER GeomPainter Proof)
 
-        depends_on_aliroot(CDB STAT STEERBase)
-        depends_on_root(CDB Core GenVector Gpad Graf Gui Hist MathCore Matrix Minuit Net RIO Tree XMLParser EG Geom Graf3d Physics VMC TreePlayer GeomBuilder RHTTP)
+        depends_on_aliroot(CDB STAT)
+        depends_on_root(CDB GenVector XMLParser)
+
+        depends_on_aliroot(STAT STEERBase)
+        depends_on_root(STAT Gui GeomBuilder RHTTP)
+
+        depends_on_aliroot(ANALYSIS STEERBase)
+        depends_on_root(ANALYSIS XMLParser)
 
         depends_on_aliroot(ESD STEERBase)
-        depends_on_root(ESD Core EG Geom Gpad Graf3d MathCore Matrix Physics RIO Tree Graf Hist Minuit Net TreePlayer VMC)
 
-        depends_on_aliroot(HLTbase RAWDatabase AliHLTHOMER ESD STEERBase)
-        depends_on_root(HLTbase Core Geom Graf Hist MathCore Net RIO Tree XMLParser Cling Minuit TreePlayer VMC EG Gpad Graf3d Matrix Physics)
+        depends_on_aliroot(RAWDatarec RAWDatabase)
 
-        depends_on_aliroot(RAWDatabase ESD STEERBase)
-        depends_on_root(RAWDatabase Core Hist RIO Graf Minuit Net TreePlayer VMC EG Geom Gpad Graf3d MathCore Matrix Physics Tree)
+        depends_on_aliroot(RAWDatabase ESD)
 
-        depends_on_aliroot(RAWDatarec RAWDatabase ESD STEERBase)
-        depends_on_root(RAWDatarec Core Net RIO TreePlayer Tree EG Geom Gpad Graf3d Graf MathCore Matrix Minuit Physics VMC Hist)
+        depends_on_aliroot(HLTbase RAWDatabase AliHLTHOMER)
+        depends_on_root(HLTbase Cling XMLParser)
 
-        depends_on_aliroot(RAWDatasim RAWDatasim STEER RAWDatarec CDB STAT ANALYSIS HLTbase RAWDatabase ESD STEERBase AliHLTHOMER)
-        depends_on_root(RAWDatasim GeomBuilder RHTTP Gui EG Graf3d TreePlayer XMLParser Core Cling GenVector GeomPainter Hist Geom Gpad Graf MathCore Matrix Minuit Net Physics Proof RIO Tree VMC)
+        depends_on_root(AliHLTHOMER Core)
 
-        depends_on_aliroot(MUONmapping CDB MUONcore STEERBase)
-        depends_on_root(MUONmapping Core Physics RIO GeomBuilder RHTTP GenVector Gui XMLParser EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net TreePlayer VMC Tree)
+        depends_on_aliroot(RAWDatasim STEER)
+
+        depends_on_aliroot(MUONmapping CDB MUONcore)
 
         depends_on_aliroot(MUONcore STEERBase)
-        depends_on_root(MUONcore Core Tree EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net Physics RIO TreePlayer VMC)
 
-        depends_on_aliroot(MUONraw RAWDatarec MUONcore RAWDatabase ESD STEERBase)
-        depends_on_root(MUONraw Core EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net Physics RIO TreePlayer VMC Tree)
+        depends_on_aliroot(MUONraw RAWDatarec MUONcore)
 
-        depends_on_aliroot(MUONgraphics MUONmapping MUONrec MUONbase RAWDatasim MUONgeometry STEER ANALYSIS HLTbase AliHLTHOMER MUONtrigger MUONcalib MUONmapping CDB STAT MUONraw RAWDatarec RAWDatabase ESD MUONcore STEERBase)
-        depends_on_root(MUONgraphics Rint Cling GeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net Physics RIO TreePlayer VMC Tree Core)
+        depends_on_aliroot(MUONgraphics MUONrec)
+        depends_on_root(MUONgraphics Rint)
 
-        depends_on_aliroot(MUONrec MUONbase MUONtrigger MUONgeometry MUONcalib MUONraw MUONmapping MUONcore RAWDatasim STEER CDB STAT RAWDatarec ANALYSIS HLTbase AliHLTHOMER RAWDatabase ESD STEERBase)
-        depends_on_root(MUONrec GeomBuilder RHTTP Gui XMLParser Graf Minuit Net TreePlayer VMC EG Geom Gpad Graf3d MathCore Matrix Physics Tree Core Hist RIO)
+        depends_on_aliroot(MUONrec MUONbase)
 
-        depends_on_aliroot(MUONbase RAWDatasim MUONgeometry MUONtrigger STEER ANALYSIS HLTbase AliHLTHOMER MUONraw RAWDatarec RAWDatabase MUONcalib MUONmapping CDB STAT MUONcore STEERBase)
-        depends_on_root(MUONbase Core Graf Hist MathCore RIO Tree Cling GeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Geom Graf3d Matrix Minuit Net TreePlayer VMC Gpad Physics)
+        depends_on_aliroot(MUONbase RAWDatasim MUONgeometry MUONtrigger)
 
-        depends_on_aliroot(AliHLTMUON MUONevaluation MUONrec MUONsim MUONbase RAWDatasim MUONtrigger MUONraw MUONcalib MUONgeometry STEER RAWDatarec HLTbase RAWDatabase ESD AliHLTHOMER ANALYSIS MUONmapping CDB STAT MUONcore STEERBase)
-        depends_on_root(AliHLTMUON Cling AGeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Gpad Graf3d Net TreePlayer Geom Matrix Minuit Physics VMC Core Graf Hist MathCore RIO Tree)
+        depends_on_aliroot(AliHLTMUON MUONevaluation)
 
-        depends_on_aliroot(MUONevaluation MUONrec MUONsim MUONbase RAWDatasim MUONgeometry STEER ANALYSIS HLTbase AliHLTHOMER MUONtrigger MUONcalib MUONmapping CDB STAT MUONraw RAWDatarec RAWDatabase ESD MUONcore STEERBase)
-        depends_on_root(MUONevaluation Gui Cling GeomPainter Proof GenVector GeomBuilder RHTTP XMLParser Gpad Graf3d Graf Matrix Minuit Net TreePlayer Core EG Geom Hist MathCore Physics RIO Tree VMC)
+        depends_on_aliroot(MUONevaluation MUONrec MUONsim)
 
-        depends_on_aliroot(MUONsim)
-        depends_on_root(MUONsim)
+        depends_on_aliroot(MUONsim MUONbase)
+
+        depends_on_aliroot(MUONgeometry STEER MUONmapping)
+
+        depends_on_aliroot(MUONtrigger MUONraw MUONcalib)
+
+        depends_on_aliroot(MUONcalib MUONmapping)
 
         set(AliRoot_FOUND TRUE)
-        message(STATUS "AliRoot ... - found ${ALIROOT} - and target defined")
+        message(STATUS "AliRoot ... - found ${ALIROOT} - and target dependencies defined")
 
     else ()
 

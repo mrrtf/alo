@@ -14,6 +14,7 @@
 
 
 #include "generateTestPoints.h"
+#include <algorithm>
 #include <random>
 
 namespace o2 {
