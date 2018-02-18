@@ -30,7 +30,7 @@ generate_rootmap("${MODULE}" "${LIBDEPS}" "${CMAKE_CURRENT_SOURCE_DIR}/${MODULE}
 
 # Add a library to the project using the object
 add_library(${MODULE} SHARED ${SRCS} G__${MODULE}.cxx)
-target_link_libraries(${MODULE} PUBLIC AliRoot::HLTbase)
+target_link_libraries(${MODULE} PUBLIC AliRoot::HLTbase AliRoot::MUONrec)
 target_include_directories(${MODULE} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # System dependent: Modify the way the library is build

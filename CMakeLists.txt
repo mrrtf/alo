@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 ### CMP0025   Compiler id for Apple Clang is now AppleClang.
 ### CMP0042   MACOSX_RPATH is enabled by default.
@@ -20,7 +20,7 @@ project(alo)
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
 find_package(ROOT)
-find_package(ALIROOT)
+find_package(AliRoot)
 
 include(CMakeALICE)
 

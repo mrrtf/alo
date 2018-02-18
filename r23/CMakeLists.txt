@@ -20,7 +20,7 @@ generate_rootmap("${MODULE}" "${LIBDEPS}" "${CMAKE_CURRENT_SOURCE_DIR}/${MODULE}
 
 # Add a library to the project using the object
 add_library(${MODULE} SHARED ${SRCS} G__${MODULE}.cxx)
-target_link_libraries(${MODULE} PUBLIC AliRoot::MUONraw)
+target_link_libraries(${MODULE} PUBLIC AliRoot::MUONgraphics)
 target_include_directories(${MODULE} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}
         $<INSTALL_INTERFACE:include>)
 

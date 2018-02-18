@@ -45,7 +45,8 @@ if (ALIROOT)
     if (EXISTS ${ALIROOT}/bin/aliroot AND EXISTS ${ALIROOT}/lib AND EXISTS ${ALIROOT}/include)
 
         foreach (t MUONmapping MUONgraphics MUONrec MUONbase MUONgeometry MUONtrigger MUONcalib MUONraw MUONcore
-                STEER ANALYSIS HLTbase AliHLTHOMER CDB STAT RAWDatarec RAWDatabase ESD STEERBase RAWDatasim)
+                STEER ANALYSIS HLTbase AliHLTHOMER CDB STAT RAWDatarec RAWDatabase ESD STEERBase RAWDatasim
+                AliHLTMUON MUONevaluation MUONsim)
             if (NOT TARGET AliRoot::${t})
                 add_library(AliRoot::${t} SHARED IMPORTED)
                 set_target_properties(AliRoot::${t} PROPERTIES
@@ -93,6 +94,21 @@ if (ALIROOT)
 
         depends_on_aliroot(MUONgraphics MUONmapping MUONrec MUONbase RAWDatasim MUONgeometry STEER ANALYSIS HLTbase AliHLTHOMER MUONtrigger MUONcalib MUONmapping CDB STAT MUONraw RAWDatarec RAWDatabase ESD MUONcore STEERBase)
         depends_on_root(MUONgraphics Rint Cling GeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Geom Gpad Graf3d Graf Hist MathCore Matrix Minuit Net Physics RIO TreePlayer VMC Tree Core)
+
+        depends_on_aliroot(MUONrec MUONbase MUONtrigger MUONgeometry MUONcalib MUONraw MUONmapping MUONcore RAWDatasim STEER CDB STAT RAWDatarec ANALYSIS HLTbase AliHLTHOMER RAWDatabase ESD STEERBase)
+        depends_on_root(MUONrec GeomBuilder RHTTP Gui XMLParser Graf Minuit Net TreePlayer VMC EG Geom Gpad Graf3d MathCore Matrix Physics Tree Core Hist RIO)
+
+        depends_on_aliroot(MUONbase RAWDatasim MUONgeometry MUONtrigger STEER ANALYSIS HLTbase AliHLTHOMER MUONraw RAWDatarec RAWDatabase MUONcalib MUONmapping CDB STAT MUONcore STEERBase)
+        depends_on_root(MUONbase Core Graf Hist MathCore RIO Tree Cling GeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Geom Graf3d Matrix Minuit Net TreePlayer VMC Gpad Physics)
+
+        depends_on_aliroot(AliHLTMUON MUONevaluation MUONrec MUONsim MUONbase RAWDatasim MUONtrigger MUONraw MUONcalib MUONgeometry STEER RAWDatarec HLTbase RAWDatabase ESD AliHLTHOMER ANALYSIS MUONmapping CDB STAT MUONcore STEERBase)
+        depends_on_root(AliHLTMUON Cling AGeomPainter Proof GenVector GeomBuilder RHTTP Gui XMLParser EG Gpad Graf3d Net TreePlayer Geom Matrix Minuit Physics VMC Core Graf Hist MathCore RIO Tree)
+
+        depends_on_aliroot(MUONevaluation MUONrec MUONsim MUONbase RAWDatasim MUONgeometry STEER ANALYSIS HLTbase AliHLTHOMER MUONtrigger MUONcalib MUONmapping CDB STAT MUONraw RAWDatarec RAWDatabase ESD MUONcore STEERBase)
+        depends_on_root(MUONevaluation Gui Cling GeomPainter Proof GenVector GeomBuilder RHTTP XMLParser Gpad Graf3d Graf Matrix Minuit Net TreePlayer Core EG Geom Hist MathCore Physics RIO Tree VMC)
+
+        depends_on_aliroot(MUONsim)
+        depends_on_root(MUONsim)
 
         set(AliRoot_FOUND TRUE)
         message(STATUS "AliRoot ... - found ${ALIROOT} - and target defined")

@@ -56,7 +56,7 @@ macro(generate_dictionary DNAME LDNAME DHDRS DINCDIRS)
     else (ROOT_VERSION_MAJOR LESS 6)
       add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lib${DNAME}.rootmap ${CMAKE_CURRENT_BINARY_DIR}/G__${DNAME}.cxx ${CMAKE_CURRENT_BINARY_DIR}/G__${DNAME}_rdict.pcm
                        COMMAND
-                         ${ROOT_rootcint_CMD}
+                         LD_LIBRARY_PATH=${ROOT_LIBRARY_DIR}:$ENV{LD_LIBRARY_PATH} ${ROOT_rootcint_CMD}
                        ARGS
                          -f ${CMAKE_CURRENT_BINARY_DIR}/G__${DNAME}.cxx
                          -rmf ${CMAKE_CURRENT_BINARY_DIR}/lib${DNAME}.rootmap -rml lib${DNAME}
