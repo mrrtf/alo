@@ -10,7 +10,7 @@ foreach (impl RANGE 3 3 1)
 
     add_library(segcontour${impl} SHARED ${SRCS})
     target_include_directories(segcontour${impl} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(segcontour${impl} PUBLIC mapping_interface contour impl${impl})
+    target_link_libraries(segcontour${impl} PUBLIC contour impl${impl})
 
     add_executable(svgSegmentation${impl} svgSegmentation.cxx)
     target_link_libraries(svgSegmentation${impl} PUBLIC segcontour${impl} Boost::program_options)

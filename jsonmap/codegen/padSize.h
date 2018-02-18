@@ -3,6 +3,9 @@
 
 #include "rapidjson/document.h"
 #include <string>
+#include <vector>
+#include <utility>
+#include <ostream>
 
 namespace jsonmap {
 namespace codegen {

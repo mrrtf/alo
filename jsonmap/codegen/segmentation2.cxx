@@ -92,7 +92,7 @@ void generateCodeForDetElemId2SegType(const std::string& ns, const Value &segmen
   decl << "int detElemId2SegType(int detElemId);";
   decl << mappingNamespaceEnd(ns);
 
-  impl << generateInclude({"array"});
+  impl << generateInclude({"array","algorithm"});
   impl << mappingNamespaceBegin(ns);
   impl << codeForDetElemId2SegType(segmentation, detection_elements);
   impl << mappingNamespaceEnd(ns);

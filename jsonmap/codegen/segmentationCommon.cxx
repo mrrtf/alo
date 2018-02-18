@@ -13,9 +13,10 @@
 /// @author  Laurent Aphecetche
 
 
+#include "segmentationCommon.h"
+#include <algorithm>
 #include <sstream>
 #include <vector>
-#include "segmentationCommon.h"
 
 using namespace rapidjson;
 

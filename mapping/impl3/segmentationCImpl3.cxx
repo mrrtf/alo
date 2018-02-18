@@ -31,7 +31,7 @@ IMPL3_EXPORT MchSegmentationHandle
 mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
   auto seg = o2::mch::mapping::impl3::createSegmentation(detElemId, isBendingPlane);
-  return seg ? new MchSegmentation{seg} : nullptr;
+  return seg ? new MchSegmentation(seg) : nullptr;
 }
 
 IMPL3_EXPORT
@@ -103,7 +103,6 @@ IMPL3_EXPORT
 void mchSegmentationForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler,
                                           void *clientData)
 {
-  auto &seg = segHandle->impl;
   for (auto p: segHandle->impl->getPadUids(dualSampaId)) {
     handler(clientData, p);
   }
@@ -151,7 +150,6 @@ void
 mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, double ymin, double xmax, double ymax,
                                 MchPadHandler handler, void *clientData)
 {
-  auto &seg = segHandle->impl;
   for (auto p: segHandle->impl->getPadUids(xmin,ymin,xmax,ymax)) {
     handler(clientData, p);
   }
@@ -163,7 +161,6 @@ void
 mchSegmentationForEachNeighbouringPad(MchSegmentationHandle segHandle, int paduid, MchPadHandler handler,
                                       void *userData)
 {
-  auto &seg = segHandle->impl;
   for (auto p: segHandle->impl->getNeighbouringPadUids(paduid)) {
     handler(userData, p);
   }

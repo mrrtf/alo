@@ -13,8 +13,9 @@
 /// @author  Laurent Aphecetche
 
 
-#include <iostream>
 #include "report.h"
+#include <iostream>
+#include <algorithm>
 
 namespace jsonmap {
 namespace codegen {

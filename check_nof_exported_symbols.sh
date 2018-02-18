@@ -4,4 +4,4 @@
 library=$1
 expected=$2
 
-test $(/usr/bin/nm -m -extern-only -defined-only $library -s __TEXT __text | wc -l) -eq $expected
+test $(/usr/bin/nm -g -D $library -s __TEXT __text | wc -l) -eq $expected

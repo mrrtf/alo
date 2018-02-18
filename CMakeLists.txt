@@ -19,9 +19,7 @@ project(alo)
 
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
-if (ROOTSYS)
-    find_package(ROOT 6.08)
-endif ()
+find_package(ROOT)
 find_package(ALIROOT)
 
 include(CMakeALICE)

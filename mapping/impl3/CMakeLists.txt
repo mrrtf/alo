@@ -22,14 +22,16 @@ endforeach ()
 add_library(impl3 SHARED ${SOURCES})
 target_include_directories(impl3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
 target_link_libraries(impl3 PUBLIC mapping_interface Boost::boost)
+target_compile_features(impl3 PUBLIC cxx_user_literals)
 set_target_properties(impl3 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
-add_custom_command(TARGET impl3 POST_BUILD
-        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 18
-        COMMENT "Checking number of exported symbols in the library")
+#add_custom_command(TARGET impl3 POST_BUILD
+#        COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:impl3> 18
+#        COMMENT "Checking number of exported symbols in the library")
 
 add_library(impl3_static STATIC ${SOURCES})
 target_include_directories(impl3_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
+target_compile_features(impl3_static PUBLIC cxx_user_literals)
 target_link_libraries(impl3_static PUBLIC mapping_interface Boost::boost)
 
 install(TARGETS impl3 impl3_static

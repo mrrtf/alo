@@ -6,6 +6,7 @@
 // into another implementation file.
 //
 #include <array>
+#include <algorithm>
 
 namespace o2 {
 namespace mch {
