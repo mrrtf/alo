@@ -43,7 +43,6 @@ if (ROOT_FOUND AND AliRoot_FOUND)
     add_subdirectory(vsaliroot)
 endif ()
 
-add_subdirectory(contour)
 add_subdirectory(mapping)
 
 if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION} GREATER 3.9.6)
