@@ -197,8 +197,52 @@ BOOST_AUTO_TEST_CASE(IsInsideReturnsFalseIfPointIsExactlyOnAPolygonEdge)
 
 BOOST_AUTO_TEST_CASE(BBoxCreation)
 {
-  BBox<double> expected{-5.0, 5.0, -10.0, 10.0};
+  BBox<double> expected{-5.0, -10.0, 5.0, 10.0};
   BOOST_TEST(getBBox(testPolygon2) == expected);
+}
+
+
+BOOST_AUTO_TEST_CASE(PolygonCenter)
+{
+  Polygon<double> p{{-80, -20},
+                    {-70, -20},
+                    {-70, -19.5},
+                    {-80, -19.5},
+                    {-80, -20}
+  };
+
+  auto box = getBBox(p);
+  std::cout << box << "\n";
+  BOOST_CHECK_EQUAL(box.xcenter(),-75.0);
+  BOOST_CHECK_EQUAL(box.ycenter(),-19.75);
+}
+
+
+BOOST_AUTO_TEST_CASE(ConstructionByVectorIterators)
+{
+  std::vector<Vertex<int>> vertices{
+    {0, 0},
+    {1, 0},
+    {1, 1},
+    {0, 1},
+    {0, 0}
+  };
+
+  Polygon<int> p(vertices.begin(), vertices.end());
+
+  BOOST_CHECK_EQUAL(p, counterClockwisePolygon);
+}
+
+BOOST_AUTO_TEST_CASE(PointOutsidePolygonDistanceToPolygonClosestToOneSegment)
+{
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{-1.0,-6.0},testPolygon2),1.0);
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{3.0,-14.0},testPolygon2),16.0);
+}
+
+BOOST_AUTO_TEST_CASE(PointOutsidePolygonDistanceToPolygonClosestToOneSegmentEndPoint)
+{
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{-1.0,-14.0},testPolygon2),17.0);
+  BOOST_CHECK_EQUAL(squaredDistancePointToPolygon(Vertex<double>{7.0,-14.0},testPolygon2),20.0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

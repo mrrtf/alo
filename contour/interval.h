@@ -23,7 +23,7 @@
 namespace o2 {
 namespace mch {
 namespace contour {
-
+namespace impl {
 template<typename T>
 class Interval
 {
@@ -48,7 +48,7 @@ class Interval
     T end() const
     { return mEnd; }
 
-    bool extend(const Interval& i)
+    bool extend(const Interval &i)
     {
       if (areEqual(i.begin(), end())) {
         mEnd = i.end();
@@ -58,13 +58,13 @@ class Interval
       }
     }
 
-    bool operator==(const Interval& rhs) const
+    bool operator==(const Interval &rhs) const
     {
       return areEqual(mBegin, rhs.mBegin) &&
              areEqual(mEnd, rhs.mEnd);
     }
 
-    bool operator!=(const Interval& rhs) const
+    bool operator!=(const Interval &rhs) const
     {
       return !(rhs == *this);
     }
@@ -75,12 +75,13 @@ class Interval
 };
 
 template<typename T>
-inline std::ostream& operator<<(std::ostream& os, const Interval<T>& i)
+inline std::ostream &operator<<(std::ostream &os, const Interval<T> &i)
 {
   os << "[" << i.begin() << "," << i.end() << "]";
   return os;
 }
 
+}
 }
 }
 }

@@ -16,11 +16,9 @@
 #ifndef O2_MCH_CONTOUR_BBOX_H
 #define O2_MCH_CONTOUR_BBOX_H
 
-#include "vertex.h"
+#include "helper.h"
 #include <stdexcept>
 #include <ostream>
-#include <limits>
-#include <vector>
 
 namespace o2 {
 namespace mch {
@@ -30,34 +28,47 @@ template<typename T>
 class BBox
 {
   public:
-    BBox(T xmin, T xmax, T ymin, T ymax) : mTopLeft{xmin, ymax}, mBottomRight{xmax, ymin}
+    BBox(T xmin, T ymin, T xmax, T ymax) : mXmin{xmin}, mXmax{xmax}, mYmin{ymin}, mYmax{ymax}
     {
       if (xmin >= xmax || ymin >= ymax) {
         throw std::invalid_argument("BBox should be created valid (xmin<xmax and ymin<ymax)");
       }
     }
 
-
     T xmin() const
-    { return mTopLeft.x; }
+    { return mXmin; }
 
     T xmax() const
-    { return mBottomRight.x; }
+    { return mXmax; }
 
     T ymin() const
-    { return mBottomRight.y; }
+    { return mYmin; }
 
     T ymax() const
-    { return mTopLeft.y; }
+    { return mYmax; }
 
-    T width() const { return xmax() - xmin(); }
+    T xcenter() const
+    {
+      return (xmin() + xmax()) / T{2};
+    }
 
-    T height() const { return ymax() - ymin(); }
+    T ycenter() const
+    {
+      return (ymin() + ymax()) / T{2};
+    }
+
+    T width() const
+    { return xmax() - xmin(); }
+
+    T height() const
+    { return ymax() - ymin(); }
 
     friend bool operator==(const BBox &lhs, const BBox &rhs)
     {
-      return lhs.mTopLeft == rhs.mTopLeft &&
-             lhs.mBottomRight == rhs.mBottomRight;
+      return impl::areEqual(lhs.xmin(), rhs.xmin()) &&
+             impl::areEqual(lhs.ymin(), rhs.ymin()) &&
+             impl::areEqual(lhs.xmax(), rhs.xmax()) &&
+             impl::areEqual(lhs.ymax(), rhs.ymax());
     }
 
     friend bool operator!=(const BBox &lhs, const BBox &rhs)
@@ -67,44 +78,41 @@ class BBox
 
     friend std::ostream &operator<<(std::ostream &os, const BBox &box)
     {
-      os << "mTopLeft: " << box.mTopLeft << " mBottomRight: " << box.mBottomRight;
+      os << "mTopLeft: " << box.xmin() << "," << box.ymax() << " mBottomRight: " << box.xmax() << "," << box.ymin();
       return os;
     }
 
+    bool contains(const BBox<T> &a) const
+    {
+      return !(
+        a.xmin() < xmin() ||
+        a.xmax() > xmax() ||
+        a.ymin() < ymin() ||
+        a.ymax() > ymax());
+    }
+
   private:
-    Vertex <T> mTopLeft;
-    Vertex <T> mBottomRight;
+    T mXmin;
+    T mXmax;
+    T mYmin;
+    T mYmax;
 };
 
 template<typename T>
-BBox<T> getBBox(const std::vector<Vertex < T>>
-
-& vertices) {
-
-T xmin{std::numeric_limits<T>::max()};
-T xmax{std::numeric_limits<T>::min()};
-T ymin{std::numeric_limits<T>::max()};
-T ymax{std::numeric_limits<T>::min()};
-
-for (
-const auto &v :
-vertices ) {
-xmin = std::min(xmin, v.x);
-xmax = std::max(xmax, v.x);
-ymin = std::min(ymin, v.y);
-ymax = std::max(ymax, v.y);
-}
-return {
-xmin,xmax,ymin,ymax
-};
-}
-
-template<typename T>
-Vertex<T> getCenter(const BBox <T> &bbox)
+BBox<T> enlarge(const BBox<T> &box, T extraWidth, T extraHeight)
 {
-  return {
-    (bbox.xmax() + bbox.xmin()) / T{2},
-    (bbox.ymax() + bbox.ymin()) / T{2}
+  return BBox<T>(box.xmin() - extraWidth / 2.0, box.ymin() - extraHeight / 2.0,
+                 box.xmax() + extraWidth / 2.0, box.ymax() + extraHeight / 2.0);
+}
+
+template<typename T>
+BBox<T> intersect(const BBox<T> &a, const BBox<T> &b)
+{
+  return BBox<T>{
+    std::max(a.xmin(), b.xmin()),
+    std::max(a.ymin(), b.ymin()),
+    std::min(a.xmax(), b.xmax()),
+    std::min(a.ymax(), b.ymax())
   };
 }
 

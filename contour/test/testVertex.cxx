@@ -62,5 +62,31 @@ BOOST_AUTO_TEST_CASE(Equality)
   BOOST_TEST(a==b);
 }
 
+
+BOOST_AUTO_TEST_CASE(DistancePointToSegmentWhereBasePointIsWithinSegment)
+{
+  Vertex<double> p0{0.0,0.0};
+  Vertex<double> p1{6.0,0.0};
+  double d = squaredDistanceOfPointToSegment(Vertex<double>{1.5,3.5},p0,p1);
+  BOOST_CHECK_EQUAL(d,12.25);
+}
+
+BOOST_AUTO_TEST_CASE(DistancePointToSegmentWhereBasePointIsLeftOfSegment)
+{
+  Vertex<double> p0{0.0,0.0};
+  Vertex<double> p1{6.0,0.0};
+
+  double d = squaredDistanceOfPointToSegment(Vertex<double>{-3.0,3.0},p0,p1);
+  BOOST_CHECK_EQUAL(d,18.0);
+}
+
+BOOST_AUTO_TEST_CASE(DistancePointToSegmentWhereBasePointIsRightOfSegment)
+{
+  Vertex<double> p0{0.0,0.0};
+  Vertex<double> p1{6.0,0.0};
+
+  double d = squaredDistanceOfPointToSegment(Vertex<double>{8.0,2.0},p0,p1);
+  BOOST_CHECK_EQUAL(d,8.0);
+}
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

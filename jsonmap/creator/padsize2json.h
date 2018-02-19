@@ -17,11 +17,12 @@
 #define ALO_PADSIZE2JSON_H
 
 #include "json.h"
+#include "padsize.h"
 #include <vector>
 #include <utility>
 
 template<typename WRITER>
-void all_padsizes(std::string topkey, const std::vector<std::pair<float, float>>& padsizes, WRITER& w)
+void all_padsizes(std::string topkey, const std::vector<PadSize>& padsizes, WRITER& w)
 {
   w.StartObject();
   w.Key(topkey.c_str());
@@ -34,9 +35,9 @@ void all_padsizes(std::string topkey, const std::vector<std::pair<float, float>>
     w.Key("unit");
     w.String("cm");
     w.Key("x");
-    w.Double(p.first);
+    w.Double(p.x);
     w.Key("y");
-    w.Double(p.second);
+    w.Double(p.y);
     w.EndObject();
   }
   w.EndArray();

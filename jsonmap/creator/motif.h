@@ -19,6 +19,8 @@
 #include <vector>
 #include <string>
 
+class PadSize;
+
 class AliMpPCB;
 
 class AliMpSector;
@@ -26,17 +28,17 @@ class AliMpSector;
 class AliMpVMotif;
 
 std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs,
-                                            const std::vector<std::pair<float, float>>& padsizes);
+                                            const std::vector<PadSize>& padsizes);
 
 std::vector<AliMpVMotif*>
-get_allsectormotifs(const std::vector<const AliMpSector*>& sectors, const std::vector<std::pair<float, float>>& padsizes);
+get_allsectormotifs(const std::vector<const AliMpSector*>& sectors, const std::vector<PadSize>& padsizes);
 
 std::vector<AliMpVMotif*>
 get_allmotifs(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors,
-              const std::vector<std::pair<float, float>>& padsizes);
+              const std::vector<PadSize>& padsizes);
 
-int get_padsize_index(float px, float py, const std::vector<std::pair<float, float>>& padsizes);
+int get_padsize_index(float px, float py, const std::vector<PadSize>& padsizes);
 
-std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<float, float>> & padsizes);
+std::string get_motif_id(const AliMpVMotif& motif, const std::vector<PadSize> & padsizes);
 
 #endif

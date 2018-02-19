@@ -32,6 +32,7 @@
 #include <iostream>
 #include "edge.h"
 
+using namespace o2::mch::contour::impl;
 using namespace o2::mch::contour;
 
 BOOST_AUTO_TEST_SUITE(o2_mch_contour)
@@ -93,8 +94,8 @@ BOOST_AUTO_TEST_CASE(BeginAndEndForALeftEdgeVertical)
 {
   VerticalEdge<double> e{0, 7, 1};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0, 7));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0, 1));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<double>{0, 7}));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<double>{0, 1}));
   BOOST_CHECK_EQUAL(top(e), 7);
   BOOST_CHECK_EQUAL(bottom(e), 1);
 }
@@ -103,8 +104,8 @@ BOOST_AUTO_TEST_CASE(BeginAndEndForARightEdgeVertical)
 {
   VerticalEdge<double> e{0, 1, 7};
 
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(0, 1));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(0, 7));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<double>{0, 1}));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<double>{0, 7}));
   BOOST_CHECK_EQUAL(top(e), 7);
   BOOST_CHECK_EQUAL(bottom(e), 1);
 }
@@ -112,15 +113,15 @@ BOOST_AUTO_TEST_CASE(BeginAndEndForARightEdgeVertical)
 BOOST_AUTO_TEST_CASE(BeginAndEndForALeftToRightHorizontal)
 {
   HorizontalEdge<double> e{0, 1, 7};
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(1, 0));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(7, 0));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<double>{1, 0}));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<double>{7, 0}));
 }
 
 BOOST_AUTO_TEST_CASE(BeginAndEndForARightToLeftHorizontal)
 {
   HorizontalEdge<double> e{0, 7, 1};
-  BOOST_CHECK_EQUAL(e.begin(), Vertex<double>(7, 0));
-  BOOST_CHECK_EQUAL(e.end(), Vertex<double>(1, 0));
+  BOOST_CHECK_EQUAL(e.begin(), (Vertex<double>{ 7, 0 }));
+  BOOST_CHECK_EQUAL(e.end(), (Vertex<double>{ 1, 0 }));
 }
 
 BOOST_AUTO_TEST_CASE(VectorOfVerticals)

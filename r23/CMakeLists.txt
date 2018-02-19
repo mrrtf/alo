@@ -1,10 +1,4 @@
 set(MODULE r23)
-include_directories(${ROOT_INCLUDE_DIR}
-        ${ALIROOT_INCLUDE_DIR}
-        )
-
-include_directories(${alo_SOURCE_DIR}/${MODULE})
-
 # Sources in alphabetical order
 set(SRCS
         O2Muon.cxx
@@ -16,8 +10,7 @@ string(REPLACE ".cxx" ".h" HDRS "${SRCS}")
 
 # Generate the dictionary
 # It will create G_ARG1.cxx and G_ARG1.h / ARG1 = function first argument
-get_directory_property(incdirs INCLUDE_DIRECTORIES)
-generate_dictionary("${MODULE}" "${MODULE}LinkDef.h" "${HDRS}" "${incdirs}")
+generate_dictionary("${MODULE}" "${MODULE}LinkDef.h" "${HDRS}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 ## Dependencies (Root and AliRoot ones, order does not matter)
 set(LIBDEPS Core STEERBase ESD RAWDatabase RAWDatarec MUONraw MUONrec MUONgraphics)
@@ -27,15 +20,17 @@ generate_rootmap("${MODULE}" "${LIBDEPS}" "${CMAKE_CURRENT_SOURCE_DIR}/${MODULE}
 
 # Add a library to the project using the object
 add_library(${MODULE} SHARED ${SRCS} G__${MODULE}.cxx)
-target_link_libraries(${MODULE} ${LIBDEPS})
+target_link_libraries(${MODULE} PUBLIC AliRoot::MUONgraphics)
+target_include_directories(${MODULE} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}
+        $<INSTALL_INTERFACE:include>)
 
 # System dependent: Modify the way the library is build
-if(${CMAKE_SYSTEM} MATCHES Darwin)
+if (${CMAKE_SYSTEM} MATCHES Darwin)
     set_target_properties(${MODULE} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif(${CMAKE_SYSTEM} MATCHES Darwin)
+endif (${CMAKE_SYSTEM} MATCHES Darwin)
 
 add_executable(o2muon-filter-raw o2muon-filter-raw.cxx)
-target_link_libraries(o2muon-filter-raw RAWDatabase RAWDatarec ${MODULE})
+target_link_libraries(o2muon-filter-raw ${MODULE})
 
 # Installation
 install(TARGETS ${MODULE}
