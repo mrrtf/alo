@@ -1,4 +1,3 @@
-#include "AliDAQ.h"
 #include "AliMpDDL.h"
 #include "AliMpDDLStore.h"
 #include <vector>

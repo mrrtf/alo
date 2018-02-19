@@ -20,10 +20,14 @@
 #include "chamber.h"
 #include "jsonReader.h"
 
-void readChambers(rapidjson::Value& chambers)
+namespace jsonmap {
+namespace codegen {
+
+void readChambers(rapidjson::Value &chambers)
 {
-  for (auto& v: chambers.GetArray()) {
+  for (auto &v: chambers.GetArray()) {
     std::cout << v["id"].GetInt() << std::endl;
   }
 }
-
+}
+}
