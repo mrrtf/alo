@@ -48,8 +48,6 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 
 void Segmentation::fillRtree()
 {
-  const double epsilon{0.0}; // artificially increase size of pads by a smidge to avoid gaps
-
   int paduid{0};
 
   for (auto padGroupIndex = 0; padGroupIndex < mPadGroups.size(); ++padGroupIndex) {
@@ -62,10 +60,10 @@ void Segmentation::fillRtree()
       for (int iy = 0; iy < pgt.getNofPadsY(); ++iy) {
         if (pgt.id(ix, iy) >= 0) {
 
-          double xmin = ix * dx + pg.mX - epsilon;
-          double xmax = (ix + 1) * dx + pg.mX + epsilon;
-          double ymin = iy * dy + pg.mY - epsilon;
-          double ymax = (iy + 1) * dy + pg.mY + epsilon;
+          double xmin = ix * dx + pg.mX;
+          double xmax = (ix + 1) * dx + pg.mX;
+          double ymin = iy * dy + pg.mY;
+          double ymax = (iy + 1) * dy + pg.mY;
 
           mRtree.insert(std::make_pair(Segmentation::Box{
             Segmentation::Point(xmin, ymin),
@@ -159,7 +157,7 @@ std::vector<int> Segmentation::getNeighbouringPadUids(int paduid) const
   const double offset{0.1}; // 1 mm
 
   auto pads = getPadUids(x - dx - offset, y - dy - offset, x + dx + offset, y + dy + offset);
-  pads.erase(std::remove(begin(pads),end(pads),paduid),end(pads));
+  pads.erase(std::remove(begin(pads), end(pads), paduid), end(pads));
   return pads;
 }
 
@@ -172,21 +170,21 @@ double Segmentation::squaredDistance(int paduid, double x, double y) const
 
 int Segmentation::findPadByPosition(double x, double y) const
 {
-  std::vector<Segmentation::Value> result_n;
-  mRtree.query(boost::geometry::index::contains(Segmentation::Point(x, y)), std::back_inserter(result_n));
-  if (result_n.size() == 1) {
-    return result_n[0].second;
-  }
-  if (result_n.size() > 1) {
-    if (result_n.size() > 2) {
-      throw std::runtime_error("oups. assumption that size=2 is wrong! size=" + std::to_string(result_n.size()));
+  const double epsilon{1E-4};
+  auto pads = getPadUids(x - epsilon, y - epsilon, x + epsilon, y + epsilon);
+
+  double dmin{std::numeric_limits<double>::max()};
+  int paduid{InvalidPadUid};
+
+  for (auto i = 0; i < pads.size(); ++i) {
+    double d{squaredDistance(pads[i], x, y)};
+    if (d < dmin) {
+      paduid = pads[i];
+      dmin = d;
     }
-    // compute distance of pads center to (x,y) and return closest one
-    double d1 = squaredDistance(result_n[0].second, x, y);
-    double d2 = squaredDistance(result_n[1].second, x, y);
-    return (d1 < d2) ? result_n[0].second : result_n[1].second;
   }
-  return -1;
+
+  return paduid;
 }
 
 const PadGroup &Segmentation::padGroup(int paduid) const

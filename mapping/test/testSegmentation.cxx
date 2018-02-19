@@ -270,26 +270,20 @@ std::vector<Point> checkGaps(const Segmentation &seg, double xstep = 0.25, doubl
       double distanceToEnveloppe = std::sqrt(o2::mch::contour::squaredDistancePointToPolygon({x, y}, env[0]));
       bool withinEnveloppe = env.contains(x,y) && (distanceToEnveloppe > 1E-5);
       if (withinEnveloppe && !seg.isValid(seg.findPadByPosition(x, y))) {
-//        std::cout
-//          << boost::format("----- position %7.2f,%7.2f is within segmentation but findPadByPosition is invalid\n")
-//             % x % y;
         gaps.push_back(std::make_pair(x, y));
-        //goto end;
       }
     }
   }
-  end:
   return gaps;
 }
 
 
 BOOST_DATA_TEST_CASE(NoGapWithinPads,
-                     //boost::unit_test::data::make({100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}) * boost::unit_test::data::make({true,false}),
-                     boost::unit_test::data::make({100}) * boost::unit_test::data::make({true,false}),
+                     boost::unit_test::data::make({100, 300, 500, 501, 502, 503, 504, 600, 601, 602, 700, 701, 702, 703, 704, 705, 706, 902, 903, 904, 905}) * boost::unit_test::data::make({true,false}),
                      detElemId, isBendingPlane)
 {
   Segmentation seg{detElemId, isBendingPlane};
-  auto g = checkGaps(seg,0.1,0.1);
+  auto g = checkGaps(seg);
 
   if (!g.empty()) {
     dumpToFile("bug-gap-" + std::to_string(detElemId) + "-" + (isBendingPlane ? "B" : "NB") + ".html", seg, g);
