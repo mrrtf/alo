@@ -39,7 +39,9 @@ target_include_directories(mchjsoncreator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
 target_link_libraries(mch-mapping-convert-to-json mchjsoncreator)
 
-install(TARGETS mch-mapping-convert-to-json RUNTIME DESTINATION bin)
+install(TARGETS mch-mapping-convert-to-json mchjsoncreator
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
 
 if (BUILD_TESTING)
     add_subdirectory(test)
