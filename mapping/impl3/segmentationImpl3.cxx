@@ -48,7 +48,7 @@ Segmentation *createSegmentation(int detElemId, bool isBendingPlane)
 
 void Segmentation::fillRtree()
 {
-  const double epsilon{0}; // artificially increase size of pads by a smidge to avoid gaps
+  const double epsilon{0.0}; // artificially increase size of pads by a smidge to avoid gaps
 
   int paduid{0};
 
@@ -179,7 +179,7 @@ int Segmentation::findPadByPosition(double x, double y) const
   }
   if (result_n.size() > 1) {
     if (result_n.size() > 2) {
-      throw std::runtime_error("oups. assumption that size=2 is wrong!");
+      throw std::runtime_error("oups. assumption that size=2 is wrong! size=" + std::to_string(result_n.size()));
     }
     // compute distance of pads center to (x,y) and return closest one
     double d1 = squaredDistance(result_n[0].second, x, y);

@@ -91,8 +91,6 @@ int main(int argc, char *argv[])
     readChambers(documents["chambers"]->document());
   }
 
-  std::cout << "implToUse=" << implToUse << "\n";
-
   if (implToUse == 1 && documents.count("motiftypes")) {
     Document &doc = documents["motiftypes"]->document();
     auto impl = generateCodeForMotifTypes(doc["motiftypes"]);

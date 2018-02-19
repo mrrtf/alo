@@ -25,8 +25,9 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <cmath>
 
-std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
+std::vector<PadSize> get_padsizes(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg) {
 
   // return an array of pad sizes (pairs of size in x-direction, size in y-direction)
   std::vector<int> deids = get_deids(ddlStore);
@@ -38,7 +39,7 @@ std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpS
   //means for those really...
   int n = 0;
   std::set<float> padSizeX, padSizeY;
-  std::set<std::pair<float,float>> padSize;
+  std::set<PadSize> padSize;
   float scale = 2;
 
   for ( const auto& s : segs ){
@@ -54,21 +55,58 @@ std::vector<std::pair<float,float>> get_padsizes(AliMpDDLStore* ddlStore, AliMpS
         s->Print();
         pad.Print();
       }
-      padSize.insert(std::make_pair(x, y));
+      padSize.insert({x,y});
       ++n;
       padIterator->Next();
     }
     while (!padIterator->IsDone());
   }
 
-  std::vector<std::pair<float,float>> padsizes;
+  std::vector<PadSize> padsizes;
 
   padsizes.insert(padsizes.end(),padSize.begin(),padSize.end());
 
   // sort the pad sizes per pad area
-  std::sort(std::begin(padsizes),std::end(padsizes),[](const std::pair<float,float>& p1, const std::pair<float,float>& p2) {
-    return p1.first*p1.second < p2.first*p2.second;
-  });
+  std::sort(std::begin(padsizes),std::end(padsizes));
 
   return padsizes;
+}
+
+bool operator<(const PadSize &lhs, const PadSize &rhs)
+{
+  auto lhsArea = lhs.x*lhs.y;
+  auto rhsArea = rhs.x*rhs.y;
+
+  if ( lhsArea < rhsArea ) {
+    return true;
+  }
+  if ( rhsArea < lhsArea ) {
+    return false;
+  }
+  return lhs.y < rhs.y;
+}
+
+bool operator>(const PadSize &lhs, const PadSize &rhs)
+{
+  return rhs < lhs;
+}
+
+bool operator<=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(rhs < lhs);
+}
+
+bool operator>=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(lhs < rhs);
+}
+
+bool operator==(const PadSize &lhs, const PadSize &rhs)
+{
+  return std::fabs(lhs.x - rhs.x) < 1E-4 && std::fabs(rhs.y- rhs.y) < 1E-4;
+}
+
+bool operator!=(const PadSize &lhs, const PadSize &rhs)
+{
+  return !(rhs == lhs);
 }
