@@ -15,7 +15,7 @@ FOREACH (p
     ENDIF ()
 endforeach ()
 
-project(alo)
+project(alo VERSION 0.9.0 LANGUAGES CXX C)
 
 set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
