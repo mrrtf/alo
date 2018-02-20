@@ -8,18 +8,17 @@ set(SRCS
 
 foreach (impl RANGE 3 3 1)
 
-    add_library(SegContour${impl} SHARED ${SRCS})
-    target_include_directories(SegContour${impl} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(SegContour${impl} PUBLIC contour MappingImpl${impl})
+    add_library(MCHMappingSegContour${impl} SHARED ${SRCS})
+    target_include_directories(MCHMappingSegContour${impl} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(MCHMappingSegContour${impl} PUBLIC MCHMappingContour MCHMappingImpl${impl})
 
-    add_executable(svgSegmentation${impl} SVGSegmentation.cxx)
-    target_link_libraries(svgSegmentation${impl} PUBLIC SegContour${impl} Boost::program_options)
-    install(TARGETS SegContour${impl} svgSegmentation${impl} LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
+    add_executable(mch-mapping-svg-segmentation${impl} SVGSegmentation.cxx)
+    target_link_libraries(mch-mapping-svg-segmentation${impl} PUBLIC MCHMappingSegContour${impl} Boost::program_options)
+    install(TARGETS MCHMappingSegContour${impl} mch-mapping-svg-segmentation${impl} LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 
 endforeach ()
 
-install(FILES
-        SegmentationContours.h
+install(FILES SegmentationContours.h
         SegmentationSVGWriter.h
         DESTINATION include)
 

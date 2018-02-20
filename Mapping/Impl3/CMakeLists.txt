@@ -19,24 +19,24 @@ foreach (segtype RANGE 20)
     set(SOURCES ${SOURCES} GenSegmentationCreatorForSegType${segtype}.cxx)
 endforeach ()
 
-add_library(MappingImpl3 SHARED ${SOURCES})
-target_include_directories(MappingImpl3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
-target_link_libraries(MappingImpl3 PUBLIC MappingInterface Boost::boost)
-set_target_properties(MappingImpl3 PROPERTIES CXX_VISIBILITY_PRESET hidden)
+add_library(MCHMappingImpl3 SHARED ${SOURCES})
+target_include_directories(MCHMappingImpl3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${MS_GSL_INCLUDE_DIR})
+target_link_libraries(MCHMappingImpl3 PUBLIC MCHMappingInterface Boost::boost)
+set_target_properties(MCHMappingImpl3 PROPERTIES CXX_VISIBILITY_PRESET hidden)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    target_compile_options(MappingImpl3 PRIVATE -fext-numeric-literals)
+    target_compile_options(MCHMappingImpl3 PRIVATE -fext-numeric-literals)
 endif ()
 if (APPLE)
-    add_custom_command(TARGET MappingImpl3 POST_BUILD
-            COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:MappingImpl3> 18
+    add_custom_command(TARGET MCHMappingImpl3 POST_BUILD
+            COMMAND ${CMAKE_SOURCE_DIR}/check_nof_exported_symbols.sh $<TARGET_LINKER_FILE:MCHMappingImpl3> 18
             COMMENT "Checking number of exported symbols in the library")
 endif ()
 
-install(TARGETS MappingImpl3
+install(TARGETS MCHMappingImpl3
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
 include(GenerateExportHeader)
-generate_export_header(MappingImpl3)
+generate_export_header(MCHMappingImpl3)
 
-add_custom_target(MappingImpl3_ide SOURCES PadSize.h)
+add_custom_target(MCHMappingImpl3_ide SOURCES PadSize.h)
