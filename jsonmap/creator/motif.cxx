@@ -27,16 +27,18 @@
 #include <cassert>
 #include <algorithm>
 
-int get_padsize_index(float px, float py, const std::vector<std::pair<float, float>>& padsizes)
+int get_padsize_index(double px, double py, const std::vector<PadSize>& padsizes)
 {
-  auto pix = std::find_if(padsizes.begin(), padsizes.end(), [&](std::pair<float, float> p) {
-    return std::abs(p.first - px) < 1E-4 && std::abs(p.second - py) < 1E-4;
-  });
+  auto pix = std::find(padsizes.begin(), padsizes.end(), PadSize{px,py});
+  if (pix == padsizes.end())
+  {
+    throw std::runtime_error("could not find index of padsize px=" + std::to_string(px) + " py=" + std::to_string(py));
+  }
   return pix - padsizes.begin();
 }
 
 
-std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<float, float>>& padsizes)
+std::string get_motif_id(const AliMpVMotif& motif, const std::vector<PadSize>& padsizes)
 {
   int index = get_padsize_index(motif.GetPadDimensionX(0) * 2.0, motif.GetPadDimensionY(0) * 2.0, padsizes);
 
@@ -50,7 +52,7 @@ std::string get_motif_id(const AliMpVMotif& motif, const std::vector<std::pair<f
 }
 
 std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSector*>& sectors,
-                                              const std::vector<std::pair<float, float>>& padsizes)
+                                              const std::vector<PadSize>& padsizes)
 {
   std::vector<AliMpVMotif*> motifs;
 
@@ -77,7 +79,7 @@ std::vector<AliMpVMotif*> get_allsectormotifs(const std::vector<const AliMpSecto
 }
 
 std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs,
-                                            const std::vector<std::pair<float, float>>& padsizes)
+                                            const std::vector<PadSize>& padsizes)
 {
   std::vector<AliMpVMotif*> motifs;
   std::vector<std::string> names;
@@ -101,7 +103,7 @@ std::vector<AliMpVMotif*> get_allslatmotifs(const std::vector<AliMpPCB*>& pcbs,
 
 std::vector<AliMpVMotif*> get_allmotifs(const std::vector<AliMpPCB*>& pcbs,
                                         const std::vector<const AliMpSector*>& sectors,
-                                        const std::vector<std::pair<float, float>>& padsizes)
+                                        const std::vector<PadSize>& padsizes)
 {
   std::vector<AliMpVMotif*> motifs = get_allslatmotifs(pcbs, padsizes);
   std::vector<AliMpVMotif*> sectorMotifs = get_allsectormotifs(sectors, padsizes);

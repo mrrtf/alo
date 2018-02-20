@@ -14,7 +14,6 @@
 #include "json.h"
 #include "legacyseg2json.h"
 #include "motif.h"
-#include "motif2json.h"
 #include "motifPosition.h"
 #include "motifType.h"
 #include "motiftype2json.h"
@@ -26,7 +25,7 @@
 #include "seg.h"
 #include "seg2json.h"
 #include <cstdlib>
-#include <jsonmap/creator/test/segnumbers.h>
+#include "segnumbers.h"
 #include <utility>
 
 void convert_berg(std::string key)
@@ -80,21 +79,10 @@ void convert_motiftype(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentati
   all_motiftype2json(key, motifTypes, OF(key + ".json").Writer());
 }
 
-void convert_motif(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
-{
-  // convert all motifs (=motif type + pad size(s)) to JSON
-  std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore, mseg);
-  std::vector<const AliMpSector*> sectors = get_allsectors(mseg);
-  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
-  std::vector<AliMpVMotif*> motifs = get_allmotifs(pcbs, sectors, padsizes);
-  std::vector<AliMpMotifType*> motifTypes = get_allmotiftypes(pcbs, sectors);
-  all_motif2json(key,motifs, motifTypes, padsizes, OF(key+".json").Writer());
-}
-
 void convert_pcb(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
   std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore, mseg);
-  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
+  auto padsizes = get_padsizes(ddlStore, mseg);
   all_pcb2json(key, pcbs, padsizes, OF(key + ".json").Writer());
 }
 
@@ -113,7 +101,7 @@ void convert_seg(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* ms
     ddlStore, mseg, segnames);
   std::vector<AliMpPCB*> pcbs = get_allpcbs(ddlStore, mseg);
   std::vector<const AliMpSector*> sectors = get_allsectors(mseg);
-  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
+  auto padsizes = get_padsizes(ddlStore, mseg);
   std::vector<AliMpVMotif*> motifs = get_allmotifs(pcbs, sectors, padsizes);
   std::vector<AliMpMotifType*> motiftypes = get_allmotiftypes(pcbs, sectors);
   all_seg2json(key,segnames, motifpositions, motifs, motiftypes, padsizes, OF(key + ".json").Writer());
@@ -121,8 +109,7 @@ void convert_seg(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* ms
 
 void convert_padsize(std::string key, AliMpDDLStore* ddlStore, AliMpSegmentation* mseg)
 {
-  std::vector<std::pair<float, float>> padsizes = get_padsizes(ddlStore, mseg);
-  all_padsizes(key,padsizes, OF(key+".json").Writer());
+  all_padsizes(key, get_padsizes(ddlStore, mseg), OF(key + ".json").Writer());
 }
 
 int main(int argc, char* argv[])
@@ -139,7 +126,6 @@ int main(int argc, char* argv[])
   convert_ddl("ddls",ddlStore);
   convert_de("detection_elements",ddlStore);
   convert_motiftype("motiftypes",ddlStore, mseg);
-  convert_motif("motifs",ddlStore, mseg);
   convert_pcb("pcbs",ddlStore, mseg);
   convert_legacyseg("legacyseg",ddlStore, mseg);
   convert_seg("segmentations",ddlStore, mseg);
