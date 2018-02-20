@@ -18,7 +18,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "boost/format.hpp"
-#include "segmentation.h"
+#include "Segmentation.h"
 #include "SegmentationContours.h"
 #include "SegmentationSVGWriter.h"
 #include "SVGWriter.h"

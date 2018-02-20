@@ -13,7 +13,7 @@
 /// @author  Laurent Aphecetche
 
 #include "boost/program_options.hpp"
-#include "segmentation.h"
+#include "Segmentation.h"
 #include "SegmentationContours.h"
 #include "SegmentationSVGWriter.h"
 #include "SVGWriter.h"
