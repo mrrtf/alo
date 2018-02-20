@@ -14,12 +14,12 @@
 
 #include "SegmentationCInterface.h"
 #include "SegmentationImpl3.h"
-#include "mappingimpl3_export.h"
+#include "mchmappingimpl3_export.h"
 #include <fstream>
 
 extern "C" {
 
-struct MAPPINGIMPL3_EXPORT MchSegmentation
+struct MCHMAPPINGIMPL3_EXPORT MchSegmentation
 {
     MchSegmentation(o2::mch::mapping::impl3::Segmentation *i) : impl{i}
     {}
@@ -27,39 +27,39 @@ struct MAPPINGIMPL3_EXPORT MchSegmentation
     std::unique_ptr<o2::mch::mapping::impl3::Segmentation> impl;
 };
 
-MAPPINGIMPL3_EXPORT MchSegmentationHandle
+MCHMAPPINGIMPL3_EXPORT MchSegmentationHandle
 mchSegmentationConstruct(int detElemId, bool isBendingPlane)
 {
   auto seg = o2::mch::mapping::impl3::createSegmentation(detElemId, isBendingPlane);
   return seg ? new MchSegmentation(seg) : nullptr;
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void mchSegmentationDestruct(MchSegmentationHandle sh)
 {
   delete sh;
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationId(MchSegmentationHandle segHandle)
 {
 // return segHandle->impl->getId();
   return -1;
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationFindPadByPosition(MchSegmentationHandle segHandle, double x, double y)
 {
   return segHandle->impl->findPadByPosition(x, y);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationFindPadByFEE(MchSegmentationHandle segHandle, int dualSampaId, int dualSampaChannel)
 {
   return segHandle->impl->findPadByFEE(dualSampaId, dualSampaChannel);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void mchSegmentationForEachDetectionElement(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId: {
@@ -75,7 +75,7 @@ void mchSegmentationForEachDetectionElement(MchDetectionElementHandler handler, 
   }
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void mchSegmentationForEachDualSampa(MchSegmentationHandle segHandle, MchDualSampaHandler handler, void *clientData)
 {
   for (auto dualSampaId: segHandle->impl->dualSampaIds()) {
@@ -83,7 +83,7 @@ void mchSegmentationForEachDualSampa(MchSegmentationHandle segHandle, MchDualSam
   }
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void mchSegmentationForOneDetectionElementOfEachSegmentationType(MchDetectionElementHandler handler, void *clientData)
 {
   for (auto detElemId : {
@@ -93,13 +93,13 @@ void mchSegmentationForOneDetectionElementOfEachSegmentationType(MchDetectionEle
   }
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationIsPadValid(MchSegmentationHandle segHandle, int paduid)
 {
   return paduid != segHandle->impl->InvalidPadUid;
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void mchSegmentationForEachPadInDualSampa(MchSegmentationHandle segHandle, int dualSampaId, MchPadHandler handler,
                                           void *clientData)
 {
@@ -108,44 +108,44 @@ void mchSegmentationForEachPadInDualSampa(MchSegmentationHandle segHandle, int d
   }
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 double mchSegmentationPadPositionX(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padPositionX(paduid);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 double mchSegmentationPadPositionY(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padPositionY(paduid);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 double mchSegmentationPadSizeX(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padSizeX(paduid);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 double mchSegmentationPadSizeY(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padSizeY(paduid);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationPadDualSampaId(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padDualSampaId(paduid);
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 int mchSegmentationPadDualSampaChannel(MchSegmentationHandle segHandle, int paduid)
 {
   return segHandle->impl->padDualSampaChannel(paduid);
 
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void
 mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, double ymin, double xmax, double ymax,
                                 MchPadHandler handler, void *clientData)
@@ -156,7 +156,7 @@ mchSegmentationForEachPadInArea(MchSegmentationHandle segHandle, double xmin, do
 
 }
 
-MAPPINGIMPL3_EXPORT
+MCHMAPPINGIMPL3_EXPORT
 void
 mchSegmentationForEachNeighbouringPad(MchSegmentationHandle segHandle, int paduid, MchPadHandler handler,
                                       void *userData)
