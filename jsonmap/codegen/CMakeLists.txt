@@ -1,5 +1,5 @@
 
-add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx
+add_executable(mch-mapping-generate-code mch-mapping-generate-code.cxx
         jsonReader.h
         writer.h writer.cxx
         chamber.h chamber.cxx
@@ -15,7 +15,7 @@ add_executable(mchMappingCodeGenerator mchMappingCodeGenerator.cxx
         padGroup.h padGroup.cxx
         report.cxx report.h)
 
-target_link_libraries(mchMappingCodeGenerator Boost::program_options RapidJSON)
+target_link_libraries(mch-mapping-generate-code Boost::program_options RapidJSON)
 
-install(TARGETS mchMappingCodeGenerator RUNTIME DESTINATION bin)
+install(TARGETS mch-mapping-generate-code RUNTIME DESTINATION bin)
 

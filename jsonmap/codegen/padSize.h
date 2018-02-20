@@ -10,9 +10,14 @@
 namespace jsonmap {
 namespace codegen {
 
-std::ostream &operator<<(std::ostream &out, const std::pair<double,double>& padsize);
+struct PadSize {
+    double x;
+    double y;
+};
 
-std::vector<std::pair<double,double>> getPadSizes(const rapidjson::Value &jsonPadSizes);
+std::ostream &operator<<(std::ostream &out, const PadSize& padsize);
+
+std::vector<PadSize> getPadSizes(const rapidjson::Value &jsonPadSizes);
 
 std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &jsonPadSizes);
 

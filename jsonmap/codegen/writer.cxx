@@ -66,10 +66,13 @@ std::string generateNotice(bool standalone)
   return notice;
 }
 
-void outputCode(const std::string decl, const std::string impl, const std::string outputFileName,
+void outputCode(const std::string decl, const std::string impl, std::string outputFileName,
                 bool withIncludeGuards, bool standalone,
                 const std::string includeFileNameIfDifferentFromImplementation)
 {
+  const std::string genPrefix="Gen";
+
+  outputFileName = genPrefix + outputFileName;
   std::string includeFileName = outputFileName + ".h";
 
   if (!decl.empty()) {

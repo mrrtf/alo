@@ -134,7 +134,7 @@ void generateCodeForMotifPositions(const Value &segmentations,
 
   bool includeGuards{false};
   bool standalone{false};
-  outputCode(decl.str(), impl.str(), "genMotifPosition", includeGuards, standalone, "motifPosition.h");
+  outputCode(decl.str(), impl.str(), "MotifPosition", includeGuards, standalone, "motifPosition.h");
 }
 
 }

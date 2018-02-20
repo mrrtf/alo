@@ -13,6 +13,7 @@
 /// @author  Laurent Aphecetche
 
 #include "padGroup.h"
+#include "padSize.h"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -117,12 +118,12 @@ getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGr
   return pgts;
 }
 
-std::vector<std::pair<double, double>>
-getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<double, double>> &allPadSizes)
+std::vector<PadSize>
+getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<PadSize> &allPadSizes)
 {
   std::set<int> padSizeIds = getUnique(padGroups, padSizeId);
 
-  std::vector<std::pair<double, double>> padSizes;
+  std::vector<PadSize> padSizes;
   for (auto &sid: padSizeIds) {
     padSizes.push_back(allPadSizes[sid]);
   }
@@ -150,7 +151,7 @@ getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector
 
 std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups,
                             const std::vector<PadGroupType> &padGroupTypes,
-                            const std::vector<std::pair<double, double>> &padSizes)
+                            const std::vector<PadSize> &padSizes)
 {
   // change the padGroupType ids in padGroups vector to
   // be from 0 to number of different padgrouptypes in padGroups vector

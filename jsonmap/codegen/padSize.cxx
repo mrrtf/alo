@@ -20,21 +20,20 @@
 namespace jsonmap {
 namespace codegen {
 
-std::vector<std::pair<double,double>> getPadSizes(const rapidjson::Value& jsonPadSizes) {
+std::vector<PadSize> getPadSizes(const rapidjson::Value& jsonPadSizes) {
 
-  std::vector<std::pair<double,double>> padSizes;
+  std::vector<PadSize> padSizes;
 
   for (auto &ps: jsonPadSizes.GetArray()) {
-    padSizes.push_back(std::make_pair<float, float>(static_cast<float>(ps["x"].GetDouble()),
-                                              static_cast<float>(ps["y"].GetDouble())));
+    padSizes.push_back(PadSize{ps["x"].GetDouble(), ps["y"].GetDouble()});
   }
 
   return padSizes;
 }
 
-std::ostream &operator<<(std::ostream &out, const std::pair<double,double>& padsize)
+std::ostream &operator<<(std::ostream &out, const PadSize& padsize)
 {
-  out << "{" << padsize.first << "," << padsize.second << "}";
+  out << "{" << padsize.x << "," << padsize.y << "}";
   return out;
 }
 
@@ -44,16 +43,16 @@ std::string generateCodeForPadSizes(std::string ns, const rapidjson::Value &json
 
   std::ostringstream code;
 
-  code << generateInclude({"padSize.h", "utility", "array"});
+  code << generateInclude({"PadSize.h", "utility", "array"});
 
   code << mappingNamespaceBegin(ns);
   code << R"(namespace {
-std::array<std::pair<float, float>, 18> arrayOfPadSizes{
+std::array<std::pair<double, double>, 18> arrayOfPadSizes{
 )";
   int n{0};
   auto ps = getPadSizes(jsonPadSizes);
   for (auto &p: ps) {
-    code << "/* " << n << " */ std::make_pair<double,double>(" << p.first << "," << p.second << ")";
+    code << "/* " << n << " */ std::make_pair<double,double>(" << p.x << "," << p.y << ")";
     n++;
     if (n < ps.size()) { code << ","; }
     code << "\n";

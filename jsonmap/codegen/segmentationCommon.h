@@ -25,6 +25,8 @@ namespace codegen {
 std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elements);
 std::string generateCodeForSegTypeArray(const rapidjson::Value &segmentations, const rapidjson::Value &detection_elements);
 
+std::string genPrefix();
+
 }
 }
 

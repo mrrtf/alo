@@ -1,20 +1,20 @@
 
-add_executable(testContourCreatorVsAliRoot
-        testContourCreatorVsAliRoot.cxx
-        commonContour.cxx
-        commonContour.h)
-target_link_libraries(testContourCreatorVsAliRoot PUBLIC contour AliRoot::MUONgraphics Boost::unit_test_framework)
-add_test(NAME testContourCreatorVsAliRoot COMMAND testContourCreatorVsAliRoot)
+add_executable(test_ContourCreatorVsAliRoot
+        test_ContourCreatorVsAliRoot.cxx
+        CommonContour.cxx
+        CommonContour.h)
+target_link_libraries(test_ContourCreatorVsAliRoot PUBLIC contour AliRoot::MUONgraphics Boost::unit_test_framework)
+add_test(NAME test_ContourCreatorVsAliRoot COMMAND test_ContourCreatorVsAliRoot)
 
 foreach (impl RANGE 3 3 1)
 
-    add_executable(testSegmentationVsAliroot${impl} testFindPadByPosition.cxx testForEachPadInArea.cxx generateTestPoints.cxx generateTestPoints.h mappingFixture.cxx mappingFixture.h testForEachNeighbouringPad.cxx)
-    target_link_libraries(testSegmentationVsAliroot${impl} PUBLIC AliRoot::MUONgraphics Boost::unit_test_framework segcontour${impl})
-    add_test(NAME testSegmentationVsAliroot${impl} COMMAND testSegmentationVsAliroot${impl})
+    add_executable(test_SegmentationVsAliroot${impl} test_FindPadByPosition.cxx test_ForEachPadInArea.cxx GenerateTestPoints.cxx GenerateTestPoints.h MappingFixture.cxx MappingFixture.h test_ForEachNeighbouringPad.cxx)
+    target_link_libraries(test_SegmentationVsAliroot${impl} PUBLIC AliRoot::MUONgraphics Boost::unit_test_framework SegContour${impl})
+    add_test(NAME test_SegmentationVsAliroot${impl} COMMAND test_SegmentationVsAliroot${impl})
 
-    add_executable(testSomeGlobalNumbers${impl} testSomeGlobalNumbers.cxx)
-    target_link_libraries(testSomeGlobalNumbers${impl} PUBLIC segcontour${impl} AliRoot::MUONgraphics Boost::unit_test_framework)
-    add_test(NAME testSomeGlobalNumbers${impl} COMMAND testSomeGlobalNumbers${impl})
+    add_executable(test_SomeGlobalNumbers${impl} test_SomeGlobalNumbers.cxx)
+    target_link_libraries(test_SomeGlobalNumbers${impl} PUBLIC SegContour${impl} AliRoot::MUONgraphics Boost::unit_test_framework)
+    add_test(NAME test_SomeGlobalNumbers${impl} COMMAND test_SomeGlobalNumbers${impl})
 
 endforeach ()
 
@@ -23,11 +23,11 @@ find_package(benchmark)
 if (benchmark_FOUND)
     foreach (impl RANGE 3 3 1)
 
-        add_executable(benchSegmentationVsAliRoot${impl} benchNeighbouringPad.cxx benchPadInArea.cxx benchPadByPosition.cxx commonBench.h commonContour.cxx commonBench.cxx generateTestPoints.cxx generateTestPoints.h)
-        target_link_libraries(benchSegmentationVsAliRoot${impl} PUBLIC benchmark::benchmark segcontour${impl} AliRoot::MUONgraphics)
+        add_executable(bench_SegmentationVsAliRoot${impl} bench_NeighbouringPad.cxx bench_PadInArea.cxx bench_PadByPosition.cxx CommonBench.h CommonContour.cxx CommonBench.cxx GenerateTestPoints.cxx GenerateTestPoints.h)
+        target_link_libraries(bench_SegmentationVsAliRoot${impl} PUBLIC benchmark::benchmark SegContour${impl} AliRoot::MUONgraphics)
 
     endforeach ()
 
-    add_executable(benchContourVsAliRoot benchContourVsAliRoot.cxx commonBench.h commonContour.cxx commonBench.cxx)
-    target_link_libraries(benchContourVsAliRoot PUBLIC benchmark::benchmark contour AliRoot::MUONgraphics)
+    add_executable(bench_ContourVsAliRoot bench_ContourVsAliRoot.cxx CommonBench.h CommonContour.cxx CommonBench.cxx)
+    target_link_libraries(bench_ContourVsAliRoot PUBLIC benchmark::benchmark contour AliRoot::MUONgraphics)
 endif ()

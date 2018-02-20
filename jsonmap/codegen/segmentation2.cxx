@@ -97,7 +97,7 @@ void generateCodeForDetElemId2SegType(const std::string& ns, const Value &segmen
   impl << codeForDetElemId2SegType(segmentation, detection_elements);
   impl << mappingNamespaceEnd(ns);
   outputCode(decl.str(), impl.str(),
-             "genDetElemId2SegType",
+             "DetElemId2SegType",
              includeGuards, !standalone);
 
 }
@@ -118,12 +118,13 @@ void output(std::ostream &code, T &value)
   code << value;
 }
 
+#if 0
 template<>
 void output(std::ostream &code, std::pair<double, double> &value)
 {
   code << "{" << value.first << "," << value.second << "}";
 }
-
+#endif
 
 template<>
 void output(std::ostream &code, PadGroupType &pgt)
@@ -159,7 +160,7 @@ void output(std::ostream &code, std::vector<T> &v)
 
 std::string getCodeForSegmentationCtor(const std::vector<MotifPosition> &motifPositions,
                                        const std::vector<PadGroupType> &allPadGroupTypes,
-                                       const std::vector<std::pair<double, double>> &allPadSizes,
+                                       const std::vector<PadSize> &allPadSizes,
                                        const std::map<int, int> &manu2berg)
 {
   // get the padgroups corresponding to the motif positions
@@ -169,7 +170,7 @@ std::string getCodeForSegmentationCtor(const std::vector<MotifPosition> &motifPo
   std::vector<PadGroupType> pgts = getPadGroupTypes(padGroups, allPadGroupTypes);
 
   // get only the padsizes present in original padgroups
-  std::vector<std::pair<double,double>> padsizes = getPadSizes(padGroups, allPadSizes);
+  auto padsizes{getPadSizes(padGroups, allPadSizes)};
 
   std::vector<PadGroup> remappedGroups = remap(padGroups, pgts, padsizes);
 
@@ -190,7 +191,7 @@ generateCodeForSegmentationCreator(const std::string& ns, int segType, std::stri
 {
   std::stringstream impl;
 
-  impl << generateInclude({"segmentationCreator.h"});
+  impl << generateInclude({"SegmentationCreator.h"});
   impl << mappingNamespaceBegin(ns);
 
   std::string creatorName{"createSegType" + std::to_string(segType)};
@@ -209,7 +210,7 @@ generateCodeForSegmentationCreator(const std::string& ns, int segType, std::stri
   impl << "} a" << registerName << ";\n";
 
   impl << mappingNamespaceEnd(ns);
-  outputCode("", impl.str(), "genSegmentationCreatorForSegType" + std::to_string(segType), true, true);
+  outputCode("", impl.str(), "SegmentationCreatorForSegType" + std::to_string(segType), true, true);
 }
 
 bool checkPadGroupType(const PadGroupType& pgt) {
@@ -244,7 +245,7 @@ void generateCodeForSegmentations2(const std::string& ns, const Value &segmentat
     }
   }
 
-  std::vector<std::pair<double, double>> padSizes{jsonmap::codegen::getPadSizes(jsonPadSizes)};
+  auto padSizes{jsonmap::codegen::getPadSizes(jsonPadSizes)};
 
   for (int segType = 0; segType < 21; ++segType) {
     std::map<int, int> manu2berg = getManu2Berg(bergs, segType < 2);

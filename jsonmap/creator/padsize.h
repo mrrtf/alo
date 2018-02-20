@@ -25,8 +25,8 @@ class AliMpSegmentation;
 
 struct PadSize
 {
-    float x;
-    float y;
+    double x;
+    double y;
 };
 
 bool operator==(const PadSize &lhs, const PadSize &rhs);

@@ -23,7 +23,7 @@ std::string mappingNamespaceEnd(const std::string ns);
 
 void outputCode(const std::string decl,
                 const std::string impl,
-                const std::string outputFileName,
+                std::string outputFileName,
                 bool withIncludeGuards = true,
                 bool standalone = false,
                 const std::string includeFileNameIfDifferentFromImplementation = "");

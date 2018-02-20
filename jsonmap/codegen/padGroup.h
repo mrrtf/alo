@@ -24,7 +24,11 @@
 
 namespace jsonmap {
 namespace codegen {
+
+class PadSize;
+
 namespace impl2 {
+
 
 struct PadGroup
 {
@@ -42,11 +46,11 @@ getPadGroups(const std::vector<MotifPosition> &motifPositions, const std::vector
 std::vector<PadGroupType>
 getPadGroupTypes(const std::vector<PadGroup> &padGroups, const std::vector<PadGroupType> &padGroupTypes);
 
-std::vector<std::pair<double,double>>
-getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<std::pair<double,double>> &allPadSizes);
+std::vector<PadSize>
+getPadSizes(const std::vector<PadGroup> &padGroups, const std::vector<PadSize> &allPadSizes);
 
 std::vector<PadGroup> remap(const std::vector<PadGroup> &padGroups, const std::vector<PadGroupType> &padGroupTypes,
-                            const std::vector<std::pair<double,double>> &padSizes);
+                            const std::vector<PadSize> &padSizes);
 
 std::ostream &operator<<(std::ostream &os, const PadGroup &pg);
 

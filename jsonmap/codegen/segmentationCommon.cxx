@@ -23,6 +23,11 @@ using namespace rapidjson;
 namespace jsonmap {
 namespace codegen {
 
+std::string genPrefix()
+{
+  return "Gen";
+}
+
 std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elements)
 {
   assert(detection_elements.IsArray());

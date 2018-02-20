@@ -98,80 +98,79 @@ BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping
 BOOST_AUTO_TEST_SUITE(segmentation)
 
 BOOST_AUTO_TEST_CASE(segmentationOrder)
-  {
-    for (auto i = 0; i < b_segs().size(); ++i) {
-      BOOST_TEST_CHECK((get_segtype(*(b_segs()[i])) == segnames[i]));
-    }
-    for (auto i = 0; i < nb_segs().size(); ++i) {
-      BOOST_TEST_CHECK((get_segtype(*(nb_segs()[i])) == segnames[i]));
-    }
+{
+  for (auto i = 0; i < b_segs().size(); ++i) {
+    BOOST_TEST_CHECK((get_segtype(*(b_segs()[i])) == segnames[i]));
   }
+  for (auto i = 0; i < nb_segs().size(); ++i) {
+    BOOST_TEST_CHECK((get_segtype(*(nb_segs()[i])) == segnames[i]));
+  }
+}
 
 BOOST_AUTO_TEST_CASE(sectorPositionIsRelativeToSectorBottomLeft)
-  {
-    constexpr double percentDifference = 1.0;
-    for (auto i = 0; i < 2; ++i) {
-      auto x = b_segs()[i]->GetPositionX();
-      BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
-      auto y = b_segs()[i]->GetPositionY();
-      BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
-    }
+{
+  constexpr double percentDifference = 1.0;
+  for (auto i = 0; i < 2; ++i) {
+    auto x = b_segs()[i]->GetPositionX();
+    BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
+    auto y = b_segs()[i]->GetPositionY();
+    BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
   }
+}
 
 BOOST_AUTO_TEST_CASE(slatPositionIsRelativeToSlatCenter)
-  {
-    constexpr double percentDifference = 1.0;
-    for (auto i = 2; i < b_segs().size(); ++i) {
-      auto x = b_segs()[i]->GetPositionX() - b_segs()[i]->GetDimensionX();
-      BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
-      auto y = b_segs()[i]->GetPositionY() - b_segs()[i]->GetDimensionY();
-      BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
-    }
+{
+  constexpr double percentDifference = 1.0;
+  for (auto i = 2; i < b_segs().size(); ++i) {
+    auto x = b_segs()[i]->GetPositionX() - b_segs()[i]->GetDimensionX();
+    BOOST_CHECK_CLOSE(x, 0.0, percentDifference);
+    auto y = b_segs()[i]->GetPositionY() - b_segs()[i]->GetDimensionY();
+    BOOST_CHECK_CLOSE(y, 0.0, percentDifference);
   }
+}
 
 BOOST_AUTO_TEST_CASE(segmentationNames)
-  {
-    std::vector<std::string> names = get_all_segmentation_names(ddlStore(), mseg());
+{
+  std::vector<std::string> names = get_all_segmentation_names(ddlStore(), mseg());
   BOOST_TEST_CHECK(names.size() == segnames.size());
   for (auto i = 0; i < names.size(); ++i) {
     BOOST_TEST_CHECK(names[i] == segnames[i]);
   }
-  }
+}
 
 BOOST_AUTO_TEST_CASE(DetectionElementToSegmentationName)
-  {
-    std::vector<std::string> names = get_de_seg(ddlStore(), mseg());
+{
+  std::vector<std::string> names = get_de_seg(ddlStore(), mseg());
 
   BOOST_TEST_CHECK(names.size() == desegnames.size());
 
   for (auto i = 0; i < names.size(); ++i) {
     BOOST_TEST_CHECK(names[i] == desegnames[i]);
   }
-  }
+}
 
 BOOST_DATA_TEST_CASE(DetectionElementIdsPerSegmentationName,
-(bdata::make(segnames)), segname
+                     (bdata::make(segnames)), segname
 )
 {
-std::vector<int> idperseg = get_deids_per_segname(ddlStore(), mseg(), segname);
-BOOST_TEST(idperseg
-== deperseg[segname]);
+  std::vector<int> idperseg = get_deids_per_segname(ddlStore(), mseg(), segname);
+  BOOST_TEST(idperseg == deperseg[segname]);
 }
 
 BOOST_AUTO_TEST_CASE(TotalNumberOfDEs)
-  {
-    BOOST_TEST(deperseg.size() == 21);
-  int ndes{ 0 };
+{
+  BOOST_TEST(deperseg.size() == 21);
+  int ndes{0};
   for (auto seg: deperseg) {
     ndes += seg.second.size();
   }
   BOOST_TEST(ndes == 156);
-  }
+}
 //BOOST_DATA_TEST_CASE(segmentationMotifPositions, (bdata::make(deids)),deid) {
 //std::vector<AliMpVSegmentation*> segs = get_segs(mseg(),std::vector<int>{deid},AliMp::kBendingPlane));
 //}
 
-bool isPositionWithinPadArea(const AliMpPad &pad, float x, float y)
+bool isPositionWithinPadArea(const AliMpPad &pad, double x, double y)
 {
   return pad.GetPositionX() - pad.GetDimensionX() < x && pad.GetDimensionX() + pad.GetPositionX() > x
          && pad.GetPositionY() - pad.GetDimensionY() < y && pad.GetPositionY() + pad.GetDimensionY() > y;

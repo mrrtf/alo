@@ -277,7 +277,7 @@ std::string generateCodeForPadGroupTypes(const rapidjson::Value &motiftypes, con
 
   std::ostringstream impl;
 
-  impl << generateInclude({"padGroupType.h"});
+  impl << generateInclude({"PadGroupType.h"});
   impl << mappingNamespaceBegin("impl2");
   impl << "PadGroupType getPadGroupType(int i) {\n";
 

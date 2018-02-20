@@ -79,8 +79,8 @@ void motifposition2json(const AliMpMotifPosition &motifPosition, std::string mot
   w.Key("motiftype");
   w.Int(motifTypeId);
   w.Key("padsize");
-  float px = motif->GetPadDimensionX(0) * 2.0;
-  float py = motif->GetPadDimensionY(0) * 2.0;
+  auto px = motif->GetPadDimensionX(0) * 2.0;
+  auto py = motif->GetPadDimensionY(0) * 2.0;
   int padSizeIndex = get_padsize_index(px, py, padsizes);
   if (motif->GetNofPadDimensions() == 1) {
     w.Int(padSizeIndex);
@@ -89,8 +89,8 @@ void motifposition2json(const AliMpMotifPosition &motifPosition, std::string mot
     if (motif->GetNofPadDimensions() != 2) {
       throw std::out_of_range("this code assumes a maximum of two pad sizes per motif");
     }
-    float px = motif->GetPadDimensionX(1) * 2.0;
-    float py = motif->GetPadDimensionY(1) * 2.0;
+    auto px = motif->GetPadDimensionX(1) * 2.0;
+    auto py = motif->GetPadDimensionY(1) * 2.0;
     int secondPadSizeIndex = get_padsize_index(px, py, padsizes);
     w.Int(padSizeIndex);
     w.Int(secondPadSizeIndex);

@@ -41,8 +41,7 @@ void pcbmotifs2json(const AliMpPCB& pcb, const std::vector<PadSize>& padsizes, W
     w.Int(iy);
     w.EndObject();
     w.Key("padsize");
-    auto r = std::find(padsizes.begin(), padsizes.end(), PadSize{static_cast<float>(pcb.PadSizeX()),
-                                                                 static_cast<float>(pcb.PadSizeY())});
+    auto r = std::find(padsizes.begin(), padsizes.end(), PadSize{pcb.PadSizeX(),pcb.PadSizeY()});
     w.Int(r - padsizes.begin());
     w.EndObject();
   }

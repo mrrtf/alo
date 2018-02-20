@@ -69,7 +69,7 @@ void generateCodeForSegmentations(const Value &segmentations, const Value &motif
 {
   bool includeGuards{true};
   bool standalone{true};
-  outputCode("", generateCodeForSegmentationFactory(segmentations, detection_elements), "genSegmentationFactory",
+  outputCode("", generateCodeForSegmentationFactory(segmentations, detection_elements), "SegmentationFactory",
              includeGuards, !standalone);
 }
 

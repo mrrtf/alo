@@ -84,7 +84,7 @@ std::string generateCodeForMotifTypes(const rapidjson::Value &motifs)
   std::ostringstream impl;
 
   int n{0};
-  impl << generateInclude({"motifType.h"});
+  impl << generateInclude({"MotifType.h"});
   impl << mappingNamespaceBegin("impl1");
   impl << "MotifTypeArray arrayOfMotifTypes{\n";
   for (const auto &motifType: motifs.GetArray()) {

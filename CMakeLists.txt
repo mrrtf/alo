@@ -43,7 +43,7 @@ if (ROOT_FOUND AND AliRoot_FOUND)
     add_subdirectory(vsaliroot)
 endif ()
 
-add_subdirectory(mapping)
+add_subdirectory(Mapping)
 
 if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION} GREATER 3.9.6)
     # doxygen_add_docs command was added in CMake 3.9.6
@@ -53,6 +53,6 @@ if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION} GREATER
         set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES)
         set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
-        doxygen_add_docs(doc mapping/interface)
+        doxygen_add_docs(doc Mapping/Interface)
     endif ()
 endif ()

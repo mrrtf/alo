@@ -27,7 +27,7 @@
 #include <cassert>
 #include <algorithm>
 
-int get_padsize_index(float px, float py, const std::vector<PadSize>& padsizes)
+int get_padsize_index(double px, double py, const std::vector<PadSize>& padsizes)
 {
   auto pix = std::find(padsizes.begin(), padsizes.end(), PadSize{px,py});
   if (pix == padsizes.end())

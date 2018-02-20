@@ -37,7 +37,7 @@ std::vector<AliMpVMotif*>
 get_allmotifs(const std::vector<AliMpPCB*>& pcbs, const std::vector<const AliMpSector*>& sectors,
               const std::vector<PadSize>& padsizes);
 
-int get_padsize_index(float px, float py, const std::vector<PadSize>& padsizes);
+int get_padsize_index(double px, double py, const std::vector<PadSize>& padsizes);
 
 std::string get_motif_id(const AliMpVMotif& motif, const std::vector<PadSize> & padsizes);
 
