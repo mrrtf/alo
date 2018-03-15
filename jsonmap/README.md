@@ -31,7 +31,7 @@ There are currently 3 different implementations in the works. Only impl3 is feat
 
 It's a two steps process : first generate `JSON` files from `AliRoot` mapping, then
  generate code from the `JSON` files. Note that not all `JSON` files are required for all implementations.
- 
+ A reference copy of those files are in the [data](data) directory. 
   
 ```
 > mch-mapping-convert-to-json && ls -alh

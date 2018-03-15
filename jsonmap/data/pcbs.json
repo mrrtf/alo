@@ -1,0 +1,1430 @@
+{
+    "pcbs": [
+        {
+            "id": "B1",
+            "motifs": [
+                {
+                    "id": "L7",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z3",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O10",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z4",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L8",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L7",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z3",
+                    "pos": {
+                        "ix": 9,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O10",
+                    "pos": {
+                        "ix": 11,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z4",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L8",
+                    "pos": {
+                        "ix": 14,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L6",
+                    "pos": {
+                        "ix": 14,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z2",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O9",
+                    "pos": {
+                        "ix": 11,
+                        "iy": 48
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z1",
+                    "pos": {
+                        "ix": 9,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L5",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L6",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z2",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O9",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 48
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "Z1",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "L5",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                }
+            ]
+        },
+        {
+            "id": "B2",
+            "motifs": [
+                {
+                    "id": "L7",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z3",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "O10",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z4",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L8",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L6",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z2",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "O9",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 48
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z1",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L5",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                }
+            ]
+        },
+        {
+            "id": "B3+",
+            "motifs": [
+                {
+                    "id": "L19",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "O12",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "L20",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 0
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "O11",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 48
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "O11",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 48
+                    },
+                    "padsize": 16
+                }
+            ]
+        },
+        {
+            "id": "B3-",
+            "motifs": [
+                {
+                    "id": "O12",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "O12",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 0
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "L10",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 32
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "O11",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 48
+                    },
+                    "padsize": 16
+                },
+                {
+                    "id": "L9",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 32
+                    },
+                    "padsize": 16
+                }
+            ]
+        },
+        {
+            "id": "N1",
+            "motifs": [
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 24,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 32,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 40,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O2",
+                    "pos": {
+                        "ix": 48,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 48,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 40,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 32,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 24,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O1",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                }
+            ]
+        },
+        {
+            "id": "N2+",
+            "motifs": [
+                {
+                    "id": "P3",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "Q3",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "Q4",
+                    "pos": {
+                        "ix": 28,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "P4",
+                    "pos": {
+                        "ix": 42,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "L4",
+                    "pos": {
+                        "ix": 36,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 20,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "L3",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                }
+            ]
+        },
+        {
+            "id": "N2-",
+            "motifs": [
+                {
+                    "id": "L1",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 20,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "L2",
+                    "pos": {
+                        "ix": 36,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "Q2",
+                    "pos": {
+                        "ix": 42,
+                        "iy": 3
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "P2",
+                    "pos": {
+                        "ix": 28,
+                        "iy": 3
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "P1",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 3
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "Q1",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 3
+                    },
+                    "padsize": 15
+                }
+            ]
+        },
+        {
+            "id": "N3",
+            "motifs": [
+                {
+                    "id": "O7",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 17
+                },
+                {
+                    "id": "O8",
+                    "pos": {
+                        "ix": 28,
+                        "iy": 0
+                    },
+                    "padsize": 17
+                },
+                {
+                    "id": "O6",
+                    "pos": {
+                        "ix": 28,
+                        "iy": 2
+                    },
+                    "padsize": 17
+                },
+                {
+                    "id": "O5",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 2
+                    },
+                    "padsize": 17
+                }
+            ]
+        },
+        {
+            "id": "R1B",
+            "motifs": [
+                {
+                    "id": "C6",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "C7",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "C8",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "C9",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "C10",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 44
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O25",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 48
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O25",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 48
+                    },
+                    "padsize": 9
+                }
+            ]
+        },
+        {
+            "id": "R1N",
+            "motifs": [
+                {
+                    "id": "C1",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "C2",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "C3",
+                    "pos": {
+                        "ix": 13,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "C4",
+                    "pos": {
+                        "ix": 10,
+                        "iy": 10
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "C5",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 9
+                    },
+                    "padsize": 12
+                }
+            ]
+        },
+        {
+            "id": "R2B",
+            "motifs": [
+                {
+                    "id": "O23",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O24",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "O24",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A8",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 5
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A9",
+                    "pos": {
+                        "ix": 14,
+                        "iy": 26
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A10",
+                    "pos": {
+                        "ix": 13,
+                        "iy": 25
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A11",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 24
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A12",
+                    "pos": {
+                        "ix": 11,
+                        "iy": 42
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A13",
+                    "pos": {
+                        "ix": 10,
+                        "iy": 23
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A14",
+                    "pos": {
+                        "ix": 9,
+                        "iy": 20
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A15",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 18
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A16",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A17",
+                    "pos": {
+                        "ix": 5,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A18",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A20",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A17",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "A19",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 32
+                    },
+                    "padsize": 9
+                }
+            ]
+        },
+        {
+            "id": "R2N",
+            "motifs": [
+                {
+                    "id": "O21",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O21",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A1",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A7",
+                    "pos": {
+                        "ix": 50,
+                        "iy": 5
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A6",
+                    "pos": {
+                        "ix": 44,
+                        "iy": 5
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A5",
+                    "pos": {
+                        "ix": 38,
+                        "iy": 4
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A4",
+                    "pos": {
+                        "ix": 33,
+                        "iy": 4
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A3",
+                    "pos": {
+                        "ix": 28,
+                        "iy": 3
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "A2",
+                    "pos": {
+                        "ix": 24,
+                        "iy": 2
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O22",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O22",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O22",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                }
+            ]
+        },
+        {
+            "id": "R3B",
+            "motifs": [
+                {
+                    "id": "E7",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E8",
+                    "pos": {
+                        "ix": 13,
+                        "iy": 41
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E9",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 40
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E10",
+                    "pos": {
+                        "ix": 10,
+                        "iy": 37
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E11",
+                    "pos": {
+                        "ix": 9,
+                        "iy": 35
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E12",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 33
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E13",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 27
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E14",
+                    "pos": {
+                        "ix": 5,
+                        "iy": 21
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E15",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 18
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E16",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 20
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E17",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 16
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E17",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 16
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E18",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 17
+                    },
+                    "padsize": 9
+                },
+                {
+                    "id": "E19",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 17
+                    },
+                    "padsize": 9
+                }
+            ]
+        },
+        {
+            "id": "R3N",
+            "motifs": [
+                {
+                    "id": "O27",
+                    "pos": {
+                        "ix": 48,
+                        "iy": 8
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E6",
+                    "pos": {
+                        "ix": 40,
+                        "iy": 7
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E5",
+                    "pos": {
+                        "ix": 33,
+                        "iy": 6
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E4",
+                    "pos": {
+                        "ix": 26,
+                        "iy": 5
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E3",
+                    "pos": {
+                        "ix": 21,
+                        "iy": 4
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E2",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 2
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "E1",
+                    "pos": {
+                        "ix": 12,
+                        "iy": 1
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O26",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O26",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                },
+                {
+                    "id": "O26",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 12
+                }
+            ]
+        },
+        {
+            "id": "S2B+",
+            "motifs": [
+                {
+                    "id": "S0",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S1",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S2",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S3",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S4",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 16
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S5",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S6",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 48
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S7",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "S8",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                }
+            ]
+        },
+        {
+            "id": "S2B-",
+            "motifs": [
+                {
+                    "id": "I1",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L18",
+                    "pos": {
+                        "ix": 2,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "O10",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z4",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L8",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 0
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "L6",
+                    "pos": {
+                        "ix": 6,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z2",
+                    "pos": {
+                        "ix": 4,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "O9",
+                    "pos": {
+                        "ix": 3,
+                        "iy": 48
+                    },
+                    "padsize": 14
+                },
+                {
+                    "id": "Z5",
+                    "pos": {
+                        "ix": 1,
+                        "iy": 40
+                    },
+                    "padsize": 14
+                }
+            ]
+        },
+        {
+            "id": "S2N",
+            "motifs": [
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 32,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 32,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 16,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 0,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                }
+            ]
+        },
+        {
+            "id": "S2N-",
+            "motifs": [
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 24,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O3",
+                    "pos": {
+                        "ix": 40,
+                        "iy": 0
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 40,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 24,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                },
+                {
+                    "id": "O4",
+                    "pos": {
+                        "ix": 8,
+                        "iy": 4
+                    },
+                    "padsize": 15
+                }
+            ]
+        }
+    ]
+}
