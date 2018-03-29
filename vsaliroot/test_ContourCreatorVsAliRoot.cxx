@@ -34,7 +34,7 @@
 #include "AliMpSegmentation.h"
 #include "AliMpVSegmentation.h"
 #include "CommonContour.h"
-#include "ContourCreator.h"
+#include "MCHContour/ContourCreator.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>

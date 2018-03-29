@@ -20,10 +20,10 @@
 #include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
 #include "MappingFixture.h"
-#include "SVGWriter.h"
-#include "Segmentation.h"
-#include "SegmentationContours.h"
-#include "SegmentationSVGWriter.h"
+#include "MCHContour/SVGWriter.h"
+#include "MCHMappingInterface/Segmentation.h"
+#include "MCHMappingSegContour/SegmentationContours.h"
+#include "MCHMappingSegContour/SegmentationSVGWriter.h"
 #include <AliMpArea.h>
 #include <TArrayD.h>
 #include <algorithm>

@@ -29,8 +29,8 @@
 #include "AliMpSegmentation.h"
 #include "AliMpVPadIterator.h"
 #include "AliMpVSegmentation.h"
-#include "Contour.h"
-#include "ContourCreator.h"
+#include "MCHContour/Contour.h"
+#include "MCHContour/ContourCreator.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>

@@ -15,14 +15,14 @@
 
 #include <random>
 #include "benchmark/benchmark.h"
-#include "Segmentation.h"
-#include "Contour.h"
+#include "MCHMappingInterface/Segmentation.h"
+#include "MCHContour/Contour.h"
 #include "AliMpDetElement.h"
 #include "AliMpVSegmentation.h"
 #include "AliMpSegmentation.h"
 #include "CommonBench.h"
-#include "ContourCreator.h"
-#include "SegmentationContours.h"
+#include "MCHContour/ContourCreator.h"
+#include "MCHMappingSegContour/SegmentationContours.h"
 #include "GenerateTestPoints.h"
 #include "AliMpVPadIterator.h"
 

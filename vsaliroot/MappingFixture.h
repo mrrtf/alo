@@ -23,7 +23,7 @@ class AliMpVSegmentation;
 
 class AliMpPad;
 
-#include "Segmentation.h"
+#include "MCHMappingInterface/Segmentation.h"
 
 #include <vector>
 #include <array>

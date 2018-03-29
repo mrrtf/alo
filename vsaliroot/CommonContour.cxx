@@ -25,7 +25,7 @@
 #include "AliMpVMotif.h"
 #include "AliMpVSegmentation.h"
 #include "TObjArray.h"
-#include "ContourCreator.h"
+#include "MCHContour/ContourCreator.h"
 
 using namespace o2::mch::contour;
 

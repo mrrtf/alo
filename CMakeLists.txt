@@ -21,12 +21,13 @@ set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 
 find_package(ROOT)
 find_package(AliRoot)
+find_package(O2 REQUIRED)
 
 include(CMakeALICE)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Boost COMPONENTS REQUIRED unit_test_framework)
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 include(CTest)
 
 find_package(RapidJSON)
@@ -43,8 +44,6 @@ if (ROOT_FOUND AND AliRoot_FOUND)
     add_subdirectory(vsaliroot)
 endif ()
 
-add_subdirectory(Mapping)
-
 if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION} GREATER 3.9.6)
     # doxygen_add_docs command was added in CMake 3.9.6
     find_package(Doxygen OPTIONAL_COMPONENT dot)
@@ -53,6 +52,6 @@ if (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION} GREATER
         set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C YES)
         set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
-        doxygen_add_docs(doc Mapping/Interface)
+        doxygen_add_docs(doc)
     endif ()
 endif ()

@@ -12,7 +12,7 @@
 ///
 /// @author  Laurent Aphecetche
 
-#include <ContourCreator.h>
+#include "MCHContour/ContourCreator.h"
 #include "benchmark/benchmark.h"
 #include "AliMpManuIterator.h"
 #include "CommonContour.h"

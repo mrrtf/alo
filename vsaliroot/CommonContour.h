@@ -16,7 +16,7 @@
 #ifndef ALO_VSALIROOT_COMMONCONTOUR_H
 #define ALO_VSALIROOT_COMMONCONTOUR_H
 
-#include "Contour.h"
+#include "MCHContour/Contour.h"
 #include <utility>
 #include <vector>
 
