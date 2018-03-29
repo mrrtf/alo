@@ -39,8 +39,13 @@ function(depends_on_boost target)
     set_target_properties(o2::${target} PROPERTIES INTERFACE_LINK_LIBRARIES "${tmp}")
 endfunction()
 
-if (O2)
+if (NOT O2)
+    if ($ENV{O2_ROOT})
+        set(O2 ${O2_ROOT})
+    endif ()
+endif ()
 
+if (O2)
     # Check if O2 is really installed there
     if (EXISTS ${O2}/bin/mch-mapping-svg-segmentation3 AND EXISTS ${O2}/lib AND EXISTS ${O2}/include)
 
