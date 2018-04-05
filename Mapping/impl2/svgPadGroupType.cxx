@@ -17,7 +17,7 @@
 
 #include <fstream>
 #include "contour.h"
-#include "svgWriter.h"
+#include "MCHContour/SVGWriter.h"
 #include "padGroupType.h"
 #include "boost/format.hpp"
 

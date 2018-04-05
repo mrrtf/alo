@@ -17,7 +17,7 @@
 #include "genDetElemId2SegType.h"
 #include "padGroup.h"
 #include "padSize.h"
-#include "segmentation.h"
+#include "MCHMappingInterface/Segmentation.h"
 #include "segmentationCreator.h"
 #include "contourCreator.h"
 #include "padGroupType.h"
