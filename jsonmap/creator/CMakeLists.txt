@@ -8,6 +8,8 @@ add_library(mchjsoncreator SHARED
         ddl2json.h
         de.cxx
         de2json.h
+        generateTestFiles.cxx
+        generateTestFiles.h
         json.h
         legacyseg2json.h
         motif.cxx
