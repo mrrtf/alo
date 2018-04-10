@@ -18,6 +18,10 @@ foreach (impl RANGE 3 3 1)
 
 endforeach ()
 
+add_executable(test_MIDSegmentation test_MIDSegmentation.cxx)
+target_link_libraries(test_MIDSegmentation PUBLIC AliRoot::MUONgraphics AliRoot::MUONmapping Boost::unit_test_framework o2::MIDBase)
+add_test(NAME test_MIDSegmentation COMMAND test_MIDSegmentation)
+
 find_package(benchmark)
 
 if (benchmark_FOUND)
@@ -30,4 +34,7 @@ if (benchmark_FOUND)
 
     add_executable(bench_ContourVsAliRoot bench_ContourVsAliRoot.cxx CommonBench.h CommonContour.cxx CommonBench.cxx)
     target_link_libraries(bench_ContourVsAliRoot PUBLIC benchmark::benchmark o2::MCHContour AliRoot::MUONgraphics)
+
+    add_executable(bench_MIDSegmentation bench_MIDSegmentation.cxx CommonBench.h CommonBench.cxx)
+    target_link_libraries(bench_MIDSegmentation PUBLIC benchmark::benchmark o2::MIDBase AliRoot::MUONmapping AliRoot::MUONgraphics)
 endif ()

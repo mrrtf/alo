@@ -49,7 +49,7 @@ if (O2)
     # Check if O2 is really installed there
     if (EXISTS ${O2}/bin/mch-mapping-svg-segmentation3 AND EXISTS ${O2}/lib AND EXISTS ${O2}/include)
 
-        foreach (t MCHMappingImpl3 MCHMappingInterface MCHMappingSegContour MCHMappingSegContour3 MCHContour)
+        foreach (t MCHMappingImpl3 MCHMappingInterface MCHMappingSegContour MCHMappingSegContour3 MCHContour MIDBase)
             if (NOT TARGET o2::${t})
                 if (EXISTS ${O2}/lib/lib${t}.so OR EXISTS ${O2}/lib/lib${t}.dylib)
                     add_library(o2::${t} SHARED IMPORTED)
@@ -80,6 +80,7 @@ if (O2)
         depends_on_boost(MCHMappingInterface boost)
         depends_on_o2(MCHMappingImpl3 MCHMappingInterface)
         depends_on_o2(MCHMappingSegContour MCHMappingInterface MCHContour)
+        depends_on_boost(MIDBase boost)
 
         set(O2_FOUND TRUE)
         message(STATUS "O2 ... - found ${O2} - and target dependencies defined")
