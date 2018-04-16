@@ -22,6 +22,10 @@ add_executable(test_MIDSegmentation test_MIDSegmentation.cxx)
 target_link_libraries(test_MIDSegmentation PUBLIC AliRoot::MUONgraphics AliRoot::MUONmapping Boost::unit_test_framework o2::MIDBase)
 add_test(NAME test_MIDSegmentation COMMAND test_MIDSegmentation)
 
+add_executable(test_MIDGeomTransformer test_MIDGeomTransformer.cxx)
+target_link_libraries(test_MIDGeomTransformer PUBLIC AliRoot::MUONgeometry Boost::unit_test_framework o2::MIDBase)
+add_test(NAME test_MIDGeomTransformer COMMAND test_MIDGeomTransformer)
+
 find_package(benchmark)
 
 if (benchmark_FOUND)
