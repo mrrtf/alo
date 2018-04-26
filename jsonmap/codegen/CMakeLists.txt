@@ -3,6 +3,7 @@ add_executable(mch-mapping-generate-code mch-mapping-generate-code.cxx
         jsonReader.h
         writer.h writer.cxx
         chamber.h chamber.cxx
+        goImplementation.cxx goImplementation.h
         motifType.h motifType.cxx
         padSize.h padSize.cxx
         segmentationCommon.h segmentationCommon.cxx

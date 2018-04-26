@@ -11,6 +11,7 @@
 #include "ddl2json.h"
 #include "de.h"
 #include "de2json.h"
+#include "generateTestFiles.h"
 #include "json.h"
 #include "legacyseg2json.h"
 #include "motif.h"
@@ -130,6 +131,8 @@ int main(int argc, char* argv[])
   convert_legacyseg("legacyseg",ddlStore, mseg);
   convert_seg("segmentations",ddlStore, mseg);
   convert_padsize("padsizes",ddlStore, mseg);
+
+  generate_test_files(ddlStore,mseg);
 
   return 0;
 }

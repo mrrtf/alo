@@ -17,23 +17,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "AliMpDDLStore.h"
-#include "AliMpDetElement.h"
-#include "AliMpManuIterator.h"
-#include "AliMpMotif.h"
-#include "AliMpMotifPosition.h"
-#include "AliMpMotifType.h"
-#include "AliMpPad.h"
-#include "AliMpVPadIterator.h"
-#include "AliMpVSegmentation.h"
-#include "MCHContour/Contour.h"
-#include "MCHContour/ContourCreator.h"
-#include "GenerateTestPoints.h"
-#include "MappingFixture.h"
-#include "MCHContour/SVGWriter.h"
-#include "MCHMappingInterface/Segmentation.h"
-#include "MCHMappingSegContour/SegmentationContours.h"
-#include "MCHMappingSegContour/SegmentationSVGWriter.h"
 #include <TArrayD.h>
 #include <algorithm>
 #include <boost/format.hpp>
@@ -47,6 +30,23 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include "AliMpDDLStore.h"
+#include "AliMpDetElement.h"
+#include "AliMpManuIterator.h"
+#include "AliMpMotif.h"
+#include "AliMpMotifPosition.h"
+#include "AliMpMotifType.h"
+#include "AliMpPad.h"
+#include "AliMpVPadIterator.h"
+#include "AliMpVSegmentation.h"
+#include "GenerateTestPoints.h"
+#include "MCHContour/Contour.h"
+#include "MCHContour/ContourCreator.h"
+#include "MCHContour/SVGWriter.h"
+#include "MCHMappingInterface/Segmentation.h"
+#include "MCHMappingSegContour/SegmentationContours.h"
+#include "MCHMappingSegContour/SegmentationSVGWriter.h"
+#include "MappingFixture.h"
 
 using namespace o2::mch::mapping;
 using namespace o2::mch::contour;
@@ -54,12 +54,12 @@ using namespace o2::mch::contour;
 BOOST_AUTO_TEST_SUITE(o2_mch_mapping)
 BOOST_FIXTURE_TEST_SUITE(segmentationvsaliroot, MAPPING)
 
-std::string padAsString(const AliMpPad &p)
+std::string padAsString(const AliMpPad& p)
 {
   if (p.IsValid()) {
-    return boost::str(boost::format("Pad %10d FEC %4d CH %2d X %7.3f Y %7.3f SX %7.3f SY %7.3f") % -1
-                      % p.GetManuId() % p.GetManuChannel() % p.GetPositionX() %
-                      p.GetPositionY() % (p.GetDimensionX() * 2.0) % (p.GetDimensionY() * 2.0));
+    return boost::str(boost::format("Pad %10d FEC %4d CH %2d X %7.3f Y %7.3f SX %7.3f SY %7.3f") % -1 % p.GetManuId() %
+                      p.GetManuChannel() % p.GetPositionX() % p.GetPositionY() % (p.GetDimensionX() * 2.0) %
+                      (p.GetDimensionY() * 2.0));
   } else {
     return "invalid pad";
   }
@@ -67,24 +67,20 @@ std::string padAsString(const AliMpPad &p)
 
 // filter out test points to remove those that are close to the pad edges
 // (closer to margin, where closer is defined by AliRoot version of the segmentation)
-std::vector<std::pair<double, double>> filterTestPoints(const std::vector<std::pair<double, double>> &origTestPoints,
-                                                        const AliMpVSegmentation &seg,
-                                                        double margin)
+std::vector<std::pair<double, double>> filterTestPoints(const std::vector<std::pair<double, double>>& origTestPoints,
+                                                        const AliMpVSegmentation& seg, double margin)
 {
   std::vector<std::pair<double, double>> testPoints;
 
-  for (auto &tp: origTestPoints) {
-    const AliMpPad &pad = seg.PadByPosition(tp.first, tp.second, kFALSE);
+  for (auto& tp : origTestPoints) {
+    const AliMpPad& pad = seg.PadByPosition(tp.first, tp.second, kFALSE);
     if (pad.IsValid()) {
-      double xmin{pad.GetPositionX() - pad.GetDimensionX()};
-      double xmax{pad.GetPositionX() + pad.GetDimensionX()};
-      double ymin{pad.GetPositionY() - pad.GetDimensionY()};
-      double ymax{pad.GetPositionY() + pad.GetDimensionY()};
-      if (
-        tp.first > (xmin + margin) &&
-        tp.first<(xmax - margin) &&
-                 tp.second>(ymin + margin) &&
-        tp.second < (ymax - margin)) {
+      double xmin{ pad.GetPositionX() - pad.GetDimensionX() };
+      double xmax{ pad.GetPositionX() + pad.GetDimensionX() };
+      double ymin{ pad.GetPositionY() - pad.GetDimensionY() };
+      double ymax{ pad.GetPositionY() + pad.GetDimensionY() };
+      if (tp.first > (xmin + margin) && tp.first < (xmax - margin) && tp.second > (ymin + margin) &&
+          tp.second < (ymax - margin)) {
         testPoints.push_back(tp);
       }
     }
@@ -92,12 +88,12 @@ std::vector<std::pair<double, double>> filterTestPoints(const std::vector<std::p
   return testPoints;
 }
 
-std::vector<std::pair<double, double>> boxTestPoints(const std::vector<std::pair<double, double>> &testPoints,
+std::vector<std::pair<double, double>> boxTestPoints(const std::vector<std::pair<double, double>>& testPoints,
                                                      double xmin, double ymin, double xmax, double ymax)
 {
   std::vector<std::pair<double, double>> filtered;
 
-  for (const auto &tp: testPoints) {
+  for (const auto& tp : testPoints) {
     if (tp.first > xmin && tp.first < xmax && tp.second > ymin && tp.second < ymax) {
       filtered.push_back(tp);
     }
@@ -106,25 +102,23 @@ std::vector<std::pair<double, double>> boxTestPoints(const std::vector<std::pair
   return filtered;
 }
 
-BBox<double> getBBox(const std::vector<std::pair<double, double>> &points)
+BBox<double> getBBox(const std::vector<std::pair<double, double>>& points)
 {
-  double xmin{std::numeric_limits<double>::max()};
-  double xmax{std::numeric_limits<double>::lowest()};
-  double ymin{std::numeric_limits<double>::max()};
-  double ymax{std::numeric_limits<double>::lowest()};
+  double xmin{ std::numeric_limits<double>::max() };
+  double xmax{ std::numeric_limits<double>::lowest() };
+  double ymin{ std::numeric_limits<double>::max() };
+  double ymax{ std::numeric_limits<double>::lowest() };
 
-  for (const auto &p: points) {
+  for (const auto& p : points) {
     xmin = std::min(xmin, p.first);
     xmax = std::max(xmax, p.first);
     ymin = std::min(ymin, p.second);
     ymax = std::max(ymax, p.second);
   }
-  return {
-    xmin - 5.0, ymin - 5.0, xmax + 5.0, ymax + 5.0
-  };
+  return { xmin - 5.0, ymin - 5.0, xmax + 5.0, ymax + 5.0 };
 }
 
-SVGWriter writeSegmentation(const Segmentation &o2Seg, const BBox<double> &box)
+SVGWriter writeSegmentation(const Segmentation& o2Seg, const BBox<double>& box)
 {
   SVGWriter w(box);
 
@@ -149,9 +143,8 @@ SVGWriter writeSegmentation(const Segmentation &o2Seg, const BBox<double> &box)
   return w;
 }
 
-bool checkHasPadByPosition(int detElemId, const AliMpVSegmentation &alSeg,
-                           const Segmentation &o2Seg,
-                           const std::vector<std::pair<double, double>> &testPoints)
+bool checkHasPadByPosition(int detElemId, const AliMpVSegmentation& alSeg, const Segmentation& o2Seg,
+                           const std::vector<std::pair<double, double>>& testPoints)
 {
   SVGWriter w = writeSegmentation(o2Seg, getBBox(testPoints));
 
@@ -170,12 +163,14 @@ bool checkHasPadByPosition(int detElemId, const AliMpVSegmentation &alSeg,
       std::cout << "    " << padAsString(alPad) << "\n";
       std::cout << "    " << padAsString(o2Seg, paduid);
 #endif
+    } else {
+      std::cout << "aliroot x,y=" << alPad.GetPositionX() << "," << alPad.GetPositionY()
+                << " o2 x,y=" << o2Seg.padPositionX(paduid) << "," << o2Seg.padPositionY(paduid) << std::endl;
     }
   }
 
   if (diffPoints.empty()) {
     return true;
-
   }
 
   w.svgGroupStart("diffpoints");
@@ -191,24 +186,23 @@ bool checkHasPadByPosition(int detElemId, const AliMpVSegmentation &alSeg,
   return false;
 }
 
-std::vector<std::pair<double, double>>
-generateManyTestPoints(const AliMpVSegmentation &alSeg, double step, int ntimes)
+std::vector<std::pair<double, double>> generateManyTestPoints(const AliMpVSegmentation& alSeg, double step, int ntimes)
 {
-  const double offset{1}; // cm
-  const double margin{0.01}; // margin in cm. Do not go below 100 micrometers, there's no point.
-  int extent{0}; // -1 for fixed matrix, 0 for flat, > 0 for gaussian
+  const double offset{ 1 };    // cm
+  const double margin{ 0.01 }; // margin in cm. Do not go below 100 micrometers, there's no point.
+  int extent{ 0 };             // -1 for fixed matrix, 0 for flat, > 0 for gaussian
 
-  double xmin{alSeg.GetPositionX() - alSeg.GetDimensionX() - offset};
-  double ymin{alSeg.GetPositionY() - alSeg.GetDimensionY() - offset};
-  double xmax{alSeg.GetPositionX() + alSeg.GetDimensionX() + offset};
-  double ymax{alSeg.GetPositionY() + alSeg.GetDimensionY() + offset};
+  double xmin{ alSeg.GetPositionX() - alSeg.GetDimensionX() - offset };
+  double ymin{ alSeg.GetPositionY() - alSeg.GetDimensionY() - offset };
+  double xmax{ alSeg.GetPositionX() + alSeg.GetDimensionX() + offset };
+  double ymax{ alSeg.GetPositionY() + alSeg.GetDimensionY() + offset };
 
   std::vector<std::pair<double, double>> testPoints;
 
   for (double x = xmin; x < xmax; x += step) {
     for (double y = ymin; y < ymax; y += step) {
-      auto origTestPoints = boxTestPoints(generateTestPoints(ntimes, x, y, x + step, y + step, extent), xmin, ymin,
-                                          xmax, ymax);
+      auto origTestPoints =
+        boxTestPoints(generateTestPoints(ntimes, x, y, x + step, y + step, extent), xmin, ymin, xmax, ymax);
       auto filteredTestPoints = filterTestPoints(origTestPoints, alSeg, margin);
       std::copy(filteredTestPoints.begin(), filteredTestPoints.end(), std::back_inserter(testPoints));
     }
@@ -217,62 +211,62 @@ generateManyTestPoints(const AliMpVSegmentation &alSeg, double step, int ntimes)
   return testPoints;
 }
 
-std::vector<std::pair<double, double>>
-generateOneTestPointPerPad(const AliMpVSegmentation &alSeg)
+std::vector<std::pair<double, double>> generateOneTestPointPerPad(const AliMpVSegmentation& alSeg)
 {
   std::vector<std::pair<double, double>> testPoints;
-  std::unique_ptr<AliMpVPadIterator> it{alSeg.CreateIterator()};
+  std::unique_ptr<AliMpVPadIterator> it{ alSeg.CreateIterator() };
   it->First();
   while (!it->IsDone()) {
-    const AliMpPad &p = it->CurrentItem();
-    testPoints.push_back({p.GetPositionX(), p.GetPositionY()});
+    const AliMpPad& p = it->CurrentItem();
+    testPoints.push_back({ p.GetPositionX(), p.GetPositionY() });
     it->Next();
   }
   return testPoints;
 }
 
-bool SamePadsRandom(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
+bool SamePadsRandom(AliMpSegmentation* mseg, int detElemId, bool isBendingPlane)
 {
-  double step{1}; // cm
-  int ntimes{10};
+  double step{ 1 }; // cm
+  int ntimes{ 10 };
   auto alSeg = alirootSegmentation(mseg, detElemId, isBendingPlane);
-  Segmentation o2Seg{detElemId, isBendingPlane};
-  return checkHasPadByPosition(detElemId, *alSeg, o2Seg,
-                               generateManyTestPoints(*alSeg, step, ntimes));
+  Segmentation o2Seg{ detElemId, isBendingPlane };
+  return checkHasPadByPosition(detElemId, *alSeg, o2Seg, generateManyTestPoints(*alSeg, step, ntimes));
 }
 
-bool SamePadsSingle(AliMpSegmentation *mseg, int detElemId, bool isBendingPlane)
+bool SamePadsSingle(AliMpSegmentation* mseg, int detElemId, bool isBendingPlane)
 {
   auto alSeg = alirootSegmentation(mseg, detElemId, isBendingPlane);
-  Segmentation o2Seg{detElemId, isBendingPlane};
-  return checkHasPadByPosition(detElemId, *alSeg, o2Seg,
-                               generateOneTestPointPerPad(*alSeg));
+  Segmentation o2Seg{ detElemId, isBendingPlane };
+  return checkHasPadByPosition(detElemId, *alSeg, o2Seg, generateOneTestPointPerPad(*alSeg));
 }
 
-BOOST_DATA_TEST_CASE(SamePadsRandomBending,
-                     boost::unit_test::data::make(MAPPING::detElemIds),
-                     detElemId)
+BOOST_AUTO_TEST_CASE(DebugPosition)
+{
+  int detElemId = 100;
+  bool isBendingPlane = true;
+  auto alSeg = alirootSegmentation(mseg, detElemId, isBendingPlane);
+  Segmentation o2Seg{ detElemId, isBendingPlane };
+  double x = 40.258104944919107;
+  double y = 12.6994892333624;
+  BOOST_TEST(checkHasPadByPosition(detElemId, *alSeg, o2Seg, { { x, y } }));
+}
+
+BOOST_DATA_TEST_CASE(SamePadsRandomBending, boost::unit_test::data::make(MAPPING::detElemIds), detElemId)
 {
   BOOST_TEST(SamePadsRandom(mseg, detElemId, true));
 }
 
-BOOST_DATA_TEST_CASE(SamePadsRandomNonBending,
-                     boost::unit_test::data::make(MAPPING::detElemIds),
-                     detElemId)
+BOOST_DATA_TEST_CASE(SamePadsRandomNonBending, boost::unit_test::data::make(MAPPING::detElemIds), detElemId)
 {
   BOOST_TEST(SamePadsRandom(mseg, detElemId, false));
 }
 
-BOOST_DATA_TEST_CASE(SamePadsSingleBending,
-                     boost::unit_test::data::make(MAPPING::detElemIds),
-                     detElemId)
+BOOST_DATA_TEST_CASE(SamePadsSingleBending, boost::unit_test::data::make(MAPPING::detElemIds), detElemId)
 {
   BOOST_TEST(SamePadsSingle(mseg, detElemId, true));
 }
 
-BOOST_DATA_TEST_CASE(SamePadsSingleNonBending,
-                     boost::unit_test::data::make(MAPPING::detElemIds),
-                     detElemId)
+BOOST_DATA_TEST_CASE(SamePadsSingleNonBending, boost::unit_test::data::make(MAPPING::detElemIds), detElemId)
 {
   BOOST_TEST(SamePadsSingle(mseg, detElemId, false));
 }

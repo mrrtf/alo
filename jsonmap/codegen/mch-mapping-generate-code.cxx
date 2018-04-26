@@ -13,6 +13,7 @@
 #include "boost/program_options.hpp"
 #include "chamber.h"
 #include "jsonReader.h"
+#include "goImplementation.h"
 #include "motifPosition1.h"
 #include "motifType.h"
 #include "padGroupType.h"
@@ -47,7 +48,8 @@ int main(int argc, char *argv[])
     ("bergs", "read berg connector information")
     ("padsizes", "read padsize information")
     ("motiftypes", "read motif type information")
-    ("impl", po::value<int>(&implToUse), "implementation to generate");
+    ("impl", po::value<int>(&implToUse), "implementation to generate")
+    ("go","generate Go interface");
 
   po::options_description hidden("hidden options");
   hidden.add_options()
@@ -157,6 +159,22 @@ int main(int argc, char *argv[])
     Document &bergs = documents["bergs"]->document();
 
     impl2::generateCodeForSegmentations("impl" + std::to_string(implToUse), segmentations["segmentations"],
+                                        motiftypes["motiftypes"],
+                                        padsizes["padsizes"],
+                                        detection_elements["detection_elements"],
+                                        bergs["bergs"]);
+  }
+
+  if (vm.count("go") && documents.count("segmentations") && documents.count("motiftypes") &&
+      documents.count("padsizes") && documents.count("detection_elements") && documents.count("bergs")) {
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& bergs = documents["bergs"]->document();
+    Document& segmentations = documents["segmentations"]->document();
+    Document& detection_elements = documents["detection_elements"]->document();
+    go::generateDetElemId2SegType(segmentations["segmentations"],
+                 detection_elements["detection_elements"]);
+    go::generateCodeForSegmentations(segmentations["segmentations"],
                                         motiftypes["motiftypes"],
                                         padsizes["padsizes"],
                                         detection_elements["detection_elements"],

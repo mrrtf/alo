@@ -14,9 +14,7 @@
 
 #include "segmentation2.h"
 #include "boost/format.hpp"
-#include "motifPosition.h"
 #include "padGroup.h"
-#include "padGroupType.h"
 #include "padSize.h"
 #include "segmentationCommon.h"
 #include "writer.h"
@@ -37,9 +35,10 @@ namespace jsonmap {
 namespace codegen {
 namespace impl2 {
 
-std::string
-padgroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes,
-          int nonRegIndexLimit, std::string space, const std::map<int, int> &manu2berg)
+
+#if 0
+std::string padgroups(const std::vector<MotifPosition> &motifPositions, const std::vector<PadGroupType> &padGroupTypes,
+                      int nonRegIndexLimit, std::string space, const std::map<int, int> &manu2berg)
 {
   auto pgs = getPadGroups(motifPositions, padGroupTypes, manu2berg);
 
@@ -59,6 +58,7 @@ padgroups(const std::vector<MotifPosition> &motifPositions, const std::vector<Pa
 
   return code.str();
 }
+#endif
 
 std::string codeForDetElemId2SegType(const Value &segmentations,
                                      const Value &detection_elements)
@@ -112,19 +112,11 @@ std::map<int, int> getManu2Berg(const Value &bergs, bool is80pins)
   return manu2berg;
 }
 
-template<typename T>
-void output(std::ostream &code, T &value)
+template <typename T>
+void output(std::ostream& code, T& value)
 {
   code << value;
 }
-
-#if 0
-template<>
-void output(std::ostream &code, std::pair<double, double> &value)
-{
-  code << "{" << value.first << "," << value.second << "}";
-}
-#endif
 
 template<>
 void output(std::ostream &code, PadGroupType &pgt)
