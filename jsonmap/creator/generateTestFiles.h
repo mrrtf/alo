@@ -17,6 +17,6 @@
 class AliMpDDLStore;
 class AliMpSegmentation;
 
-void generate_test_files(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg);
+void generate_test_files(AliMpDDLStore* ddlStore, AliMpSegmentation* mseg,int npospderde=10);
 
 #endif
