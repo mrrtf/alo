@@ -24,6 +24,7 @@
 #include "padSize.h"
 #include "padGroup.h"
 #include "segmentation2.h"
+#include <algorithm>
 
 using namespace rapidjson;
 
