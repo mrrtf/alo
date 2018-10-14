@@ -1,7 +1,0 @@
-find_package(Boost COMPONENTS program_options)
-if(AliRoot_FOUND)
-    add_subdirectory(creator)
-endif()
-if(Boost_FOUND)
-    add_subdirectory(codegen)
-endif()

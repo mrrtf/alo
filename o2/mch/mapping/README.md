@@ -1,4 +1,4 @@
-# MCH Mapping 
+# MCH Mapping - O2 version
 
 # API
 
@@ -48,3 +48,8 @@ Besides to core API (finding pads by position and by electronic ids), we offert
  
  A simple executable, `mch-mapping-svg-segmentation3` can be used to produce [SVG](https://developer.mozilla.org/en-US/docs/Web/SVG) plots
  of the segmentations.
+
+# Codegen
+
+Note that part of the code has been [generated](codegen) from a `json` representation of the mapping.
+

@@ -25,6 +25,7 @@
 #include <vector>
 #include <random>
 #include <iostream>
+#include <algorithm>
 
 struct Pad
 {
