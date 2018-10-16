@@ -1,10 +1,11 @@
 #include "AliMpDEIterator.h"
+#include "AliMpDEManager.h"
 #include "ConvertESD.h"
 #include "FileCreation.h"
-#include "boost/program_options.hpp"
 #include "MappingHelper.h"
-#include <vector>
+#include "boost/program_options.hpp"
 #include <iostream>
+#include <vector>
 
 namespace po = boost::program_options;
 
@@ -52,11 +53,15 @@ int main(int argc, char **argv) {
 
   if (detElemIds.empty()) {
     std::cout << "no detection element specified : using all of them\n";
+    getDDLStore();
     AliMpDEIterator it;
     it.First();
     int detElemId;
     while (!it.IsDone()) {
-      detElemIds.push_back(it.CurrentDEId());
+            auto detElemId = it.CurrentDEId();
+      if (AliMpDEManager::GetStationType(detElemId) != AliMp::kStationTrigger) {
+        detElemIds.push_back(detElemId);
+      }
       it.Next();
     }
   }
