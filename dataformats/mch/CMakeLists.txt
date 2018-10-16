@@ -1,8 +1,6 @@
 # FIXME: should call flatc to re-generate the header files
 # from the .fbs files instead of using the ones commited ?
 
-
-add_executable(mch-dump mch-dump.cxx SegmentationPair.cxx DumpDigits.cxx DumpClusters.cxx)
-target_link_libraries(mch-dump PRIVATE flatbuffers::flatbuffers o2::MCHMappingImpl3 Boost::program_options)
-install(TARGETS mch-dump RUNTIME DESTINATION bin)
-
+add_library(MCHDataFormat INTERFACE)
+target_include_directories(MCHDataFormat INTERFACE .)
+install(DIRECTORY . DESTINATION include)

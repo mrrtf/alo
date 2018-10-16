@@ -20,6 +20,9 @@ struct ClusterTimeBlock;
 struct ClusterDE;
 
 struct ClusterPos FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "o2.mch.ClusterPos";
+  }
   enum {
     VT_X = 4,
     VT_Y = 6,
@@ -80,6 +83,9 @@ inline flatbuffers::Offset<ClusterPos> CreateClusterPos(
 }
 
 struct PreCluster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "o2.mch.PreCluster";
+  }
   enum {
     VT_DIGITBENDINGIDS = 4,
     VT_DIGITNONBENDINGIDS = 6
@@ -142,6 +148,9 @@ inline flatbuffers::Offset<PreCluster> CreatePreClusterDirect(
 }
 
 struct Cluster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "o2.mch.Cluster";
+  }
   enum {
     VT_PRE = 4,
     VT_POS = 6
@@ -194,6 +203,9 @@ inline flatbuffers::Offset<Cluster> CreateCluster(
 }
 
 struct ClusterTimeBlock FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "o2.mch.ClusterTimeBlock";
+  }
   enum {
     VT_TIMESTAMP = 4,
     VT_CLUSTERS = 6
@@ -256,6 +268,9 @@ inline flatbuffers::Offset<ClusterTimeBlock> CreateClusterTimeBlockDirect(
 }
 
 struct ClusterDE FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  static FLATBUFFERS_CONSTEXPR const char *GetFullyQualifiedName() {
+    return "o2.mch.ClusterDE";
+  }
   enum {
     VT_DETELEMID = 4,
     VT_CLUSTERTIMEBLOCKS = 6

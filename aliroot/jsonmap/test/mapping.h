@@ -16,19 +16,18 @@
 #ifndef ALO_JSONMAP_CREATOR_TEST_MAPPING_H
 #define ALO_JSONMAP_CREATOR_TEST_MAPPING_H
 
-class AliMpDDLStore;
-class AliMpSegmentation;
-class AliMpVSegmentation;
+#include "AliMpDDLStore.h"
+#include "AliMpSegmentation.h"
+#include "AliMpVSegmentation.h"
 
 #include <vector>
 #include <string>
 #include "AliMpPlaneType.h"
 
-class Mapping
+struct Mapping
 {
-  public:
-
     Mapping();
+    ~Mapping() = default;
 
     AliMpDDLStore* ddlStore();
 

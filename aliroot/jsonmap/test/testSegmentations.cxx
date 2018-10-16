@@ -15,18 +15,19 @@
 #define BOOST_TEST_DYN_LINK
 
 #include <boost/test/unit_test.hpp>
-#include "mapping.h"
-#include "seg.h"
-#include "segnumbers.h"
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <iostream>
-#include <TArrayI.h>
 #include <boost/format.hpp>
-#include "de.h"
-#include "AliMpVSegmentation.h"
+
 #include "AliMpMotifPosition.h"
 #include "AliMpVPadIterator.h"
+#include "AliMpVSegmentation.h"
+#include "de.h"
+#include "seg.h"
+#include "segnumbers.h"
+#include "mapping.h"
+#include <TArrayI.h>
+#include <iostream>
 #include <map>
 
 std::array<std::string, 156> desegnames{
@@ -92,10 +93,7 @@ std::map<std::string, std::vector<int>> deperseg = {
 
 namespace bdata = boost::unit_test::data;
 
-BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping
-)
-
-BOOST_AUTO_TEST_SUITE(segmentation)
+BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, Mapping)
 
 BOOST_AUTO_TEST_CASE(segmentationOrder)
 {
@@ -150,10 +148,10 @@ BOOST_AUTO_TEST_CASE(DetectionElementToSegmentationName)
 }
 
 BOOST_DATA_TEST_CASE(DetectionElementIdsPerSegmentationName,
-                     (bdata::make(segnames)), segname
-)
+                     (bdata::make(segnames)), segname)
 {
-  std::vector<int> idperseg = get_deids_per_segname(ddlStore(), mseg(), segname);
+  Mapping m;
+  std::vector<int> idperseg = get_deids_per_segname(m.ddlStore(), m.mseg(), segname);
   BOOST_TEST(idperseg == deperseg[segname]);
 }
 
@@ -204,7 +202,5 @@ bool isPositionWithinPadArea(const AliMpPad &pad, double x, double y)
 //  }
 //  BOOST_TEST(true);
 //}
-
-BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()

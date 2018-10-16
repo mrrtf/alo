@@ -31,6 +31,7 @@
 #include "AliMpVPadIterator.h"
 #include "AliMpConnection.h"
 #include <limits>
+#include <vector>
 
 std::array<std::string, 210> motifTypeNames{
   "1BA", "1BB", "1BC", "1BD", "1BE", "1BF", "1BG", "1BH", "1BI", "1NA", "1NB", "1NC", "1ND", "1NE", "1NF", "1NG", "1NH",
@@ -102,7 +103,8 @@ BOOST_AUTO_TEST_CASE(MotifTypeClone)
 
 BOOST_DATA_TEST_CASE(IxAndIyShouldStartAtZero, boost::unit_test::data::xrange(0, 210), i)
 {
-  AliMpMotifType *m = mt[i];
+  MOTIFTYPES MT;
+  AliMpMotifType *m = MT.mt[i];
   AliMpPad pad;
   std::unique_ptr<AliMpVPadIterator> it(m->CreateIterator());
   it->First();

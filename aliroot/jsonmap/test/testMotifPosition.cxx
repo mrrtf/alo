@@ -46,10 +46,9 @@ std::array<int, 21> motifPositionPerSegmentationNB{
 
 BOOST_FIXTURE_TEST_SUITE(mch_aliroot_mapping, MPS)
 
-BOOST_AUTO_TEST_SUITE(motifposition)
-
 BOOST_DATA_TEST_CASE(NumberOfMotifPositions, (bdata::make(segnames)), segname)
 {
+  Mapping m;
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(m.ddlStore(), m.mseg(), segname);
 
   auto i = std::distance(segnames.begin(), std::find(segnames.begin(), segnames.end(), segname));
@@ -59,6 +58,7 @@ BOOST_DATA_TEST_CASE(NumberOfMotifPositions, (bdata::make(segnames)), segname)
 
 BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInBendingPlane, (bdata::make(segnames)), segname)
 {
+  Mapping m;
   AliMpVSegmentation* segmentation = get_seg(m.ddlStore(), m.mseg(), segname, AliMp::kBendingPlane);
 
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(*segmentation);
@@ -70,6 +70,7 @@ BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInBendingPlane, (bdata::make(segnames
 
 BOOST_DATA_TEST_CASE(NumberOfMotifPositionsInNonBendingPlane, (bdata::make(segnames)), segname)
 {
+  Mapping m;
   AliMpVSegmentation* segmentation = get_seg(m.ddlStore(), m.mseg(), segname, AliMp::kNonBendingPlane);
 
   std::vector<AliMpMotifPosition*> motifPositions = get_motifpositions(*segmentation);
@@ -98,6 +99,5 @@ BOOST_AUTO_TEST_CASE(MotifPositionDetails)
 }
 */
 
-BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
 

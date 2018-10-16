@@ -59,6 +59,8 @@ struct MOTIFS
       std::vector<const AliMpSector *> sectors = get_allsectors(m.mseg());
       sectorMotif = get_allsectormotifs(sectors, padsizes);
       motif = get_allmotifs(pcbs, sectors, padsizes);
+      std::cout << "motif[0]=" << std::endl;
+      motif[0]->Print("");
     }
 
     std::vector<AliMpVMotif *> slatMotif;
@@ -98,8 +100,8 @@ BOOST_AUTO_TEST_CASE(MotifClone)
 {
   std::string newname = "toto";
   AliMpVMotif *c = static_cast<AliMpVMotif *>(motif[0]->Clone(newname.c_str()));
-  BOOST_TEST_CHECK(newname == c->GetID().Data());
-  BOOST_TEST_CHECK(newname != motif[0]->GetID().Data());
+  BOOST_TEST_CHECK(strcmp(newname.c_str(),c->GetID().Data())==0);
+  BOOST_TEST_CHECK(strcmp(newname.c_str(),motif[0]->GetID().Data()));
 }
 
 BOOST_AUTO_TEST_CASE(NoSpecialMotifInSlats)

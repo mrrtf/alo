@@ -1,0 +1,10 @@
+universe=vanilla
+executable = run.sh
+log = esd-convertor.$(Cluster).log
+output = esd-convertor.$(Cluster).$(Process).out
+error = esd-convertor.$(Cluster).$(Process).err
+should_transfer_files = yes
+when_to_transfer_output = ON_EXIT
+
+include : $ENV(PWD)/list-input.sh 50 |
+
