@@ -3,4 +3,5 @@
 
 add_library(MCHDataFormat INTERFACE)
 target_include_directories(MCHDataFormat INTERFACE .)
+target_link_libraries(MCHDataFormat INTERFACE flatbuffers::flatbuffers)
 install(DIRECTORY . DESTINATION include)
