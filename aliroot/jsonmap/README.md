@@ -35,19 +35,21 @@ It's a two steps process : first generate `JSON` files from `AliRoot` mapping, t
 ```
 > mch-mapping-convert-to-json && ls -alh
 
-total 7976
-drwxr-xr-x   13 laurent  staff   416B Feb 20 16:52 .
-drwxr-xr-x+ 225 laurent  staff   7.0K Feb 20 16:52 ..
--rw-r--r--    1 laurent  staff    18K Feb 20 16:52 bergs.json
--rw-r--r--    1 laurent  staff   695K Feb 20 16:52 buspatches.json
--rw-r--r--    1 laurent  staff   4.0K Feb 20 16:52 chambers.json
--rw-r--r--    1 laurent  staff   4.8K Feb 20 16:52 ddls.json
--rw-r--r--    1 laurent  staff    63K Feb 20 16:52 detection_elements.json
--rw-r--r--    1 laurent  staff   231K Feb 20 16:52 legacyseg.json
--rw-r--r--    1 laurent  staff   1.6M Feb 20 16:52 motiftypes.json
--rw-r--r--    1 laurent  staff   2.0K Feb 20 16:52 padsizes.json
--rw-r--r--    1 laurent  staff    37K Feb 20 16:52 pcbs.json
--rw-r--r--    1 laurent  staff   748K Feb 20 16:52 segmentations.json
+
+total 3.7M
+drwxr-xr-x.  2 laurent laurent  253 Oct 17 08:56 .
+drwx------. 20 laurent laurent 4.0K Oct 17 08:56 ..
+-rw-r--r--.  1 laurent laurent  18K Oct 17 08:56 bergs.json
+-rw-r--r--.  1 laurent laurent 695K Oct 17 08:56 buspatches.json
+-rw-r--r--.  1 laurent laurent 4.0K Oct 17 08:56 chambers.json
+-rw-r--r--.  1 laurent laurent 4.8K Oct 17 08:56 ddls.json
+-rw-r--r--.  1 laurent laurent  64K Oct 17 08:56 detection_elements.json
+-rw-r--r--.  1 laurent laurent 232K Oct 17 08:56 legacyseg.json
+-rw-r--r--.  1 laurent laurent 1.6M Oct 17 08:56 motiftypes.json
+-rw-r--r--.  1 laurent laurent 2.1K Oct 17 08:56 padsizes.json
+-rw-r--r--.  1 laurent laurent  38K Oct 17 08:56 pcbs.json
+-rw-r--r--.  1 laurent laurent 748K Oct 17 08:56 segmentations.json
+-rw-r--r--.  1 laurent laurent 319K Oct 17 08:56 test_random_pos.json
 
 ```
 See [o2/mch/mapping dir](../../o2/mch/mapping/codegen) for the second step.
