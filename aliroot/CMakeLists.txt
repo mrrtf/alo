@@ -1,0 +1,6 @@
+include(CMakeALICE)
+add_subdirectory(r23)
+add_subdirectory(binmap)
+add_subdirectory(dhlt)
+add_subdirectory(jsonmap)
+# add_subdirectory(vsaliroot)
