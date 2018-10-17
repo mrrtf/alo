@@ -7,7 +7,7 @@ In fact, it is two packages in one. One depends _only_ AliceO2 and the other _on
 > alo used to depend on both O2 and AliRoot, but since the adoption of C++17 for O2, it was becoming almost impossible to compile AliRoot and O2 in compatible libs. Hence the sharp split.
 
 The general idea of alo is to extract
-some information from old AliRoot/Run2 data, massages it and in the end write it into a form
+some information from old AliRoot/Run2 data, massage it and in the end write it into a form
 digestible by O2/Run3 (while waiting for the O2 part to be able to perform
 the same kind of operation itself)
 
@@ -28,7 +28,7 @@ More documentation is to be found under the different sub-directories :
 To build the AliRoot-dependent part, use :
 
 ```
-aliBuild --defaults user-roo6 build alo-aliroot
+aliBuild --defaults user-root6 build alo-aliroot
 ```
 
 To build the O2-dependent part, use :
@@ -45,5 +45,5 @@ aliBuild --defaults o2 build alo-o2
 
 if you don't want to use the aliBuild git version.
 
-The aliBuild master has the advantage of using the binary cache on CentOS7, so what gets rebuild by the command above should in principle be limited to alo itself. 
+The aliBuild master has the advantage of using the binary cache on CentOS7, so what gets rebuilt by the command above should in principle be limited to alo itself. 
 
