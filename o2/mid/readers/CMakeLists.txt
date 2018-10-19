@@ -1,0 +1,5 @@
+add_library(MIDReaders SHARED BoostReader.cxx)
+target_link_libraries(MIDReaders PUBLIC Boost::serialization)
+target_include_directories(MIDReaders INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(MIDReaders PROPERTIES PUBLIC_HEADER "BoostReader.h")
+install(TARGETS MIDReaders LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include/mid)
