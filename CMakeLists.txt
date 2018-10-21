@@ -32,6 +32,7 @@ find_package(Boost
 include(CTest)
 
 add_subdirectory(dataformats)
+add_subdirectory(utilities)
 
 if(AliRoot_FOUND)
   add_subdirectory(aliroot)
