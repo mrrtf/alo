@@ -1,10 +1,8 @@
-All what's needed to build and run the `mch-esd-convertor` on SAF (which is a SLC6 system).
-
-The build part is just a custom `CMakeLists.txt` which gets required sources from O2 (Detectors/MUON/MCH/Mapping parts) and alo (esd-convertor itself).
+All what's needed to build and run the `mch-esd-converter` on SAF (which is a SLC6 system).
 
 # Build
 
-Must clone `O2` and `alo` repositories in some directory `basedir`
+Must clone `alo` repository in some directory `basedir`
 
 Then : 
 
@@ -12,10 +10,6 @@ Then :
 source env.sh # <- specify here the base AliRoot used for ESD reading
 source build.sh basedir
 ```
-
-*WARNING* 
-
-A few things are hard-coded in the `build.sh` : the path to find the [https://github.com/Microsoft/GSL](Guidelines Support Library) or the [https://github.com/google/flatbuffers](flatbuffer compiler).
 
 # Run
 
