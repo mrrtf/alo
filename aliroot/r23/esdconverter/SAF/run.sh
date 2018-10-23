@@ -14,7 +14,7 @@ shift
 
 echo "basename=$basename"
 
-./mch-convert-esd --det 100 --basename MCH-$basename- $@
+./mch-convert-esd --de 100 --basename MCH-$basename- $@
 
 rm -f tmp.*
 

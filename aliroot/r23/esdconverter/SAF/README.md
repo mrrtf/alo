@@ -11,6 +11,8 @@ source env.sh # <- specify here the base AliRoot used for ESD reading
 source build.sh basedir
 ```
 
+Copy the resulting `bin/mch-convert-esd` executable to the current dir (the one with list-input.sh, job.condor etc..)
+
 # Run
 
 The run part is a couple of scripts to launch condor jobs from text file(s) (ending by .list) containing the list of esds to process. 
