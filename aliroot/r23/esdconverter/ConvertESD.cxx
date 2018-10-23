@@ -4,8 +4,7 @@
 #include "AliESDMuonCluster.h"
 #include "AliESDMuonPad.h"
 #include "AliESDMuonTrack.h"
-#include "Cluster_generated.h"
-#include "Digit_generated.h"
+#include "Run2_generated.h"
 #include "GetESDClusters.h"
 #include "SegmentationPair.h"
 #include "TFile.h"
@@ -19,7 +18,6 @@
 #include <memory>
 #include <vector>
 
-using namespace o2::mch;
 bool isBendingManu(int manuId) { return (manuId & 1024) == 0; }
 int getDetElemId(unsigned int esdDigitUID) { return esdDigitUID & 0xFFF; }
 int getManuId(unsigned int esdDigitUID) {
@@ -90,7 +88,7 @@ void convertESD(const SegmentationMap &segmentations, const char *esdFileName,
       auto detElemId = segPair.first;
       auto clusters = getClusters(event, detElemId);
       fbb.Clear();
-      convertClusters(seg, clusters, fbb);
+      convertClusters(event, clusters, fbb);
       auto clusterFile = clusterFiles.find(detElemId);
       if (clusterFile != clusterFiles.end()) {
         assert(clusterFile->second.is_open());
@@ -119,16 +117,15 @@ getDigitUIDs(std::vector<AliESDMuonCluster *> &clusters) {
   return esdDigitUIDs;
 }
 
-void convertClusters(const SegmentationPair &seg,
+void convertClusters(AliESDEvent& event,
                      std::vector<AliESDMuonCluster *> &esdClusters,
                      flatbuffers::FlatBufferBuilder &fbb) {
-  std::vector<flatbuffers::Offset<o2::mch::Cluster>> clusters;
+  std::vector<flatbuffers::Offset<run2::Cluster>> clusters;
 
   int detElemId{0};
 
   for (auto esdCluster : esdClusters) {
-    std::vector<int> bdigits;
-    std::vector<int> nbdigits;
+    std::vector<flatbuffers::Offset<run2::Digit>> digits;
     for (int i = 0; i < esdCluster->GetNPads(); ++i) {
       auto esdDigitID = esdCluster->GetPadId(i);
       int de = getDetElemId(esdDigitID);
@@ -136,89 +133,87 @@ void convertClusters(const SegmentationPair &seg,
         detElemId = de;
       }
       assert(de == detElemId);
-      auto manuId = getManuId(esdDigitID);
-      auto manuChannel = getManuChannel(esdDigitID);
-      bool isBending = isBendingManu(manuId);
-      auto pad = seg[isBending].PadByLocation(manuId, manuChannel);
-      assert(pad.IsValid());
-      int paduid{0}; // FIXME: compute a VDigitId here ?
-      if (isBending) {
-        bdigits.push_back(paduid);
-      } else {
-        nbdigits.push_back(paduid);
-      }
+      auto pad = event.FindMuonPad(esdDigitID);
+      auto manuId = pad->GetManuId();
+      auto manuChannel = pad->GetManuChannel();
+      auto adc = pad->GetADC();
+      auto d = run2::CreateDigit(fbb,adc,detElemId,manuId,manuChannel);
+      digits.push_back(d);
     }
 
-    auto pre = CreatePreClusterDirect(fbb, &bdigits, &nbdigits);
-    auto pos = CreateClusterPos(fbb, esdCluster->GetX(), esdCluster->GetY(),
+    auto pre = run2::CreatePreClusterDirect(fbb, &digits);
+    auto pos = run2::CreateClusterPos(fbb, esdCluster->GetX(), esdCluster->GetY(),
                                 esdCluster->GetZ());
-    clusters.push_back(CreateCluster(fbb, pre, pos));
+    clusters.push_back(run2::CreateCluster(fbb, pre, pos));
   }
 
   if (clusters.empty()) {
     return;
   }
 
-  int ts{0};
-  auto tb = CreateClusterTimeBlockDirect(fbb, ts, &clusters);
+  uint16_t bc = 0;
+  uint32_t period = 0;
+  float centrality = 0;
+  bool isMB = true;
 
-  auto cde = CreateClusterDE(fbb, detElemId, fbb.CreateVector(&tb, 1));
+  auto eventBuffer = run2::CreateEventDirect(fbb,
+                  bc, period, centrality, isMB, nullptr, &clusters);
 
-  fbb.Finish(cde);
+  fbb.Finish(eventBuffer);
 }
 
 void convertDigits(const SegmentationPair &seg, AliESDEvent &event,
                    std::vector<AliESDMuonCluster *> &clusters,
-                   flatbuffers::FlatBufferBuilder &fbb) {
-
-  std::vector<flatbuffers::Offset<o2::mch::Digit>> bendingDigits;
-  std::vector<flatbuffers::Offset<o2::mch::Digit>> nonBendingDigits;
-
-  auto esdDigitUIDs = getDigitUIDs(clusters);
-
-  int detElemId{0};
-
-  for (auto esdDigitUID : esdDigitUIDs) {
-    detElemId = getDetElemId(esdDigitUID);
-    int manuId = getManuId(esdDigitUID);
-    int manuChannel = getManuChannel(esdDigitUID);
-    bool isBending = isBendingManu(manuId);
-    auto pad = seg[isBending].PadByLocation(manuId, manuChannel);
-    if (!pad.IsValid()) {
-      std::cout << "got invalid pad !\n";
-      std::cout << "[DE" << detElemId << " MANU" << manuId << " CH "
-                << manuChannel << "]\n";
-    } else {
-      auto pad = event.FindMuonPad(esdDigitUID);
-      auto adc = pad->GetADC();
-      int paduid{0}; // FIXME: compute paduid?
-      if (isBending) {
-        bendingDigits.push_back(o2::mch::CreateDigit(fbb, paduid, adc));
-      } else {
-        nonBendingDigits.push_back(o2::mch::CreateDigit(fbb, paduid, adc));
-      }
-    }
-  }
-
-  if (bendingDigits.empty() && nonBendingDigits.empty()) {
-    return;
-  }
-
-  flatbuffers::Offset<DigitPlane> b =
-      o2::mch::CreateDigitPlaneDirect(fbb, true, &bendingDigits);
-  flatbuffers::Offset<DigitPlane> nb =
-      o2::mch::CreateDigitPlaneDirect(fbb, false, &nonBendingDigits);
-
-  auto vb = fbb.CreateVector(&b, 1);
-  auto vnb = fbb.CreateVector(&nb, 1);
-
-  int timestamp = 0;
-  auto tb_b = o2::mch::CreateDigitTimeBlock(fbb, timestamp, vb);
-  auto tb_nb = o2::mch::CreateDigitTimeBlock(fbb, timestamp, vnb);
-
-  std::vector<flatbuffers::Offset<DigitTimeBlock>> vtb{tb_b, tb_nb};
-
-  auto digitDE = o2::mch::CreateDigitDE(fbb, detElemId, fbb.CreateVector(vtb));
-
-  fbb.Finish(digitDE);
-}
+                    flatbuffers::FlatBufferBuilder &fbb) {
+        }
+//   std::vector<flatbuffers::Offset<run2::Digit>> bendingDigits;
+//   std::vector<flatbuffers::Offset<run2::Digit>> nonBendingDigits;
+//
+//   auto esdDigitUIDs = getDigitUIDs(clusters);
+//
+//   int detElemId{0};
+//
+//   for (auto esdDigitUID : esdDigitUIDs) {
+//     detElemId = getDetElemId(esdDigitUID);
+//     int manuId = getManuId(esdDigitUID);
+//     int manuChannel = getManuChannel(esdDigitUID);
+//     bool isBending = isBendingManu(manuId);
+//     auto pad = seg[isBending].PadByLocation(manuId, manuChannel);
+//     if (!pad.IsValid()) {
+//       std::cout << "got invalid pad !\n";
+//       std::cout << "[DE" << detElemId << " MANU" << manuId << " CH "
+//                 << manuChannel << "]\n";
+//     } else {
+//       auto pad = event.FindMuonPad(esdDigitUID);
+//       auto adc = pad->GetADC();
+//       int paduid{0}; // FIXME: compute paduid?
+//       if (isBending) {
+//         bendingDigits.push_back(run2::CreateDigit(fbb, paduid, adc));
+//       } else {
+//         nonBendingDigits.push_back(run2::CreateDigit(fbb, paduid, adc));
+//       }
+//     }
+//   }
+//
+//   if (bendingDigits.empty() && nonBendingDigits.empty()) {
+//     return;
+//   }
+//
+//   flatbuffers::Offset<DigitPlane> b =
+//       run2::CreateDigitPlaneDirect(fbb, true, &bendingDigits);
+//   flatbuffers::Offset<DigitPlane> nb =
+//       run2::CreateDigitPlaneDirect(fbb, false, &nonBendingDigits);
+//
+//   auto vb = fbb.CreateVector(&b, 1);
+//   auto vnb = fbb.CreateVector(&nb, 1);
+//
+//   int timestamp = 0;
+//   auto tb_b = run2::CreateDigitTimeBlock(fbb, timestamp, vb);
+//   auto tb_nb = run2::CreateDigitTimeBlock(fbb, timestamp, vnb);
+//
+//   std::vector<flatbuffers::Offset<DigitTimeBlock>> vtb{tb_b, tb_nb};
+//
+//   auto digitDE = run2::CreateDigitDE(fbb, detElemId, fbb.CreateVector(vtb));
+//
+//   fbb.Finish(digitDE);
+// }

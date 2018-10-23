@@ -24,7 +24,7 @@ void convertDigits(const SegmentationPair& seg,
                 AliESDEvent& event,
                    std::vector<AliESDMuonCluster*>& clusters, flatbuffers::FlatBufferBuilder& fbb);
 
-void convertClusters(const SegmentationPair& seg,
+void convertClusters(AliESDEvent& event,
                      std::vector<AliESDMuonCluster*>& clusters, flatbuffers::FlatBufferBuilder& fbb);
 
 #endif
