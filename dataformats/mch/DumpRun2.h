@@ -3,6 +3,6 @@
 
 #include <string>
 
-void dumpRun2Clusters(const std::string& filename);
+void dumpRun2(const std::string& filename);
 
 #endif

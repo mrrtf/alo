@@ -27,7 +27,7 @@ add_dependencies(MCHDataFormat fbs_includes)
 
 install(DIRECTORY . DESTINATION include FILES_MATCHING PATTERN "*.h")
 
-add_executable(mch-dump-run2 mch-dump-run2.cxx DumpRun2Clusters.cxx)
+add_executable(mch-dump-run2 mch-dump-run2.cxx DumpRun2.cxx)
 target_link_libraries(mch-dump-run2 MCHDataFormat Boost::program_options)
 
 install(TARGETS mch-dump-run2 RUNTIME DESTINATION bin)

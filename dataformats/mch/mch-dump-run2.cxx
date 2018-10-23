@@ -1,4 +1,4 @@
-#include "DumpRun2Clusters.h"
+#include "DumpRun2.h"
 #include "boost/program_options.hpp"
 #include <fstream>
 #include <iostream>
@@ -6,18 +6,13 @@
 
 namespace po = boost::program_options;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
   po::variables_map vm;
   po::options_description generic("Generic options");
-  std::string digits;
-  std::string clusters;
 
   // clang-format off
   generic.add_options()
-          ("help", "produce help message")
-          ("clusters", po::value<std::string>(&clusters),"clusters file")
-          ("digits", po::value<std::string>(&digits),"digits file");
+          ("help,h", "produce help message");
 
   po::options_description hidden("hidden options");
   hidden.add_options()
@@ -27,22 +22,29 @@ int main(int argc, char** argv)
   po::options_description cmdline;
   cmdline.add(generic).add(hidden);
 
+  po::positional_options_description p;
+  p.add("input-file", -1);
+
   po::store(
-    po::command_line_parser(argc, argv).options(cmdline).run(),
-    vm);
+      po::command_line_parser(argc, argv).options(cmdline).positional(p).run(),
+      vm);
   po::notify(vm);
 
   if (vm.count("help")) {
-    std::cout << generic << std::endl;
+    std::cout << cmdline << std::endl;
     return 2;
   }
+  if (vm.count("input-file") == 0) {
+    std::cout << "no input file specified" << std::endl;
+    std::cout << cmdline << std::endl;
+    return 1;
+  }
 
-  // if (digits.size() > 0) {
-  //   dumpDigits(digits);
-  // }
+  std::vector<std::string> inputfiles{
+      vm["input-file"].as<std::vector<std::string>>()};
 
-  if (clusters.size() > 0) {
-    dumpRun2Clusters(clusters);
+  for (auto fileName : inputfiles) {
+    dumpRun2(fileName);
   }
 
   return 0;

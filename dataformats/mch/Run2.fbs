@@ -25,9 +25,8 @@ table Cluster {
 table Event {
         bc: ushort;
         period: uint;
-        centrality: float;
+        ntracklets: int;
         isMB: bool;
-        digits:[Digit];
         clusters:[Cluster];
 }
 

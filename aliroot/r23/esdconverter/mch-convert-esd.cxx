@@ -1,8 +1,7 @@
-#include "AliMpDEIterator.h"
+#include "MappingHelper.h"
 #include "AliMpDEManager.h"
 #include "ConvertESD.h"
 #include "FileCreation.h"
-#include "MappingHelper.h"
 #include "boost/program_options.hpp"
 #include <iostream>
 #include <vector>
@@ -12,16 +11,14 @@ namespace po = boost::program_options;
 int main(int argc, char **argv) {
   po::variables_map vm;
   po::options_description generic("Generic options");
-  std::string digitBasename;
-  std::string clusterBasename;
+  std::string basename;
   std::vector<int> detElemIds;
 
   // clang-format off
   generic.add_options()
-          ("help", "produce help message")
-          ("detelemids", po::value<std::vector<int>>(&detElemIds), "produce digit for those detetcion elements (all if not specified)")
-          ("cluster-basename", po::value<std::string>(&clusterBasename),"basename of output cluster files")
-          ("digit-basename", po::value<std::string>(&digitBasename),"basename of output digit files");
+          ("help,h", "produce help message")
+          ("de", po::value<std::vector<int>>(&detElemIds), "extract clusters for this detection element (all if not specified)")
+          ("basename", po::value<std::string>(&basename),"basename of output files");
 
   po::options_description hidden("hidden options");
   hidden.add_options()
@@ -40,11 +37,12 @@ int main(int argc, char **argv) {
   po::notify(vm);
 
   if (vm.count("help")) {
-    std::cout << generic << std::endl;
+    std::cout << cmdline << std::endl;
     return 2;
   }
   if (vm.count("input-file") == 0) {
     std::cout << "no input file specified" << std::endl;
+    std::cout << cmdline << std::endl;
     return 1;
   }
 
@@ -66,16 +64,12 @@ int main(int argc, char **argv) {
     }
   }
 
-  // create segmentations
-  SegmentationMap segmentations{getSegmentations(detElemIds)};
-
   // create output files
-  auto digitFiles = createDetElemFiles(digitBasename, detElemIds);
-  auto clusterFiles = createDetElemFiles(clusterBasename, detElemIds);
+  auto files = createDetElemFiles(basename, detElemIds);
 
   for (auto input : inputfiles) {
     std::cout << "Converting file " << input << "\n";
-    convertESD(segmentations, input.c_str(), clusterFiles, digitFiles);
+    convertESD(detElemIds, input.c_str(), files);
   }
   return 0;
 }
