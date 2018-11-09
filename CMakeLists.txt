@@ -26,11 +26,13 @@ find_package(Boost
              COMPONENTS unit_test_framework
                         program_options
                         filesystem
+                        serialization
                         REQUIRED)
 
 include(CTest)
 
 add_subdirectory(dataformats)
+add_subdirectory(utilities)
 
 if(AliRoot_FOUND)
   add_subdirectory(aliroot)
