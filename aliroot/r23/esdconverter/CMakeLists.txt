@@ -4,7 +4,6 @@ add_executable(mch-convert-esd
         MappingHelper.cxx
         ConvertESD.cxx
         GetESDClusters.cxx
-        SegmentationPair.cxx
         )
 
 target_link_libraries(mch-convert-esd PUBLIC flatbuffers::flatbuffers ROOT::RIO AliRoot::ESD MCHDataFormat Boost::program_options AliRoot::MUONmapping)

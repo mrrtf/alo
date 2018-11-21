@@ -1,8 +1,8 @@
 universe=vanilla
 executable = run.sh
-log = esd-convertor.$(Cluster).log
-output = esd-convertor.$(Cluster).$(Process).out
-error = esd-convertor.$(Cluster).$(Process).err
+log = esd-converter.$(Cluster).log
+output = esd-converter.$(Cluster).$(Process).out
+error = esd-converter.$(Cluster).$(Process).err
 should_transfer_files = yes
 when_to_transfer_output = ON_EXIT
 

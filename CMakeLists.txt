@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
 foreach(p
         CMP0025 # CMake 3.0
@@ -22,7 +22,7 @@ find_package(O2)
 find_package(RapidJSON)
 find_package(FlatBuffers)
 
-find_package(Boost
+find_package(Boost 1.59
              COMPONENTS unit_test_framework
                         program_options
                         filesystem

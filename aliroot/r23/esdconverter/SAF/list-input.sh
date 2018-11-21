@@ -22,7 +22,7 @@ do
 		(( n += 1))
 		if (( $n % $ninput == 0 ))
 		then
-            echo "transfer_input_files=$basedir/$f.dir/input.$index,$basedir/bin/mch-convert-esd-to-digits,$basedir/lib/libMCHMappingImpl3.so"
+            echo "transfer_input_files=$basedir/$f.dir/input.$index,$basedir/bin/mch-convert-esd"
             cmd=$(cat input.$index | tr "\n" " ")
             echo "arguments = $index $cmd"
 			echo "queue"
@@ -34,7 +34,7 @@ done
 
 if (( $n > 0 && $n < $ninput ))
 then
-            echo "transfer_input_files=$basedir/$f.dir/input.$index,$basedir/bin/mch-convert-esd-to-digits,$basedir/lib/libMCHMappingImpl3.so"
+            echo "transfer_input_files=$basedir/$f.dir/input.$index,$basedir/bin/mch-convert-esd"
             cmd=$(cat input.$index | tr "\n" " ")
             echo "arguments = $index $cmd"
 			echo "queue"

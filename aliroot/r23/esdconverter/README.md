@@ -1,8 +1,8 @@
 Typical usage :
 
 ```
-mch-convert-esd --detelemids 100 --cluster-basename MCH-CLUSTERS- --digit-basename MCH-DIGITS- testESD.root
-
+mch-convert-esd --de 100 --de 512 --basename MCH- testESD.root
 ```
 
+which will produce two files `MCH-100.dat` and `MCH-512.dat`
 
