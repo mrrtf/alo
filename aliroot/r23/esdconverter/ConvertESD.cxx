@@ -111,7 +111,7 @@ void convertClusters(AliESDEvent &event,
     auto pre = run2::CreatePreClusterDirect(fbb, &clusterDigits);
     auto pos = run2::CreateClusterPos(fbb, esdCluster->GetX(),
                                       esdCluster->GetY(), esdCluster->GetZ());
-    clusters.push_back(run2::CreateCluster(fbb, pre, pos));
+    clusters.push_back(run2::CreateCluster(fbb, pre, pos,esdCluster->GetCharge()));
   }
 
   uint16_t bc = event.GetBunchCrossNumber();

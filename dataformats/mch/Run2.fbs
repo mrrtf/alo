@@ -20,6 +20,7 @@ table PreCluster {
 table Cluster {
   pre: PreCluster;
   pos: ClusterPos;
+  charge: float;
 }
 
 table Event {

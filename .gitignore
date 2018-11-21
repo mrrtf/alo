@@ -1,2 +1,5 @@
+*.err
+*.out
+*.log
 workspace.xml
 compile_commands.json

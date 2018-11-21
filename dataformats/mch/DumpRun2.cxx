@@ -10,8 +10,8 @@ void dumpPreCluster(const run2::PreCluster &preCluster) {
 }
 
 void dumpCluster(const run2::Cluster &cluster) {
-  std::cout << boost::format("\tX %7.2f Y %7.2f Z %7.2f") % cluster.pos()->x() %
-                   cluster.pos()->y() % cluster.pos()->z();
+  std::cout << boost::format("\tX %7.2f Y %7.2f Z %7.2f Q %7.2f") % cluster.pos()->x() %
+                   cluster.pos()->y() % cluster.pos()->z() % cluster.charge();
 
   auto pre = cluster.pre();
   std::cout << " | ";
