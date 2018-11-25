@@ -3,7 +3,20 @@
 #include "AliESDMuonTrack.h"
 #include "AliESDMuonCluster.h"
 
-std::vector<AliESDMuonTrack*> getTracks(AliESDEvent& event)
+bool isGoodTrack(const AliESDMuonTrack& track) {
+
+  auto eta = track.Eta();
+  bool goodEta = ( eta > -4.0 && eta < -2.5 );
+
+  auto thetaAbsDeg = TMath::ATan(track.GetRAtAbsorberEnd()/505.0)*TMath::RadToDeg();
+  bool goodRabs = ( thetaAbsDeg > 2.0 && thetaAbsDeg < 10.0 );
+
+  bool goodTrigger = track.GetMatchTrigger() > 1;
+
+  return goodEta && goodRabs && goodTrigger;
+}
+
+std::vector<AliESDMuonTrack*> getTracks(AliESDEvent& event, bool goodTracksOnly)
 {
   std::vector<AliESDMuonTrack*> tracks;
 
@@ -12,17 +25,23 @@ std::vector<AliESDMuonTrack*> getTracks(AliESDEvent& event)
   for (auto iTrack = 0; iTrack < nTracks; iTrack++) {
     AliESDMuonTrack* track = event.GetMuonTrack(iTrack);
     if (track->ContainTrackerData()) {
-      tracks.push_back(track);
+      bool keep = true;
+      if ( goodTracksOnly ) {
+              keep = isGoodTrack(*track);
+      }
+      if (keep) {
+              tracks.push_back(track);
+      }
     }
   }
   return tracks;
 }
 
-std::vector<AliESDMuonCluster*> getClusters(AliESDEvent& event, int detElemId)
+std::pair<std::vector<AliESDMuonCluster*>,int> getClusters(AliESDEvent& event, int detElemId, bool goodTracksOnly)
 {
   std::vector<AliESDMuonCluster*> clusters;
 
-  auto tracks = getTracks(event);
+  auto tracks = getTracks(event,goodTracksOnly);
 
   for (auto track : tracks) {
 
@@ -35,6 +54,6 @@ std::vector<AliESDMuonCluster*> getClusters(AliESDEvent& event, int detElemId)
       }
     }
   }
-  return clusters;
+  return { clusters, tracks.size() };
 }
 
