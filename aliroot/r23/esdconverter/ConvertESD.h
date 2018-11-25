@@ -12,7 +12,7 @@ class AliESDEvent;
 using OutputFileMap = std::map<int, std::ofstream>;
 
 void convertESD(const std::vector<int> &detElemIds, const char *esdFileName,
-                OutputFileMap &files);
+                OutputFileMap &files, bool goodTracksOnly, int& nclusters, int& ntracks);
 
 void convertClusters(AliESDEvent &event,
                      std::vector<AliESDMuonCluster *> &clusters,

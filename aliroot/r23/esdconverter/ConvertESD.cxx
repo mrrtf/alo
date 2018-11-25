@@ -29,7 +29,10 @@ void writeBuffer(flatbuffers::FlatBufferBuilder &fbb, std::ofstream &out) {
 }
 
 void convertESD(const std::vector<int> &detElemIds, const char *esdFileName,
-                OutputFileMap &outputFiles) {
+                OutputFileMap &outputFiles, bool goodTracksOnly,
+                int& nclusters,
+                int& ntracks) {
+
   std::unique_ptr<TFile> esdFile{TFile::Open(esdFileName)};
 
   if (!esdFile || !esdFile->IsOpen()) {
@@ -50,10 +53,10 @@ void convertESD(const std::vector<int> &detElemIds, const char *esdFileName,
 
   std::cout << nevents << " entries to process\n";
 
-  // tree->SetBranchStatus("*", false);
-  // tree->SetBranchStatus("AliESDRun*", true);
-  // tree->SetBranchStatus("AliESDHeader*", true);
-  // tree->SetBranchStatus("Muon*", true);
+  tree->SetBranchStatus("*", false);
+  tree->SetBranchStatus("AliESDRun*", true);
+  tree->SetBranchStatus("AliESDHeader*", true);
+  tree->SetBranchStatus("Muon*", true);
 
   flatbuffers::FlatBufferBuilder fbb{1024};
 
@@ -65,7 +68,10 @@ void convertESD(const std::vector<int> &detElemIds, const char *esdFileName,
     }
 
     for (auto detElemId : detElemIds) {
-      auto clusters = getClusters(event, detElemId);
+      auto p = getClusters(event, detElemId,goodTracksOnly);
+      auto clusters = p.first;
+      ntracks += p.second;
+      nclusters += clusters.size();
       fbb.Clear();
       convertClusters(event, clusters, fbb);
       auto ofile = outputFiles.find(detElemId);
@@ -104,7 +110,8 @@ void convertClusters(AliESDEvent &event,
       auto manuId = pad->GetManuId();
       auto manuChannel = pad->GetManuChannel();
       auto adc = pad->GetADC();
-      auto d = run2::CreateDigit(fbb, adc, detElemId, manuId, manuChannel);
+      auto charge = pad->GetCharge();
+      auto d = run2::CreateDigit(fbb, adc, detElemId, manuId, manuChannel,charge);
       clusterDigits.push_back(d);
     }
 

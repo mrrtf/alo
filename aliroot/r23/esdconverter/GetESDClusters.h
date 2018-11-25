@@ -2,9 +2,11 @@
 #define GETESDCLUSTERS_H
 
 #include <vector>
+#include <utility>
+
 class AliESDEvent;
 class AliESDMuonCluster;
 
-std::vector<AliESDMuonCluster*> getClusters(AliESDEvent& event, int detElemId);
+std::pair<std::vector<AliESDMuonCluster*>,int> getClusters(AliESDEvent& event, int detElemId, bool goodTracksOnly);
 
 #endif

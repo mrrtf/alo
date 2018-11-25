@@ -5,6 +5,7 @@ table Digit {
         deid:ushort;
         manuid:ushort;
         manuchannel:ubyte;
+        charge:float;
 }
 
 table ClusterPos {

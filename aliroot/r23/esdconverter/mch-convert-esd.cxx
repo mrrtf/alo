@@ -13,12 +13,14 @@ int main(int argc, char **argv) {
   po::options_description generic("Generic options");
   std::string basename;
   std::vector<int> detElemIds;
+  bool goodTracksOnly;
 
   // clang-format off
   generic.add_options()
           ("help,h", "produce help message")
           ("de", po::value<std::vector<int>>(&detElemIds), "extract clusters for this detection element (all if not specified)")
-          ("basename", po::value<std::string>(&basename),"basename of output files");
+          ("basename", po::value<std::string>(&basename),"basename of output files")
+          ("good-tracks-only",po::value<bool>(&goodTracksOnly)->default_value(true),"use only clusters from good tracks");
 
   po::options_description hidden("hidden options");
   hidden.add_options()
@@ -67,10 +69,23 @@ int main(int argc, char **argv) {
   // create output files
   auto files = createDetElemFiles(basename, detElemIds);
 
+  int ntracks{0};
+  int nclusters{0};
+
   for (auto input : inputfiles) {
     std::cout << "Converting file " << input << "\n";
-    convertESD(detElemIds, input.c_str(), files);
+    convertESD(detElemIds, input.c_str(), files,goodTracksOnly,nclusters,ntracks);
   }
+
+  std::cout << "Converted " << nclusters << " clusters from " << ntracks;
+  if (goodTracksOnly) {
+          std::cout << " good";
+  }
+  else {
+          std::cout << " non filtered";
+  }
+  std::cout << " tracks." << std::endl;
+
   return 0;
 }
 
