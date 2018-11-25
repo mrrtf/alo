@@ -1,6 +1,7 @@
 *.err
 *.out
 *.log
+*.dat
 workspace.xml
 compile_commands.json
 .vscode
