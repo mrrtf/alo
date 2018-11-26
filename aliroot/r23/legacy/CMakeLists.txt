@@ -32,12 +32,15 @@ endif (${CMAKE_SYSTEM} MATCHES Darwin)
 add_executable(o2muon-filter-raw o2muon-filter-raw.cxx)
 target_link_libraries(o2muon-filter-raw ${MODULE})
 
+add_executable(mch-clusterizer-inspector mch-clusterizer-inspector.cxx AliMUONClusterFinderMLEMdebug.cxx AliMUONClusterSplitterMLEMdebug.cxx Run2ToYAML.cxx Mapping.cxx)
+target_link_libraries(mch-clusterizer-inspector yaml-cpp AliRoot::MUONrec Boost::program_options)
+
 # Installation
 install(TARGETS ${MODULE}
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib)
 
-install(TARGETS o2muon-filter-raw RUNTIME DESTINATION bin)
+install(TARGETS o2muon-filter-raw mch-clusterizer-inspector RUNTIME DESTINATION bin)
 
 install(FILES ${HDRS} DESTINATION include)
 

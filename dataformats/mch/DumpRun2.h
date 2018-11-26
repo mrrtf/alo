@@ -3,6 +3,6 @@
 
 #include <string>
 
-void dumpRun2(const std::string& filename);
+int dumpRun2(const std::string& filename, int maxevents, bool silent);
 
 #endif
