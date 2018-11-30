@@ -39,7 +39,7 @@ target_link_libraries(mchjsoncreator PUBLIC AliRoot::MUONmapping RapidJSON)
 target_include_directories(mchjsoncreator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
-target_link_libraries(mch-mapping-convert-to-json mchjsoncreator)
+target_link_libraries(mch-mapping-convert-to-json mchjsoncreator Boost::program_options)
 
 install(TARGETS mch-mapping-convert-to-json mchjsoncreator
         RUNTIME DESTINATION bin

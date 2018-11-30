@@ -31,6 +31,7 @@ class OutputFile {
 };
 
 using OF = OutputFile<rapidjson::FileWriteStream,rapidjson::PrettyWriter<rapidjson::FileWriteStream>>;
+using OFC = OutputFile<rapidjson::FileWriteStream,rapidjson::Writer<rapidjson::FileWriteStream>>;
 
 template<typename T>
 void WriteArray(T& w, std::string key, std::vector<int> v)
