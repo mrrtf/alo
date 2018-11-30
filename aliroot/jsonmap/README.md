@@ -30,27 +30,50 @@ There are currently 3 different implementations in the works. Only impl3 is feat
 
 It's a two steps process : first generate `JSON` files from `AliRoot` mapping, then
  generate code from the `JSON` files. Note that not all `JSON` files are required for all implementations.
- A reference copy of those files are in the [data](data) directory. 
+ A reference copy of those files are in the [data](../../o2/mch/mapping/data) directory. 
   
 ```
-> mch-mapping-convert-to-json && ls -alh
+> mch-mapping-convert-to-json --all && ls -alh
 
-
-total 3.7M
-drwxr-xr-x.  2 laurent laurent  253 Oct 17 08:56 .
-drwx------. 20 laurent laurent 4.0K Oct 17 08:56 ..
--rw-r--r--.  1 laurent laurent  18K Oct 17 08:56 bergs.json
--rw-r--r--.  1 laurent laurent 695K Oct 17 08:56 buspatches.json
--rw-r--r--.  1 laurent laurent 4.0K Oct 17 08:56 chambers.json
--rw-r--r--.  1 laurent laurent 4.8K Oct 17 08:56 ddls.json
--rw-r--r--.  1 laurent laurent  64K Oct 17 08:56 detection_elements.json
--rw-r--r--.  1 laurent laurent 232K Oct 17 08:56 legacyseg.json
--rw-r--r--.  1 laurent laurent 1.6M Oct 17 08:56 motiftypes.json
--rw-r--r--.  1 laurent laurent 2.1K Oct 17 08:56 padsizes.json
--rw-r--r--.  1 laurent laurent  38K Oct 17 08:56 pcbs.json
--rw-r--r--.  1 laurent laurent 748K Oct 17 08:56 segmentations.json
--rw-r--r--.  1 laurent laurent 319K Oct 17 08:56 test_random_pos.json
+drwxr-xr-x  13 laurent  staff   416B Nov 30 12:51 .
+drwxr-xr-x+ 68 laurent  staff   2.1K Nov 30 12:51 ..
+-rw-r--r--   1 laurent  staff    18K Nov 30 12:51 bergs.json
+-rw-r--r--   1 laurent  staff   695K Nov 30 12:51 buspatches.json
+-rw-r--r--   1 laurent  staff   4.0K Nov 30 12:51 chambers.json
+-rw-r--r--   1 laurent  staff   4.8K Nov 30 12:51 ddls.json
+-rw-r--r--   1 laurent  staff    63K Nov 30 12:51 detection_elements.json
+-rw-r--r--   1 laurent  staff   231K Nov 30 12:51 legacyseg.json
+-rw-r--r--   1 laurent  staff   1.6M Nov 30 12:51 motiftypes.json
+-rw-r--r--   1 laurent  staff   2.0K Nov 30 12:51 padsizes.json
+-rw-r--r--   1 laurent  staff    37K Nov 30 12:51 pcbs.json
+-rw-r--r--   1 laurent  staff   748K Nov 30 12:51 segmentations.json
+-rw-r--r--   1 laurent  staff   3.3M Nov 30 12:51 test_channel_list.json
+-rw-r--r--   1 laurent  staff   321K Nov 30 12:51 test_random_pos.json
 
 ```
 See [o2/mch/mapping dir](../../o2/mch/mapping/codegen) for the second step.
+
+## Note on test files (dev notes)
+
+Some test files are quite big `json` files. The writer (template) class used is `OF` by default, given a pretty (but large) `json` output. A compact form can be obtained instead using the `OFC` writer (not connected to an option yet, so you have to change the source code for that change). 
+
+Alternatively, let `mch-mapping-convert-to-json` output pretty `json` and use a `json` manipulator, e.g. [jq](https://stedolan.github.io/jq/) to convert it to a compact form (or reverse).
+
+For instance for the neighbours (of only one detection element, DE=100) :
+
+```
+> jq -Mc . test_neighbours_list.json > toto.json
+> ls -alh *.json
+-rw-r--r--  1 laurent  staff    40M Nov 30 15:44 /Users/laurent/tmp2/test_neighbours_list.json
+-rw-r--r--  1 laurent  staff   5.5M Nov 30 15:46 /Users/laurent/tmp2/toto.json
+```
+
+And then they can of course be (g)zipped for even further reduction : 
+
+```
+-rw-r--r--  1 laurent  staff   811K Nov 30 15:44 /Users/laurent/tmp2/test_neighbours_list.json.gz
+-rw-r--r--  1 laurent  staff   479K Nov 30 15:46 /Users/laurent/tmp2/toto.json.gz
+```
+
+So the smaller compressed files can be put e.g. into `github` and then decompressed locally when needed.
 
