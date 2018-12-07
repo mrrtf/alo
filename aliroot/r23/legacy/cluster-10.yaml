@@ -1,0 +1,44 @@
+- pre:
+    digitgroup:
+      reftime: 0
+      digits:
+        - deid: 100
+          dsid: 235
+          dsch: 16
+          adc: 294
+          charge: 4.661163
+        - deid: 100
+          dsid: 235
+          dsch: 61
+          adc: 538
+          charge: 36.61433
+        - deid: 100
+          dsid: 235
+          dsch: 17
+          adc: 252
+          charge: 0.8196875
+        - deid: 100
+          dsid: 235
+          dsch: 60
+          adc: 341
+          charge: 4.358299
+        - deid: 100
+          dsid: 235
+          dsch: 62
+          adc: 347
+          charge: 2.905123
+        - deid: 100
+          dsid: 1260
+          dsch: 60
+          adc: 433
+          charge: 18.03755
+        - deid: 100
+          dsid: 1260
+          dsch: 62
+          adc: 637
+          charge: 44.42493
+  pos:
+    x: 25.45887
+    y: 74.50821
+    z: -530.4827
+  charge: 57.69108

@@ -1,3 +1,0 @@
-{
-        "*": { "make":"alienv setenv alo-aliroot/latest -c make -C /alice/sw/BUILD/alo-aliroot-latest/alo-aliroot install" }
-}

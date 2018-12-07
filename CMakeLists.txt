@@ -21,6 +21,7 @@ find_package(AliRoot)
 find_package(O2)
 find_package(RapidJSON)
 find_package(FlatBuffers)
+find_package(yaml-cpp REQUIRED)
 
 find_package(Boost 1.59
              COMPONENTS unit_test_framework

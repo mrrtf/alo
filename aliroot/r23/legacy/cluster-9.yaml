@@ -1,0 +1,84 @@
+- pre:
+    digitgroup:
+      reftime: 0
+      digits:
+        - deid: 100
+          dsid: 99
+          dsch: 0
+          adc: 330
+          charge: 2.229247
+        - deid: 100
+          dsid: 99
+          dsch: 3
+          adc: 348
+          charge: 4.728873
+        - deid: 100
+          dsid: 99
+          dsch: 4
+          adc: 377
+          charge: 23.08027
+        - deid: 100
+          dsid: 99
+          dsch: 7
+          adc: 396
+          charge: 3.858248
+        - deid: 100
+          dsid: 99
+          dsch: 40
+          adc: 324
+          charge: 2.639928
+        - deid: 100
+          dsid: 99
+          dsch: 42
+          adc: 430
+          charge: 18.5132
+        - deid: 100
+          dsid: 99
+          dsch: 45
+          adc: 436
+          charge: 25.01976
+        - deid: 100
+          dsid: 99
+          dsch: 31
+          adc: 314
+          charge: 16.04148
+        - deid: 100
+          dsid: 1123
+          dsch: 1
+          adc: 254
+          charge: 1.769306
+        - deid: 100
+          dsid: 1123
+          dsch: 41
+          adc: 543
+          charge: 18.7421
+        - deid: 100
+          dsid: 1123
+          dsch: 3
+          adc: 308
+          charge: 0.5831608
+        - deid: 100
+          dsid: 1123
+          dsch: 42
+          adc: 346
+          charge: 14.53249
+        - deid: 100
+          dsid: 1123
+          dsch: 44
+          adc: 363
+          charge: 6.470574
+        - deid: 100
+          dsid: 1123
+          dsch: 45
+          adc: 446
+          charge: 21.08862
+        - deid: 100
+          dsid: 1123
+          dsch: 29
+          adc: 266
+          charge: 1.511732
+  pos:
+    x: 13.86279
+    y: 24.57194
+    z: -530.3392
+  charge: 41.25862
