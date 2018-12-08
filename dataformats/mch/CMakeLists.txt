@@ -1,4 +1,4 @@
-set_property(SOURCE Digit_generated.h PROPERTY GENERATED TRUE)
+set_property(SOURCE Run3_generated.h PROPERTY GENERATED TRUE)
 set(GENE ${CMAKE_CURRENT_BINARY_DIR})
 
 add_custom_target(fbs_includes

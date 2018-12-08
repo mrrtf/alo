@@ -1,5 +1,5 @@
 #include "DumpDigits.h"
-#include "Digit_generated.h"
+#include "Run3_generated.h"
 #include "SegmentationPair.h"
 #include <fstream>
 #include <iostream>
@@ -46,7 +46,7 @@ void dumpDigits(const std::string& filename)
 
     in.read(buf, size);
 
-    auto digitDE = o2::mch::GetDigitDE(buf);
+    auto digitDE = flatbuffers::GetRoot<o2::mch::DigitDE>(buf);
 
     int detElemId = digitDE->detElemId();
 
