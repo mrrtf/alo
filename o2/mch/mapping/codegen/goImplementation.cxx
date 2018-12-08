@@ -43,8 +43,8 @@ import (
     "fmt"
 )
 
-func detElemID2SegType(detElemID int) (int, error) {
-    m := map[int]int{
+func detElemID2SegType(deid DEID) (int, error) {
+    m := map[DEID]int{
 )verbatim";
 
   for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
@@ -59,11 +59,11 @@ func detElemID2SegType(detElemID int) (int, error) {
   }
 
 code << R"verbatim(   }
-    segType, ok := m[detElemID]
+    segType, ok := m[deid]
     if ok {
         return segType, nil
     }
-    return -1, fmt.Errorf("detElemId %d is unknown to me", detElemID)
+    return -1, fmt.Errorf("detElemId %d is unknown to me", deid)
 }
 )verbatim";
 
@@ -160,20 +160,22 @@ generateCodeForSegmentationCreator(int segType, std::string codeForBendingCtor, 
   std::stringstream code;
 
   std::string creatorName{"createSegType" + std::to_string(segType)};
-  code << "package mapping\n\n";
+  code << "package impl4\n\n";
+
+  code << "import \"github.com/aphecetche/pigiron/mapping\"\n";
 
   code << "type " << creatorName << " struct{}\n\n";
 
-  code << "func (seg " << creatorName << ") Build(isBendingPlane bool) Segmentation {\n";
+  code << "func (seg " << creatorName << ") Build(isBendingPlane bool, deid mapping.DEID) mapping.CathodeSegmentation {\n";
 
   code << "    if isBendingPlane { \n";
-  code << "       return newSegmentation(" << segType << ", true," << codeForBendingCtor << ")\n";
+  code << "       return newCathodeSegmentation(deid," << segType << ", true," << codeForBendingCtor << ")\n";
   code << "    }\n";
-  code << "    return newSegmentation(" << segType << ", false," << codeForNonBendingCtor << ")\n";
+  code << "    return newCathodeSegmentation(deid," << segType << ", false," << codeForNonBendingCtor << ")\n";
   code << "}\n\n";
 
   code << "func init() {\n";
-  code << "    registerSegmentationBuilder(" << segType << ", " << creatorName << "{})\n";
+  code << "    mapping.RegisterCathodeSegmentationBuilder(" << segType << ", " << creatorName << "{})\n";
   code << "}\n";
 
   std::ofstream out(creatorName + ".go");
