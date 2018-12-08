@@ -52,4 +52,3 @@ table ClusterDE {
 
 root_type ClusterDE;
 
-root_type DigitDE;
