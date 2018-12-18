@@ -21,10 +21,12 @@
 #include <boost/format.hpp>
 
 using namespace rapidjson;
-namespace jsonmap {
-namespace codegen {
+namespace jsonmap
+{
+namespace codegen
+{
 
-std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
+std::ostream& operator<<(std::ostream& os, const MotifPosition& position)
 {
   os << "{" << position.mFECId << "," << position.mMotifTypeId << ","
      << position.mPadSizeId << "," << std::setprecision(10) << position.mPositionX << "," << position.mPositionY;
@@ -42,30 +44,27 @@ std::ostream &operator<<(std::ostream &os, const MotifPosition &position)
   return os;
 }
 
-
-auto
-getMotifPositionArray(int segtype, const Value &segmentations, bool isBendingPlane)
+auto getMotifPositionArray(int segtype, const Value& catsegs, bool isBendingPlane)
 {
-  const auto &seg = segmentations.GetArray()[segtype];
-  const Value &plane = isBendingPlane ? seg["bending"] : seg["non-bending"];
+  const auto& seg = catsegs.GetArray()[segtype];
+  const Value& plane = isBendingPlane ? seg["bending"] : seg["non-bending"];
   return plane["motifpositions"].GetArray();
 }
 
-
 std::vector<MotifPosition>
-getMotifPositions(int segtype, bool bending, const Value &segmentations, const Value &motiftypes,
-                  const Value &padsizes)
+  getMotifPositions(int segtype, bool bending, const Value& catsegs, const Value& motiftypes,
+                    const Value& padsizes)
 {
   std::vector<MotifPosition> motifpositions;
 
-  auto mpArray = getMotifPositionArray(segtype, segmentations, bending);
+  auto mpArray = getMotifPositionArray(segtype, catsegs, bending);
   auto mtArray = motiftypes.GetArray();
   auto psArray = padsizes.GetArray();
 
-  for (auto &mp: mpArray) {
+  for (auto& mp : mpArray) {
 
-    int padSizeId{-1};
-    int secondPadSizeId{-1};
+    int padSizeId{ -1 };
+    int secondPadSizeId{ -1 };
 
     if (mp["padsize"].IsInt()) {
       padSizeId = mp["padsize"].GetInt();
@@ -91,20 +90,18 @@ getMotifPositions(int segtype, bool bending, const Value &segmentations, const V
       }
       pos.secondPadSize(
         secondPadSizeId,
-        padnumbers
-      );
+        padnumbers);
     }
 
     motifpositions.push_back(pos);
   }
 
   // sort the motifpositions by fecId => is that needed at all as we have a fecid <-> segtype array ?
-  std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition &mp1,
-                                                             const MotifPosition &mp2) {
+  std::sort(motifpositions.begin(), motifpositions.end(), [](const MotifPosition& mp1, const MotifPosition& mp2) {
     return mp1.FECId() < mp2.FECId();
   });
 
   return motifpositions;
 }
-}
-}
+} // namespace codegen
+} // namespace jsonmap

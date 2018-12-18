@@ -12,10 +12,9 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-#include "segmentation1.h"
+#include "cathodeSegmentation1.h"
 #include "motifPosition.h"
-#include "segmentationCommon.h"
+#include "cathodeSegmentationCommon.h"
 #include "writer.h"
 #include <algorithm>
 #include <array>
@@ -26,30 +25,33 @@
 
 using rapidjson::Value;
 
-namespace jsonmap {
-namespace codegen {
-namespace impl1 {
+namespace jsonmap
+{
+namespace codegen
+{
+namespace impl1
+{
 
-std::string generateCodeForSegmentationFactory(const Value &segmentations, const Value &detection_elements)
+std::string generateCodeForCathodeSegmentationFactory(const Value& catsegs, const Value& detection_elements)
 {
   std::ostringstream impl;
 
-  impl << generateInclude({"array", "iterator", "stdexcept", "vector"});
+  impl << generateInclude({ "array", "iterator", "stdexcept", "vector" });
 
   impl << mappingNamespaceBegin("impl1");
 
   impl << generateCodeForDetElemIdArray(detection_elements);
 
-  impl << generateCodeForSegTypeArray(segmentations, detection_elements);
+  impl << generateCodeForCatSegTypeArray(catsegs, detection_elements);
 
   impl << R"(
-  std::unique_ptr<SegmentationInterface> getSegmentationByType(int type, bool isBendingPlane) {
+  std::unique_ptr<CathodeSegmentationInterface> getSegmentationByType(int type, bool isBendingPlane) {
 )";
 
   for (int i = 0; i < 21; ++i) {
-    for (auto b : std::array<bool, 2>{true, false}) {
+    for (auto b : std::array<bool, 2>{ true, false }) {
       impl << "    if (isBendingPlane==" << (b ? "true" : "false") << " && type==" << i << ") {\n";
-      impl << "      return std::unique_ptr<SegmentationInterface>{new Segmentation<" << i << ","
+      impl << "      return std::unique_ptr<CathodeSegmentationInterface>{new Segmentation<" << i << ","
            << (b ? "true" : "false") << ">{arrayOfMotifTypes}};\n";
       impl << "    };\n";
     }
@@ -63,15 +65,17 @@ std::string generateCodeForSegmentationFactory(const Value &segmentations, const
   return impl.str();
 }
 
-void generateCodeForSegmentations(const Value &segmentations, const Value &motiftypes,
-                                  const Value &padsizes,
-                                  const Value &detection_elements)
+void generateCodeForCathodeSegmentations(const Value& catsegs, const Value& motiftypes,
+                                         const Value& padsizes,
+                                         const Value& detection_elements)
 {
-  bool includeGuards{true};
-  bool standalone{true};
-  outputCode("", generateCodeForSegmentationFactory(segmentations, detection_elements), "SegmentationFactory",
+  bool includeGuards{ true };
+  bool standalone{ true };
+  outputCode("", generateCodeForCathodeSegmentationFactory(catsegs, detection_elements), "SegmentationFactory",
              includeGuards, !standalone);
 }
 
-}}}
+} // namespace impl1
+} // namespace codegen
+} // namespace jsonmap
 

@@ -2,7 +2,7 @@
 The json files are initially generated using [aliroot-dependent code](../../../aliroot/jsonmap)
 
 ```
-> mch-mapping-generate-code detection_elements.json segmentations.json bergs.json padsizes.json motiftypes.json --detection_elements --segmentations --bergs --padsizes --motiftypes --impl 3 && ls -alh *.h *.cxx
+> mch-mapping-generate-code detection_elements.json catsegs.json bergs.json padsizes.json motiftypes.json --detection_elements --catsegs --bergs --padsizes --motiftypes --impl 3 && ls -alh *.h *.cxx
 
 -rw-r--r--    1 laurent  staff   1.9K Feb 20 16:56 GenDetElemId2SegType.cxx
 -rw-r--r--    1 laurent  staff   555B Feb 20 16:56 GenDetElemId2SegType.h
@@ -28,11 +28,16 @@ The json files are initially generated using [aliroot-dependent code](../../../a
 -rw-r--r--    1 laurent  staff    14K Feb 20 16:56 GenSegmentationCreatorForSegType8.cxx
 -rw-r--r--    1 laurent  staff   7.3K Feb 20 16:56 GenSegmentationCreatorForSegType9.cxx
 ```
+The generated files must be passed through `clang-format` for good measure before they can be included the `Mapping/Impl#` package.
+
+```
+find . -name "*.h" -exec clang-format -i {} \;   
+```
 
 The Go implementation is generated using :
 
 ```
-> mch-mapping-generate-code detection_elements.json segmentations.json bergs.json padsizes.json motiftypes.json --detection_elements --segmentations --bergs --padsizes --motiftypes --go && ls -al *.go
+> mch-mapping-generate-code detection_elements.json catsegs.json bergs.json padsizes.json motiftypes.json --detection_elements --catsegs --bergs --padsizes --motiftypes --go && ls -al *.go
 
 -rw-r--r--  1 laurent  staff  30463 Dec  8 16:59 createSegType0.go
 -rw-r--r--  1 laurent  staff  39066 Dec  8 16:59 createSegType1.go

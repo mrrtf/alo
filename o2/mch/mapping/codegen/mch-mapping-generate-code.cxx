@@ -9,7 +9,6 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
-
 #include "boost/program_options.hpp"
 #include "chamber.h"
 #include "jsonReader.h"
@@ -20,8 +19,8 @@
 #include "padSize.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "segmentation1.h"
-#include "segmentation2.h"
+#include "cathodeSegmentation1.h"
+#include "cathodeSegmentation2.h"
 #include "writer.h"
 #include <fstream>
 #include <iostream>
@@ -34,26 +33,140 @@ namespace po = boost::program_options;
 
 using namespace jsonmap::codegen;
 
-int main(int argc, char *argv[])
+void GenerateGoImpl(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+{
+  if (documents.count("catsegs") && documents.count("motiftypes") &&
+      documents.count("padsizes") && documents.count("detection_elements") && documents.count("bergs")) {
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& bergs = documents["bergs"]->document();
+    Document& catsegs = documents["catsegs"]->document();
+    Document& detection_elements = documents["detection_elements"]->document();
+    go::generateDetElemId2SegType(catsegs["catsegs"],
+                                  detection_elements["detection_elements"]);
+    go::generateCodeForCathodeSegmentations(catsegs["catsegs"],
+                                            motiftypes["motiftypes"],
+                                            padsizes["padsizes"],
+                                            detection_elements["detection_elements"],
+                                            bergs["bergs"]);
+  }
+}
+
+void GenerateImpl1(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+{
+  if (documents.count("motiftypes")) {
+    Document& motiftypes = documents["motiftypes"]->document();
+    outputCode("", generateCodeForMotifTypes(motiftypes["motiftypes"]), "MotifType");
+  }
+  if (documents.count("padsizes")) {
+    Document& padsizes = documents["padsizes"]->document();
+    outputCode("", generateCodeForPadSizes("impl1", padsizes["padsizes"]), "PadSize", true, true);
+  }
+
+  if (documents.count("catsegs") &&
+      documents.count("motiftypes") &&
+      documents.count("padsizes") &&
+      documents.count("detection_elements")) {
+    Document& catsegs = documents["catsegs"]->document();
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& detection_elements = documents["detection_elements"]->document();
+    std::cout << "impl1 : will generate code for CathodeSegmentations\n";
+    impl1::generateCodeForCathodeSegmentations(catsegs["catsegs"],
+                                               motiftypes["motiftypes"],
+                                               padsizes["padsizes"],
+                                               detection_elements["detection_elements"]);
+  }
+
+  if (documents.count("catsegs") &&
+      documents.count("motfitypes") &&
+      documents.count("padsizes") &&
+      documents.count("bergs")) {
+    Document& catsegs = documents["catsegs"]->document();
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& bergs = documents["bergs"]->document();
+    impl1::generateCodeForMotifPositions(catsegs["catsegs"],
+                                         motiftypes["motiftypes"],
+                                         padsizes["padsizes"],
+                                         bergs["bergs"]);
+  }
+}
+
+void GenerateImpl2(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+{
+  if (documents.count("padsizes")) {
+    Document& padsizes = documents["padsizes"]->document();
+    outputCode("", generateCodeForPadSizes("impl2", padsizes["padsizes"]), "PadSize", true,
+               true);
+  }
+
+  if (documents.count("motiftypes") &&
+      documents.count("bergs")) {
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& bergs = documents["bergs"]->document();
+    outputCode("", impl2::generateCodeForPadGroupTypes(motiftypes["motiftypes"], bergs["bergs"]), "PadGroupType");
+  }
+
+  if (documents.count("catsegs") &&
+      documents.count("motiftypes") &&
+      documents.count("padsizes") &&
+      documents.count("detection_elements") &&
+      documents.count("bergs")) {
+    Document& catsegs = documents["catsegs"]->document();
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& detection_elements = documents["detection_elements"]->document();
+    Document& bergs = documents["bergs"]->document();
+    impl2::generateCodeForCathodeSegmentations("impl2", catsegs["catsegs"],
+                                               motiftypes["motiftypes"],
+                                               padsizes["padsizes"],
+                                               detection_elements["detection_elements"],
+                                               bergs["bergs"]);
+  }
+}
+
+void GenerateImpl3(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+{
+  if (documents.count("catsegs") &&
+      documents.count("motiftypes") &&
+      documents.count("padsizes") &&
+      documents.count("detection_elements") &&
+      documents.count("bergs")) {
+    Document& catsegs = documents["catsegs"]->document();
+    Document& motiftypes = documents["motiftypes"]->document();
+    Document& padsizes = documents["padsizes"]->document();
+    Document& detection_elements = documents["detection_elements"]->document();
+    Document& bergs = documents["bergs"]->document();
+    impl2::generateCodeForCathodeSegmentations("impl3", catsegs["catsegs"],
+                                               motiftypes["motiftypes"],
+                                               padsizes["padsizes"],
+                                               detection_elements["detection_elements"],
+                                               bergs["bergs"]);
+  }
+}
+
+int main(int argc, char* argv[])
 {
   po::variables_map vm;
   po::options_description generic("Generic options");
-  int implToUse{1};
+  int implToUse{ -1 };
 
+  // clang-format off
   generic.add_options()
-    ("help", "produce help message")
-    ("detection_elements", "read detection element information")
-    ("chambers", "read chamber information")
-    ("segmentations", "read segmentation information")
-    ("bergs", "read berg connector information")
-    ("padsizes", "read padsize information")
-    ("motiftypes", "read motif type information")
-    ("impl", po::value<int>(&implToUse), "implementation to generate")
-    ("go","generate Go interface");
+          ("help", "produce help message")
+          ("detection_elements", "read detection element information")
+          ("chambers", "read chamber information")
+          ("catsegs", "read cathode segmentation information")
+          ("bergs", "read berg connector information")
+          ("padsizes", "read padsize information")
+          ("motiftypes", "read motif type information")
+          ("impl", po::value<int>(&implToUse), "implementation to generate")
+          ("go", "generate Go interface");
+  // clang-format on
 
   po::options_description hidden("hidden options");
-  hidden.add_options()
-    ("input-file", po::value<std::vector<std::string> >(), "input file");
+  hidden.add_options()("input-file", po::value<std::vector<std::string>>(), "input file");
 
   po::options_description cmdline;
   cmdline.add(generic).add(hidden);
@@ -61,8 +174,7 @@ int main(int argc, char *argv[])
   po::positional_options_description p;
   p.add("input-file", -1);
 
-  po::store(po::command_line_parser(argc, argv).
-    options(cmdline).positional(p).run(), vm);
+  po::store(po::command_line_parser(argc, argv).options(cmdline).positional(p).run(), vm);
   po::notify(vm);
 
   if (vm.count("help")) {
@@ -75,11 +187,11 @@ int main(int argc, char *argv[])
   }
 
   std::vector<std::string> inputfiles = vm["input-file"].as<std::vector<std::string>>();
-  std::map<std::string, std::unique_ptr<InputWrapper> > documents;
+  std::map<std::string, std::unique_ptr<InputWrapper>> documents;
 
-  for (auto &&file : inputfiles) {
+  for (auto&& file : inputfiles) {
 
-    for (const auto &opt: generic.options()) {
+    for (const auto& opt : generic.options()) {
       if (vm.count(opt->long_name())) {
         std::unique_ptr<InputWrapper> doc = std::make_unique<InputWrapper>(file.c_str());
         if (doc->document().HasMember(opt->long_name().c_str())) {
@@ -93,92 +205,16 @@ int main(int argc, char *argv[])
     readChambers(documents["chambers"]->document());
   }
 
-  if (implToUse == 1 && documents.count("motiftypes")) {
-    Document &doc = documents["motiftypes"]->document();
-    auto impl = generateCodeForMotifTypes(doc["motiftypes"]);
-    outputCode("", impl, "MotifType");
+  if (vm.count("go")) {
+    GenerateGoImpl(documents);
   }
 
-  if (implToUse == 1 &&
-      documents.count("segmentations") &&
-      documents.count("motiftypes") &&
-      documents.count("padsizes") &&
-      documents.count("detection_elements")) {
-    Document &segmentations = documents["segmentations"]->document();
-    Document &motiftypes = documents["motiftypes"]->document();
-    Document &padsizes = documents["padsizes"]->document();
-    Document &detection_elements = documents["detection_elements"]->document();
-    impl1::generateCodeForSegmentations(segmentations["segmentations"],
-                                        motiftypes["motiftypes"],
-                                        padsizes["padsizes"],
-                                        detection_elements["detection_elements"]);
-  }
-
-  if (implToUse == 1 &&
-      documents.count("segmentations") &&
-      documents.count("motiftypes") &&
-      documents.count("padsizes") &&
-      documents.count("bergs")) {
-    Document &segmentations = documents["segmentations"]->document();
-    Document &motiftypes = documents["motiftypes"]->document();
-    Document &padsizes = documents["padsizes"]->document();
-    Document &bergs = documents["bergs"]->document();
-
-    impl1::generateCodeForMotifPositions(segmentations["segmentations"],
-                                         motiftypes["motiftypes"],
-                                         padsizes["padsizes"],
-                                         bergs["bergs"]
-    );
-  }
-
-  if ((implToUse == 1 || implToUse == 2) && documents.count("padsizes")) {
-    Document &doc = documents["padsizes"]->document();
-    outputCode("", generateCodeForPadSizes("impl" + std::to_string(implToUse), doc["padsizes"]), "PadSize", true,
-               true);
-  }
-
-  if (implToUse == 2 &&
-      documents.count("motiftypes") &&
-      documents.count("bergs")) {
-    Document &motiftypes = documents["motiftypes"]->document();
-    Document &bergs = documents["bergs"]->document();
-    auto impl = impl2::generateCodeForPadGroupTypes(motiftypes["motiftypes"], bergs["bergs"]);
-    outputCode("", impl, "PadGroupType");
-  }
-
-  if ((implToUse == 2 || implToUse == 3) &&
-      documents.count("segmentations") &&
-      documents.count("motiftypes") &&
-      documents.count("padsizes") &&
-      documents.count("detection_elements") &&
-      documents.count("bergs")) {
-    Document &segmentations = documents["segmentations"]->document();
-    Document &motiftypes = documents["motiftypes"]->document();
-    Document &padsizes = documents["padsizes"]->document();
-    Document &detection_elements = documents["detection_elements"]->document();
-    Document &bergs = documents["bergs"]->document();
-
-    impl2::generateCodeForSegmentations("impl" + std::to_string(implToUse), segmentations["segmentations"],
-                                        motiftypes["motiftypes"],
-                                        padsizes["padsizes"],
-                                        detection_elements["detection_elements"],
-                                        bergs["bergs"]);
-  }
-
-  if (vm.count("go") && documents.count("segmentations") && documents.count("motiftypes") &&
-      documents.count("padsizes") && documents.count("detection_elements") && documents.count("bergs")) {
-    Document& motiftypes = documents["motiftypes"]->document();
-    Document& padsizes = documents["padsizes"]->document();
-    Document& bergs = documents["bergs"]->document();
-    Document& segmentations = documents["segmentations"]->document();
-    Document& detection_elements = documents["detection_elements"]->document();
-    go::generateDetElemId2SegType(segmentations["segmentations"],
-                 detection_elements["detection_elements"]);
-    go::generateCodeForSegmentations(segmentations["segmentations"],
-                                        motiftypes["motiftypes"],
-                                        padsizes["padsizes"],
-                                        detection_elements["detection_elements"],
-                                        bergs["bergs"]);
+  if (implToUse == 1) {
+    GenerateImpl1(documents);
+  } else if (implToUse == 2) {
+    GenerateImpl2(documents);
+  } else if (implToUse == 3) {
+    GenerateImpl3(documents);
   }
 
   return 0;

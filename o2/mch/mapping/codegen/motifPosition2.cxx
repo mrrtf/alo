@@ -21,17 +21,20 @@
 #include <boost/format.hpp>
 
 using namespace rapidjson;
-namespace jsonmap {
-namespace codegen {
-namespace impl2 {
+namespace jsonmap
+{
+namespace codegen
+{
+namespace impl2
+{
 
-void generateCodeForMotifPositions(const Value &segmentations,
-                                   const Value &motiftypes,
-                                   const Value &padsizes,
-                                   const Value &bergs)
+void generateCodeForMotifPositions(const Value& catsegs,
+                                   const Value& motiftypes,
+                                   const Value& padsizes,
+                                   const Value& bergs)
 {
 }
 
-}
-}
-}
+} // namespace impl2
+} // namespace codegen
+} // namespace jsonmap
