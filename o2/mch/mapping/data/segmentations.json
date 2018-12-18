@@ -1,5 +1,5 @@
 {
-    "segmentations": [
+    "catsegs": [
         {
             "segtype": "st1",
             "bending": {

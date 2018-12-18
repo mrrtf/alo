@@ -134,7 +134,7 @@ int main(int argc, char** argv)
     ("motiftypes", "generate motif type information")
     ("padsizes", "generate padsize information")
     ("pcbs","generate pcb information")
-    ("segmentations", "generate segmentation information")
+    ("catsegs", "generate cathode segmentation information")
     ("testfiles","generate test files");
   // clang-format on
   po::options_description cmdline;
@@ -181,8 +181,8 @@ int main(int argc, char** argv)
   if (vm.count("legacyseg") || vm.count("all")) {
     convert_legacyseg("legacyseg", ddlStore, mseg);
   }
-  if (vm.count("segmentations") || vm.count("all")) {
-    convert_seg("segmentations", ddlStore, mseg);
+  if (vm.count("catsegs") || vm.count("all")) {
+    convert_seg("catsegs", ddlStore, mseg);
   }
   if (vm.count("padsizes") || vm.count("all")) {
     convert_padsize("padsizes", ddlStore, mseg);
