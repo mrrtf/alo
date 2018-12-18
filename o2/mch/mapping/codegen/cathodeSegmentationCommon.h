@@ -12,22 +12,23 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-#ifndef ALO_JSONMAP_CODEGEN_SEGMENTATIONCOMMON_H
-#define ALO_JSONMAP_CODEGEN_SEGMENTATIONCOMMON_H
+#ifndef ALO_JSONMAP_CODEGEN_CATHODESEGMENTATIONCOMMON_H
+#define ALO_JSONMAP_CODEGEN_CATHODESEGMENTATIONCOMMON_H
 
 #include <string>
 #include "rapidjson/document.h"
 
-namespace jsonmap {
-namespace codegen {
+namespace jsonmap
+{
+namespace codegen
+{
 
-std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elements);
-std::string generateCodeForSegTypeArray(const rapidjson::Value &segmentations, const rapidjson::Value &detection_elements);
+std::string generateCodeForDetElemIdArray(const rapidjson::Value& detection_elements);
+std::string generateCodeForCatSegTypeArray(const rapidjson::Value& catsegs, const rapidjson::Value& detection_elements);
 
 std::string genPrefix();
 
-}
-}
+} // namespace codegen
+} // namespace jsonmap
 
 #endif

@@ -22,11 +22,14 @@
 #include <boost/format.hpp>
 
 using namespace rapidjson;
-namespace jsonmap {
-namespace codegen {
+namespace jsonmap
+{
+namespace codegen
+{
 
-namespace impl1 {
-std::pair<std::string, std::string> generateCodeForBerg2Manu(const Value &bergs, int id)
+namespace impl1
+{
+std::pair<std::string, std::string> generateCodeForBerg2Manu(const Value& bergs, int id)
 {
   std::ostringstream decl;
   std::ostringstream header;
@@ -40,8 +43,8 @@ std::pair<std::string, std::string> generateCodeForBerg2Manu(const Value &bergs,
 
   impl << decl.str() << "{\n";
 
-  int i{0};
-  for (const auto &b: bergs[id]["pins"].GetArray()) {
+  int i{ 0 };
+  for (const auto& b : bergs[id]["pins"].GetArray()) {
     std::string smanu = b["manu"].GetString();
     if (isdigit(smanu[0])) {
       impl << "  if (berg==" << b["id"].GetInt() << ") return " << atoi(smanu.c_str()) << ";\n";
@@ -56,17 +59,17 @@ std::pair<std::string, std::string> generateCodeForBerg2Manu(const Value &bergs,
 }
 )";
 
-  return {header.str(), impl.str()};
+  return { header.str(), impl.str() };
 }
 
 std::pair<std::string, std::string> generateCodeForGetMotifPosition(int segtype, bool isBending,
-                                                                    const std::vector<MotifPosition> &motifPositions)
+                                                                    const std::vector<MotifPosition>& motifPositions)
 {
   std::ostringstream decl;
   std::ostringstream header;
   std::ostringstream impl;
 
-  std::string mpClassName{(segtype ? "MotifPosition" : "MotifPositionTwoPadSizes")};
+  std::string mpClassName{ (segtype ? "MotifPosition" : "MotifPositionTwoPadSizes") };
 
   decl << "template<>\n";
   decl << "std::array<" << mpClassName << "," << motifPositions.size()
@@ -79,49 +82,49 @@ std::pair<std::string, std::string> generateCodeForGetMotifPosition(int segtype,
 
   impl << decl.str() << "{\n return {\n";
 
-  int i{0};
-  for (const auto &mp: motifPositions) {
+  int i{ 0 };
+  for (const auto& mp : motifPositions) {
     impl << "    " << mpClassName << " " << mp;
-    if (i++ < motifPositions.size() - 1) { impl << ",\n"; }
+    if (i++ < motifPositions.size() - 1) {
+      impl << ",\n";
+    }
   }
   impl << "  };\n}\n";
 
-  return {header.str(), impl.str()};
+  return { header.str(), impl.str() };
 }
 
 std::string generateCodeForMotifPositionTrait(int segtype, bool bending, int size)
 {
   std::ostringstream decl;
   decl << "template<> struct MotifPositionTrait<" << segtype
-       << "," << bending << "> : MotifPositionBaseTrait<" << size << "," <<
-       (segtype ? "MotifPosition" : "MotifPositionTwoPadSizes") << "," <<
-       (segtype < 2 ? "berg80ToManu" : "berg100ToManu") << "> {};\n";
+       << "," << bending << "> : MotifPositionBaseTrait<" << size << "," << (segtype ? "MotifPosition" : "MotifPositionTwoPadSizes") << "," << (segtype < 2 ? "berg80ToManu" : "berg100ToManu") << "> {};\n";
   return decl.str();
 }
 
-void generateCodeForMotifPositions(const Value &segmentations,
-                                   const Value &motiftypes,
-                                   const Value &padsizes,
-                                   const Value &bergs)
+void generateCodeForMotifPositions(const Value& catsegs,
+                                   const Value& motiftypes,
+                                   const Value& padsizes,
+                                   const Value& bergs)
 {
   std::ostringstream decl;
   std::ostringstream impl;
 
-  impl << generateInclude({"sstream"});
+  impl << generateInclude({ "sstream" });
   impl << mappingNamespaceBegin("impl1");
 
-  decl << generateInclude({"array"});
+  decl << generateInclude({ "array" });
 
-  for (auto i : {0, 1}) {
+  for (auto i : { 0, 1 }) {
     auto p = generateCodeForBerg2Manu(bergs, i);
     decl << p.first;
     impl << p.second;
   }
 
   // then one trait and one template specialization per segmentation type
-  for (int segtype = 0; segtype < segmentations.GetArray().Size(); ++segtype) {
-    for (auto bending: {true, false}) {
-      std::vector<MotifPosition> motifpositions = getMotifPositions(segtype, bending, segmentations, motiftypes,
+  for (int segtype = 0; segtype < catsegs.GetArray().Size(); ++segtype) {
+    for (auto bending : { true, false }) {
+      std::vector<MotifPosition> motifpositions = getMotifPositions(segtype, bending, catsegs, motiftypes,
                                                                     padsizes);
       decl << generateCodeForMotifPositionTrait(segtype, bending, motifpositions.size());
       auto code = generateCodeForGetMotifPosition(segtype, bending, motifpositions);
@@ -132,12 +135,12 @@ void generateCodeForMotifPositions(const Value &segmentations,
 
   impl << mappingNamespaceEnd("impl1");
 
-  bool includeGuards{false};
-  bool standalone{false};
+  bool includeGuards{ false };
+  bool standalone{ false };
   outputCode(decl.str(), impl.str(), "MotifPosition", includeGuards, standalone, "motifPosition.h");
 }
 
-}
-}
-}
+} // namespace impl1
+} // namespace codegen
+} // namespace jsonmap
 

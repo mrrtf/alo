@@ -13,7 +13,7 @@
 /// @author  Laurent Aphecetche
 
 
-#include "segmentationCommon.h"
+#include "cathodeSegmentationCommon.h"
 #include <algorithm>
 #include <sstream>
 #include <vector>
@@ -51,7 +51,7 @@ std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elem
   return impl.str();
 }
 
-std::string generateCodeForSegTypeArray(const Value &segmentations, const Value &detection_elements)
+std::string generateCodeForCatSegTypeArray(const Value &catsegs, const Value &detection_elements)
 {
   std::ostringstream impl;
 
@@ -59,8 +59,8 @@ std::string generateCodeForSegTypeArray(const Value &segmentations, const Value 
 
   for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
     const auto &de = detection_elements.GetArray()[ide];
-    for (int i = 0; i < segmentations.Size(); ++i) {
-      const auto &seg = segmentations.GetArray()[i];
+    for (int i = 0; i < catsegs.Size(); ++i) {
+      const auto &seg = catsegs.GetArray()[i];
       if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
         impl << i;
         if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }

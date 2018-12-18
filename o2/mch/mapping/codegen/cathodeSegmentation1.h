@@ -12,23 +12,25 @@
 ///
 /// @author  Laurent Aphecetche
 
-
-#ifndef ALO_JSONMAP_CODEGEN_SEGMENTATION1_H
-#define ALO_JSONMAP_CODEGEN_SEGMENTATION1_H
+#ifndef ALO_JSONMAP_CODEGEN_CATHODESEGMENTATION1_H
+#define ALO_JSONMAP_CODEGEN_CATHODESEGMENTATION1_H
 
 #include "rapidjson/document.h"
 
-namespace jsonmap {
-namespace codegen {
-namespace impl1 {
+namespace jsonmap
+{
+namespace codegen
+{
+namespace impl1
+{
 
-void generateCodeForSegmentations(const rapidjson::Value &segmentations,
-                                  const rapidjson::Value &motiftypes,
-                                  const rapidjson::Value &padsizes,
-                                  const rapidjson::Value &detection_elements);
+void generateCodeForCathodeSegmentations(const rapidjson::Value& catsegs,
+                                         const rapidjson::Value& motiftypes,
+                                         const rapidjson::Value& padsizes,
+                                         const rapidjson::Value& detection_elements);
 
 }
-}
-}
+} // namespace codegen
+} // namespace jsonmap
 
 #endif

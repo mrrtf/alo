@@ -12,7 +12,6 @@
 ///
 /// @author  Laurent Aphecetche
 
-
 #ifndef ALO_JSONMAP_CODEGEN_MOTIFPOSITIONS2_H
 #define ALO_JSONMAP_CODEGEN_MOTIFPOSITIONS2_H
 
@@ -20,18 +19,20 @@
 #include <string>
 #include "rapidjson/document.h"
 
-namespace jsonmap {
-namespace codegen {
-
-namespace impl2 {
+namespace jsonmap
+{
+namespace codegen
+{
+namespace impl2
+{
 
 void generateCodeForMotifPositions(
-  const rapidjson::Value &segmentations,
-  const rapidjson::Value &motiftypes,
-  const rapidjson::Value &padsizes,
-  const rapidjson::Value &bergs);
+  const rapidjson::Value& catsegs,
+  const rapidjson::Value& motiftypes,
+  const rapidjson::Value& padsizes,
+  const rapidjson::Value& bergs);
 
 }
-}
-}
+} // namespace codegen
+} // namespace jsonmap
 #endif
