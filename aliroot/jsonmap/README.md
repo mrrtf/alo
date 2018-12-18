@@ -30,26 +30,47 @@ There are currently 3 different implementations in the works. Only impl3 is feat
 
 It's a two steps process : first generate `JSON` files from `AliRoot` mapping, then
  generate code from the `JSON` files. Note that not all `JSON` files are required for all implementations.
- A reference copy of those files are in the [data](../../o2/mch/mapping/data) directory. 
+ A reference copy of those files are in the [data](../../o2/mch/mapping/data) directory. Note that there are also a number of generated test files (`test_*.json`) that can be used to validate a  new implementation (this is for instance what has been done with the Go implementation).
   
 ```
 > mch-mapping-convert-to-json --all && ls -alh
 
-drwxr-xr-x  13 laurent  staff   416B Nov 30 12:51 .
-drwxr-xr-x+ 68 laurent  staff   2.1K Nov 30 12:51 ..
--rw-r--r--   1 laurent  staff    18K Nov 30 12:51 bergs.json
--rw-r--r--   1 laurent  staff   695K Nov 30 12:51 buspatches.json
--rw-r--r--   1 laurent  staff   4.0K Nov 30 12:51 chambers.json
--rw-r--r--   1 laurent  staff   4.8K Nov 30 12:51 ddls.json
--rw-r--r--   1 laurent  staff    63K Nov 30 12:51 detection_elements.json
--rw-r--r--   1 laurent  staff   231K Nov 30 12:51 legacyseg.json
--rw-r--r--   1 laurent  staff   1.6M Nov 30 12:51 motiftypes.json
--rw-r--r--   1 laurent  staff   2.0K Nov 30 12:51 padsizes.json
--rw-r--r--   1 laurent  staff    37K Nov 30 12:51 pcbs.json
--rw-r--r--   1 laurent  staff   748K Nov 30 12:51 segmentations.json
--rw-r--r--   1 laurent  staff   3.3M Nov 30 12:51 test_channel_list.json
--rw-r--r--   1 laurent  staff   321K Nov 30 12:51 test_random_pos.json
-
+total 414400
+drwxr-xr-x  35 laurent  staff   1.1K Dec 17 22:51 .
+drwxr-xr-x+ 73 laurent  staff   2.3K Dec 17 22:52 ..
+-rw-r--r--   1 laurent  staff    18K Dec 17 22:51 bergs.json
+-rw-r--r--   1 laurent  staff   695K Dec 17 22:51 buspatches.json
+-rw-r--r--   1 laurent  staff   748K Dec 17 22:51 catsegs.json
+-rw-r--r--   1 laurent  staff   4.0K Dec 17 22:51 chambers.json
+-rw-r--r--   1 laurent  staff   4.8K Dec 17 22:51 ddls.json
+-rw-r--r--   1 laurent  staff    63K Dec 17 22:51 detection_elements.json
+-rw-r--r--   1 laurent  staff   231K Dec 17 22:51 legacyseg.json
+-rw-r--r--   1 laurent  staff   1.6M Dec 17 22:51 motiftypes.json
+-rw-r--r--   1 laurent  staff   2.0K Dec 17 22:51 padsizes.json
+-rw-r--r--   1 laurent  staff    37K Dec 17 22:51 pcbs.json
+-rw-r--r--   1 laurent  staff   3.3M Dec 17 22:51 test_channel_list.json
+-rw-r--r--   1 laurent  staff    40M Dec 17 22:51 test_neighbours_list_100.json
+-rw-r--r--   1 laurent  staff    39M Dec 17 22:51 test_neighbours_list_300.json
+-rw-r--r--   1 laurent  staff   6.7M Dec 17 22:51 test_neighbours_list_500.json
+-rw-r--r--   1 laurent  staff   8.2M Dec 17 22:51 test_neighbours_list_501.json
+-rw-r--r--   1 laurent  staff   7.1M Dec 17 22:51 test_neighbours_list_502.json
+-rw-r--r--   1 laurent  staff   4.3M Dec 17 22:51 test_neighbours_list_503.json
+-rw-r--r--   1 laurent  staff   2.9M Dec 17 22:51 test_neighbours_list_504.json
+-rw-r--r--   1 laurent  staff   6.9M Dec 17 22:51 test_neighbours_list_600.json
+-rw-r--r--   1 laurent  staff   8.4M Dec 17 22:51 test_neighbours_list_601.json
+-rw-r--r--   1 laurent  staff   7.3M Dec 17 22:51 test_neighbours_list_602.json
+-rw-r--r--   1 laurent  staff   7.3M Dec 17 22:51 test_neighbours_list_700.json
+-rw-r--r--   1 laurent  staff   9.4M Dec 17 22:51 test_neighbours_list_701.json
+-rw-r--r--   1 laurent  staff   9.6M Dec 17 22:51 test_neighbours_list_702.json
+-rw-r--r--   1 laurent  staff   5.8M Dec 17 22:51 test_neighbours_list_703.json
+-rw-r--r--   1 laurent  staff   4.3M Dec 17 22:51 test_neighbours_list_704.json
+-rw-r--r--   1 laurent  staff   2.1M Dec 17 22:51 test_neighbours_list_705.json
+-rw-r--r--   1 laurent  staff   1.3M Dec 17 22:51 test_neighbours_list_706.json
+-rw-r--r--   1 laurent  staff    10M Dec 17 22:51 test_neighbours_list_902.json
+-rw-r--r--   1 laurent  staff   6.5M Dec 17 22:51 test_neighbours_list_903.json
+-rw-r--r--   1 laurent  staff   5.0M Dec 17 22:51 test_neighbours_list_904.json
+-rw-r--r--   1 laurent  staff   2.8M Dec 17 22:51 test_neighbours_list_905.json
+-rw-r--r--   1 laurent  staff   316K Dec 17 22:51 test_random_pos.json
 ```
 See [o2/mch/mapping dir](../../o2/mch/mapping/codegen) for the second step.
 
