@@ -3,19 +3,19 @@
 
 // TODO: move to O2 asap
 //
-#include "MCHMappingInterface/Segmentation.h"
+#include "MCHMappingInterface/CathodeSegmentation.h"
 
 class SegmentationPair
 {
  public:
   SegmentationPair(int detElemId)
-    : b{ o2::mch::mapping::Segmentation{ detElemId, true } }, nb{ o2::mch::mapping::Segmentation{ detElemId, false } } {}
+    : b{ o2::mch::mapping::CathodeSegmentation{ detElemId, true } }, nb{ o2::mch::mapping::CathodeSegmentation{ detElemId, false } } {}
 
-  const o2::mch::mapping::Segmentation& operator[](bool plane) const { return plane ? b : nb; }
+  const o2::mch::mapping::CathodeSegmentation& operator[](bool plane) const { return plane ? b : nb; }
 
  private:
-  o2::mch::mapping::Segmentation b;
-  o2::mch::mapping::Segmentation nb;
+  o2::mch::mapping::CathodeSegmentation b;
+  o2::mch::mapping::CathodeSegmentation nb;
 };
 
 const SegmentationPair& getSegmentationPair(int detElemId);
