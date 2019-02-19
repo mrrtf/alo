@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 
+# Breaking on purpose
+breaking on purpose!
+
 foreach(p
         CMP0025 # CMake 3.0
         CMP0042 # CMake 3.0
