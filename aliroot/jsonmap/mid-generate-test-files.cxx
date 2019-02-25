@@ -59,7 +59,7 @@ void generateFile(int npoints)
   std::uniform_int_distribution<int> distCh(11, 14);
   std::uniform_int_distribution<int> distRPC(0, 17);
 
-  OF js("test_geometry_list.json");
+  OFC js("test_geometry_list.json");
   auto& writer = js.Writer();
   writer.StartObject();
   writer.Key("testpositions");
