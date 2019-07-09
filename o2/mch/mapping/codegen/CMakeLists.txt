@@ -16,7 +16,7 @@ add_executable(mch-mapping-generate-code mch-mapping-generate-code.cxx
         padGroup.h padGroup.cxx
         report.cxx report.h)
 
-target_link_libraries(mch-mapping-generate-code Boost::program_options RapidJSON)
+target_link_libraries(mch-mapping-generate-code Boost::program_options RapidJSON::RapidJSON)
 
 install(TARGETS mch-mapping-generate-code RUNTIME DESTINATION bin)
 

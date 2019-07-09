@@ -19,7 +19,7 @@ set(CMAKE_MODULE_PATH "${alo_SOURCE_DIR}/cmake")
 find_package(ROOT)
 find_package(AliRoot)
 find_package(O2)
-find_package(RapidJSON)
+find_package(RapidJSON MODULE)
 find_package(FlatBuffers)
 find_package(yaml-cpp REQUIRED)
 
