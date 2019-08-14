@@ -1,103 +1,37 @@
-# Copyright (c) 2011 Milo Yip (miloyip@gmail.com)
-# Copyright (c) 2013 Rafal Jeczalik (rjeczalik@gmail.com)
-# Distributed under the MIT License (see license.txt file)
+# Copyright CERN and copyright holders of ALICE O2. This software is distributed
+# under the terms of the GNU General Public License v3 (GPL Version 3), copied
+# verbatim in the file "COPYING".
+#
+# See http://alice-o2.web.cern.ch/license for full licensing information.
+#
+# In applying this license CERN does not waive the privileges and immunities
+# granted to it by virtue of its status as an Intergovernmental Organization or
+# submit itself to any jurisdiction.
 
-# -----------------------------------------------------------------------------------
 #
-# Finds the rapidjson library
+# Finds the rapidjson (header-only) library using the CONFIG file provided by
+# RapidJSON and add the RapidJSON::RapidJSON imported targets on top of it
 #
-# -----------------------------------------------------------------------------------
-#
-# Variables used by this module, they can change the default behaviour.
-# Those variables need to be either set before calling find_package
-# or exported as environment variables before running CMake:
-#
-# RAPIDJSON_INCLUDEDIR - Set custom include path, useful when rapidjson headers are
-#                        outside system paths
-# RAPIDJSON_USE_SSE2   - Configure rapidjson to take advantage of SSE2 capabilities
-# RAPIDJSON_USE_SSE42  - Configure rapidjson to take advantage of SSE4.2 capabilities
-#
-# -----------------------------------------------------------------------------------
-#
-# Variables defined by this module:
-#
-# RAPIDJSON_FOUND        - True if rapidjson was found
-# RAPIDJSON_INCLUDE_DIRS - Path to rapidjson include directory
-# RAPIDJSON_CXX_FLAGS    - Extra C++ flags required for compilation with rapidjson
-#
-# -----------------------------------------------------------------------------------
-#
-# Example usage:
-#
-#  set(RAPIDJSON_USE_SSE2 ON)
-#  set(RAPIDJSON_INCLUDEDIR "/opt/github.com/rjeczalik/rapidjson/include")
-#
-#  find_package(rapidjson REQUIRED)
-#
-#  include_directories("${RAPIDJSON_INCLUDE_DIRS}")
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
-#  add_executable(foo foo.cc)
-#
-# -----------------------------------------------------------------------------------
 
-foreach(opt RAPIDJSON_INCLUDEDIR RAPIDJSON_USE_SSE2 RAPIDJSON_USE_SSE42)
-  if(${opt} AND DEFINED ENV{${opt}} AND NOT ${opt} STREQUAL "$ENV{${opt}}")
-    message(WARNING "Conflicting ${opt} values: ignoring environment variable and using CMake cache entry.")
-  elseif(DEFINED ENV{${opt}} AND NOT ${opt})
-    set(${opt} "$ENV{${opt}}")
-  endif()
-endforeach()
+find_package(RapidJSON CONFIG QUIET)
 
-find_path(
-  RAPIDJSON_INCLUDE_DIRS
-  NAMES rapidjson/rapidjson.h
-  PATHS ${RAPIDJSON_INCLUDEDIR}
-  DOC "Include directory for the rapidjson library."
-)
-
-mark_as_advanced(RAPIDJSON_INCLUDE_DIRS)
-
-if(RAPIDJSON_INCLUDE_DIRS)
-  set(RAPIDJSON_FOUND TRUE)
-endif()
-
-mark_as_advanced(RAPIDJSON_FOUND)
-
-if(RAPIDJSON_USE_SSE42)
-  set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE42")
-  if(MSVC)
-    set(RAPIDJSON_CXX_FLAGS "${RAPIDJSON_CXX_FLAGS} /arch:SSE4.2")
-  else()
-    set(RAPIDJSON_CXX_FLAGS "${RAPIDJSON_CXX_FLAGS} -msse4.2")
+if(NOT RapidJSON_INCLUDE_DIR)
+  set(RapidJSON_FOUND FALSE)
+  if(RapidJSON_FIND_REQUIRED)
+    message(FATAL_ERROR "RapidJSON not found")
   endif()
 else()
-  if(RAPIDJSON_USE_SSE2)
-    set(RAPIDJSON_CXX_FLAGS "-DRAPIDJSON_SSE2")
-    if(MSVC)
-      set(RAPIDJSON_CXX_FLAGS "${RAPIDJSON_CXX_FLAGS} /arch:SSE2")
-    else()
-      set(RAPIDJSON_CXX_FLAGS "${RAPIDJSON_CXX_FLAGS} -msse2")
-    endif()
-  endif()
+  set(RapidJSON_FOUND TRUE)
 endif()
 
-mark_as_advanced(RAPIDJSON_CXX_FLAGS)
+mark_as_advanced(RapidJSON_INCLUDE_DIR)
 
-if(RAPIDJSON_FOUND)
-  if(NOT rapidjson_FIND_QUIETLY)
-    message(STATUS "Found rapidjson header files in ${RAPIDJSON_INCLUDE_DIRS}")
-    if(DEFINED RAPIDJSON_CXX_FLAGS)
-      message(STATUS "Found rapidjson C++ extra compilation flags: ${RAPIDJSON_CXX_FLAGS}")
-    endif()
-  endif()
-  if(NOT TARGET RapidJSON)
-      add_library(RapidJSON INTERFACE IMPORTED)
-      set_target_properties(RapidJSON PROPERTIES
-              INTERFACE_INCLUDE_DIRECTORIES ${RAPIDJSON_INCLUDE_DIRS})
-  endif()
-elseif(rapidjson_FIND_REQUIRED)
-    message(FATAL_ERROR "Could not find rapidjson")
-else()
-  message(STATUS "Optional package rapidjson was not found")
+get_filename_component(inc ${RapidJSON_INCLUDE_DIR} ABSOLUTE)
+
+if(RapidJSON_FOUND AND NOT TARGET RapidJSON::RapidJSON)
+  add_library(RapidJSON::RapidJSON IMPORTED INTERFACE)
+  set_target_properties(RapidJSON::RapidJSON
+                        PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${inc})
 endif()
 
+unset(inc)

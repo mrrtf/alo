@@ -35,7 +35,7 @@ add_library(mchjsoncreator
             segnumbers.cxx
             slat2json.h)
 
-target_link_libraries(mchjsoncreator PUBLIC AliRoot::MUONmapping RapidJSON)
+target_link_libraries(mchjsoncreator PUBLIC AliRoot::MUONmapping RapidJSON::RapidJSON)
 target_include_directories(mchjsoncreator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(mch-mapping-convert-to-json mch-mapping-convert-to-json.cxx)
