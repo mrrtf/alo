@@ -1,9 +1,2 @@
-if(FlatBuffers_FOUND)
-  add_subdirectory(esdconverter)
-endif()
-
-add_subdirectory(legacy)
-add_subdirectory(dataformatconverter)
-add_subdirectory(ocdbconverter)
-add_subdirectory(rawconverter)
-add_subdirectory(trackrefsconverter)
+add_subdirectory(mch)
+add_subdirectory(mid)
