@@ -126,7 +126,15 @@ void GenerateImpl2(std::map<std::string, std::unique_ptr<InputWrapper>>& documen
   }
 }
 
-void GenerateImpl3(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+void showMissing(std::map<std::string, std::unique_ptr<InputWrapper>>& documents,
+                 std::vector<std::string> what)
+{
+  for (auto w : what) {
+    std::cout << "Missing " << w << " : " << (documents.count(w.c_str()) ? "no" : "yes")
+              << "\n";
+  }
+}
+void GenerateImpl3(std::map<std::string, std::unique_ptr<InputWrapper>>& documents, const char* implName = "impl3")
 {
   if (documents.count("catsegs") &&
       documents.count("motiftypes") &&
@@ -138,12 +146,20 @@ void GenerateImpl3(std::map<std::string, std::unique_ptr<InputWrapper>>& documen
     Document& padsizes = documents["padsizes"]->document();
     Document& detection_elements = documents["detection_elements"]->document();
     Document& bergs = documents["bergs"]->document();
-    impl2::generateCodeForCathodeSegmentations("impl3", catsegs["catsegs"],
+    impl2::generateCodeForCathodeSegmentations(implName, catsegs["catsegs"],
                                                motiftypes["motiftypes"],
                                                padsizes["padsizes"],
                                                detection_elements["detection_elements"],
                                                bergs["bergs"]);
+  } else {
+    std::cout << "Missing some info to work : \n";
+    showMissing(documents, { "catsegs", "motiftypes", "padsizes", "detection_elements", "bergs" });
   }
+}
+
+void GenerateImpl4(std::map<std::string, std::unique_ptr<InputWrapper>>& documents)
+{
+  return GenerateImpl3(documents, "impl4");
 }
 
 int main(int argc, char* argv[])
@@ -215,8 +231,8 @@ int main(int argc, char* argv[])
     GenerateImpl2(documents);
   } else if (implToUse == 3) {
     GenerateImpl3(documents);
+  } else if (implToUse == 4) {
+    GenerateImpl4(documents);
   }
-
   return 0;
 }
-
