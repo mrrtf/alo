@@ -7097,15 +7097,6 @@
                         "motifLabel(TBR)": "2NF-6"
                     },
                     {
-                        "fec": 1269,
-                        "x": 47.375,
-                        "y": 95.5,
-                        "motif(TBR)": 203,
-                        "motiftype": 87,
-                        "padsize": 11,
-                        "motifLabel(TBR)": "2Ni1-11"
-                    },
-                    {
                         "fec": 1034,
                         "x": 50.375,
                         "y": -0.5,

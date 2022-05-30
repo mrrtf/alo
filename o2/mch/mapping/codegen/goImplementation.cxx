@@ -162,7 +162,7 @@ void generateCodeForCathodeSegmentationCreator(int segType, std::string codeForB
   std::string creatorName{ "createSegType" + std::to_string(segType) };
   code << "package impl4\n\n";
 
-  code << "import \"github.com/aphecetche/pigiron/mapping\"\n";
+  code << "import \"gitlab.cern.ch/alice-muon/mch-mapping-api/internal/mapping\"\n";
 
   code << "type " << creatorName << " struct{}\n\n";
 
