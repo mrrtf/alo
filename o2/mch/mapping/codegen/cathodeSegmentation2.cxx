@@ -51,10 +51,13 @@ int detElemId2SegType(int detElemId)
   impl << generateCodeForCatSegTypeArray(catsegs, detection_elements);
 
   impl << R"(
-  int detElemIndex = std::distance(detElemIndexToDetElemId.begin(),
-                                   std::find(detElemIndexToDetElemId.begin(), detElemIndexToDetElemId.end(),
-                                             detElemId));
-  return (detElemIndex>=0 && detElemIndex<156) ? detElemIndexToSegType[detElemIndex] : -1;
+  int detElemIndex =
+    std::distance(detElemIndexToDetElemId.begin(),
+                  std::find(detElemIndexToDetElemId.begin(),
+                            detElemIndexToDetElemId.end(), detElemId));
+  return (detElemIndex>=0 && detElemIndex<156) 
+           ? detElemIndexToSegType[detElemIndex] 
+           : -1;
 }
   )";
   return impl.str();
@@ -166,15 +169,15 @@ void generateCodeForCathodeSegmentationCreator(const std::string& ns, int segTyp
   impl << "CathodeSegmentation* " << creatorName << "(bool isBendingPlane) {\n";
 
   impl << "  if (isBendingPlane) { \n";
-  impl << "    return new CathodeSegmentation{" << segType << ",true," << codeForBendingCtor << "};\n}\n";
+  impl << "    return new CathodeSegmentation{\n" << segType << ",\ntrue," << codeForBendingCtor << "};\n}\n";
   impl << "  else {\n ";
-  impl << "   return new CathodeSegmentation{" << segType << ",false," << codeForNonBendingCtor << "};\n}\n";
+  impl << "   return new CathodeSegmentation{\n" << segType << ",\nfalse," << codeForNonBendingCtor << "};\n}\n";
   impl << "}\n";
 
   auto registerName = "CathodeSegmentationCreatorRegisterC" + creatorName.substr(1);
   impl << "class " << registerName << "{ \n";
-  impl << "  public:\n  " << registerName << "() { registerCathodeSegmentationCreator(" << segType << "," << creatorName
-       << "); }\n";
+  impl << "  public:\n  " << registerName << "()\n {\n registerCathodeSegmentationCreator(" << segType << "," << creatorName
+       << ");\n }\n";
   impl << "} a" << registerName << ";\n";
 
   impl << mappingNamespaceEnd(ns);

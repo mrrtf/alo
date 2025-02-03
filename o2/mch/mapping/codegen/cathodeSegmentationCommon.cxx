@@ -43,9 +43,13 @@ std::string generateCodeForDetElemIdArray(const rapidjson::Value &detection_elem
   std::sort(deids.begin(), deids.end());
 
   impl << "\n  const std::array<int," << deids.size() << "> detElemIndexToDetElemId{ \n";
+  int nDeIdsPerRow{ 12 };
   for (auto i = 0; i < deids.size(); ++i) {
     impl << deids[i];
     if (i < deids.size() - 1) { impl << ","; }
+    if ((i % nDeIdsPerRow) == (nDeIdsPerRow - 1)) {
+      impl << "\n";
+    }
   }
   impl << "};\n";
   return impl.str();
@@ -55,8 +59,9 @@ std::string generateCodeForCatSegTypeArray(const Value &catsegs, const Value &de
 {
   std::ostringstream impl;
 
-  impl << "\n  const std::array<int," << detection_elements.Size() << "> detElemIndexToSegType{";
+  impl << "\n  const std::array<int," << detection_elements.Size() << "> detElemIndexToSegType{\n";
 
+  int nDeIdxPerRow{ 18 };
   for (int ide = 0; ide < detection_elements.GetArray().Size(); ++ide) {
     const auto &de = detection_elements.GetArray()[ide];
     for (int i = 0; i < catsegs.Size(); ++i) {
@@ -64,6 +69,9 @@ std::string generateCodeForCatSegTypeArray(const Value &catsegs, const Value &de
       if (!strcmp(seg["segtype"].GetString(), de["segtype"].GetString())) {
         impl << i;
         if (ide < detection_elements.GetArray().Size() - 1) { impl << ","; }
+        if ((ide % nDeIdxPerRow) == (nDeIdxPerRow - 1)) {
+          impl << "\n";
+        }
         break;
       }
     }
